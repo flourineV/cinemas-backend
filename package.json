@@ -1,0 +1,23 @@
+{
+  "name": "cinemas-backend",
+  "version": "1.0.0",
+  "description": "Cinema microservices backend",
+  "scripts": {
+    "dev:auth": "cd services/auth-service && npm run dev",
+    "dev:catalog": "cd services/catalog-service && npm run dev", 
+    "dev:gateway": "cd api-gateway && npm run dev",
+    "install:all": "npm run install:auth && npm run install:catalog && npm run install:gateway",
+    "install:auth": "cd services/auth-service && npm install",
+    "install:catalog": "cd services/catalog-service && npm install",
+    "install:gateway": "cd api-gateway && npm install",
+    "build:all": "npm run build:auth && npm run build:catalog && npm run build:gateway",
+    "build:auth": "cd services/auth-service && npm run build",
+    "build:catalog": "cd services/catalog-service && npm run build", 
+    "build:gateway": "cd api-gateway && npm run build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "author": "",
+  "license": "ISC"
+}
