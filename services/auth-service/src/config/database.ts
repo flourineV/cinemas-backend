@@ -19,7 +19,7 @@ export const AppDataSource = new DataSource({
   ssl: {
     rejectUnauthorized: false,
   },
-  synchronize: process.env.NODE_ENV === "development", // Chỉ bật synchronize trong môi trường development
+  synchronize: process.env.NODE_ENV === "development", // turn on synchronize only in development environment
   logging: process.env.NODE_ENV === "development",
   entities: [User, RefreshToken, PasswordResetToken],
   subscribers: [],

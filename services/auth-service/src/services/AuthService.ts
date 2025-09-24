@@ -60,10 +60,10 @@ export class AuthService {
     let user: User;
 
     if (data instanceof User) {
-      // Trường hợp login lại từ refresh token
+      // Log in again from refresh token
       user = data;
     } else {
-      // Trường hợp login bằng email + password
+      // Log in with email + password
       const foundUser = await this.userRepository.findByEmail(data.email);
       if (!foundUser) {
         throw new ServiceError(ServiceErrorType.USER_NOT_FOUND, 404);
@@ -77,7 +77,7 @@ export class AuthService {
         throw new ServiceError(ServiceErrorType.INVALID_PASSWORD, 401);
       }
 
-      user = foundUser; // gán vào đây sau khi chắc chắn không null
+      user = foundUser;
     }
 
     // Generate tokens
@@ -102,7 +102,7 @@ export class AuthService {
       jwtConfig.refreshToken.signOptions
     );
 
-    // Lưu refresh token vào DB
+    // Store refresh token in DB
     await this.refreshTokenRepository.create({
       userId: user.id,
       token: refreshToken,
@@ -130,7 +130,7 @@ export class AuthService {
         throw new ServiceError(ServiceErrorType.USER_NOT_FOUND, 404);
       }
 
-      // Chỉ gọi login thôi
+      // Call login again
       return this.login(user);
     } catch (e) {
       throw new ServiceError(ServiceErrorType.INVALID_REFRESH_TOKEN, 403);

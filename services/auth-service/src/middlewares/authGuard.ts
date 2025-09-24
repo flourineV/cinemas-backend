@@ -12,7 +12,7 @@ declare global {
   }
 }
 
-// Middleware để bảo vệ route /me
+// Middleware to protect route /me
 export const JwtAuthGuard = (
   req: Request,
   res: Response,
@@ -25,7 +25,7 @@ export const JwtAuthGuard = (
       if (err || !user) {
         res.status(401).json({
           message: "Unauthorized",
-          error: "Vui lòng đăng nhập để truy cập",
+          error: "Please log in to access",
         });
         return;
       }

@@ -4,6 +4,7 @@ import { AuthService } from "../services/AuthService";
 export class AuthController {
   private static authService = new AuthService();
 
+  // Sign up new user
   static async register(req: Request, res: Response, next: NextFunction) {
     try {
       // get data request body
@@ -42,7 +43,7 @@ export class AuthController {
     try {
       const { email, password } = req.body;
 
-      // Đăng nhập và lấy tokens
+      //Log in and get user info and tokens
       const result = await AuthController.authService.login({
         email,
         password,

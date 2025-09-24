@@ -32,7 +32,7 @@ const defaultConfig = {
   },
 };
 
-// Kiểm tra các biến môi trường bắt buộc
+// check required environment variables
 if (!process.env.JWT_ACCESS_SECRET) {
   throw new Error("JWT_ACCESS_SECRET is not defined in environment variables");
 }
