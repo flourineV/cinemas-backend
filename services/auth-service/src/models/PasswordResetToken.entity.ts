@@ -14,13 +14,12 @@ export class PasswordResetToken {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  // Quan hệ với bảng users
   @ManyToOne(() => User, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })
   user: User;
 
   @Column({ name: "user_id" })
-  userId: string; // lưu raw user_id cho tiện query
+  userId: string;
 
   @Column("text")
   token: string;
