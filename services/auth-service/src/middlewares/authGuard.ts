@@ -25,7 +25,7 @@ export const JwtAuthGuard = (
       if (err || !user) {
         res.status(401).json({
           message: "Unauthorized",
-          error: "Please log in to access",
+          error: "Please log in to access this resource",
         });
         return;
       }

@@ -90,4 +90,19 @@ export class AuthController {
       next(error);
     }
   }
+
+  static async getMe(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      return res.status(200).json({
+        success: true,
+        user: req.user, // chính là payload từ access token
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "Something went wrong" });
+    }
+  }
 }
