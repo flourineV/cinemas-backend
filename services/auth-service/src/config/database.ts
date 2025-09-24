@@ -2,6 +2,8 @@ import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { User } from "../models/User.entity";
 import dotenv from "dotenv";
+import { RefreshToken } from "../models/Refesh_token.entity";
+import { PasswordResetToken } from "../models/Password_reset_token.entity";
 
 // Load environment variables
 dotenv.config();
@@ -19,7 +21,7 @@ export const AppDataSource = new DataSource({
   },
   synchronize: process.env.NODE_ENV === "development", // Chỉ bật synchronize trong môi trường development
   logging: process.env.NODE_ENV === "development",
-  entities: [User],
+  entities: [User, RefreshToken, PasswordResetToken],
   subscribers: [],
   migrations: [],
 });
