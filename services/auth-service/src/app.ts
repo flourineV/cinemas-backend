@@ -1,9 +1,15 @@
 import express from "express";
+import cors from "cors";
 import { AppDataSource } from "./config/database";
-//import authRoutes from "./routes/auth.routes";
+import authRoutes from "./routes/auth.route";
 import { errorHandler } from "./middlewares/errorHandler";
+import { serviceErrorHandler } from "./middlewares/serviceErrorHandler";
 
 const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
 
 // Initialize database connection
 AppDataSource.initialize()
@@ -28,8 +34,11 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use(express.json());
-//app.use("/auth", authRoutes);
+// Routes
+app.use("/api/auth", authRoutes);
+
+// Error handling middleware
+app.use(serviceErrorHandler);
 app.use(errorHandler);
 
 export default app;

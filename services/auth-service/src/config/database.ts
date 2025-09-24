@@ -2,8 +2,8 @@ import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { User } from "../models/User.entity";
 import dotenv from "dotenv";
-import { RefreshToken } from "../models/Refesh_token.entity";
-import { PasswordResetToken } from "../models/Password_reset_token.entity";
+import { RefreshToken } from "../models/RefeshToken.entity";
+import { PasswordResetToken } from "../models/PasswordResetToken.entity";
 
 // Load environment variables
 dotenv.config();

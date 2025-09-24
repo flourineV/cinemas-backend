@@ -1,4 +1,4 @@
-import { DataSource, Repository } from "typeorm";
+import { DataSource, Repository, FindOptionsWhere } from "typeorm";
 import { User } from "../models/User.entity";
 
 export class UserRepository {
@@ -25,6 +25,10 @@ export class UserRepository {
     return await this.repository.findOne({ where: { username } });
   }
 
+  async findByPhoneNumber(phoneNumber: string): Promise<User | null> {
+    return await this.repository.findOne({ where: { phoneNumber } });
+  }
+
   async update(id: string, userData: Partial<User>): Promise<User | null> {
     await this.repository.update(id, userData);
     return this.findById(id);
@@ -32,5 +36,23 @@ export class UserRepository {
 
   async delete(id: string): Promise<void> {
     await this.repository.delete(id);
+  }
+
+  async existsByAny(where: FindOptionsWhere<User>): Promise<boolean> {
+    const count = await this.repository.count({ where });
+    return count > 0;
+  }
+
+  async validateCredentials(
+    identifier: string,
+    passwordHash: string
+  ): Promise<User | null> {
+    return await this.repository.findOne({
+      where: [
+        { email: identifier, passwordHash },
+        { username: identifier, passwordHash },
+        { phoneNumber: identifier, passwordHash },
+      ],
+    });
   }
 }
