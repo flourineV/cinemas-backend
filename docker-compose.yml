@@ -1,19 +1,19 @@
-version: '3.8'
-
 services:
   # API Gateway
   api-gateway:
     build:
-      context: ./api-gateway
+      context: ./services/cinema-gateway
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=development
       - PORT=3000
+      - JWT_SECRET=your-super-secret-jwt-key-for-auth-service
       - AUTH_SERVICE_URL=http://auth-service:3001
       - CATALOG_SERVICE_URL=http://catalog-service:3002
-      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+      - REQUEST_TIMEOUT_MS=8000
     depends_on:
       - auth-service
       - catalog-service
