@@ -8,7 +8,7 @@ import { PasswordResetToken } from "../models/PasswordResetToken.entity";
 // Load environment variables
 dotenv.config();
 
-// Khởi tạo kết nối database
+// Connect to database
 export const AppDataSource = new DataSource({
   type: "postgres",
   host: process.env.DB_HOST,

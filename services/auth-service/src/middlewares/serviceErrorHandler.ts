@@ -10,6 +10,7 @@ export enum ServiceErrorType {
   NATIONAL_ID_EXISTS = "NATIONAL_ID_EXISTS",
   INVALID_TOKEN = "INVALID_TOKEN",
   INVALID_REFRESH_TOKEN = "INVALID_REFRESH_TOKEN",
+  INVALID_EMAIL = "INVALID_EMAIL",
 }
 
 // Error class for service
@@ -33,6 +34,7 @@ const errorMessages = {
   [ServiceErrorType.NATIONAL_ID_EXISTS]: "National ID already exists",
   [ServiceErrorType.INVALID_TOKEN]: "Invalid token",
   [ServiceErrorType.INVALID_REFRESH_TOKEN]: "Invalid refresh token",
+  [ServiceErrorType.INVALID_EMAIL]: "Invalid email format",
 };
 
 // Middleware execute error

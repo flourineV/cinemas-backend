@@ -35,6 +35,11 @@ export class AuthService {
       role: string;
     };
   }> {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // Validate email format
+    if (!emailRegex.test(data.email)) {
+      throw new ServiceError(ServiceErrorType.INVALID_EMAIL);
+    }
     // Check unique fields
     if (await this.userRepository.findByEmail(data.email)) {
       throw new ServiceError(ServiceErrorType.EMAIL_EXISTS);
