@@ -4,12 +4,13 @@ import { AppDataSource } from "./config/database";
 import authRoutes from "./routes/auth.route";
 import { errorHandler } from "./middlewares/errorHandler";
 import { serviceErrorHandler } from "./middlewares/serviceErrorHandler";
-
+import cookieParser from "cookie-parser";
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 // Initialize database connection
 AppDataSource.initialize()

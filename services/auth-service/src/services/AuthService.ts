@@ -27,6 +27,7 @@ export class AuthService {
     nationalId?: string;
   }): Promise<{
     accessToken: string;
+    refreshToken: string;
     tokenType: string;
     user: {
       id: string;
@@ -57,9 +58,10 @@ export class AuthService {
 
     // Generate tokens same as login
     const tokens = await this.generateTokens(user);
-
+    // Trong AuthService.ts
     return {
       accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
       tokenType: "Bearer",
       user: {
         id: user.id,
@@ -71,6 +73,7 @@ export class AuthService {
 
   async login(data: { email: string; password: string } | User): Promise<{
     accessToken: string;
+    refreshToken: string;
     tokenType: string;
     user: {
       id: string;
@@ -106,6 +109,7 @@ export class AuthService {
 
     return {
       accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
       tokenType: "Bearer",
       user: {
         id: user.id,

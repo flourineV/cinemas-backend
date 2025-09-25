@@ -21,8 +21,17 @@ export class AuthController {
       });
 
       // Return successful response (format giống login)
-      return res.status(201).json({
-        data: result,
+      res.cookie("refreshToken", result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 1000 * 60 * 60, // 1h
+      });
+
+      return res.status(200).json({
+        accessToken: result.accessToken,
+        tokenType: result.tokenType,
+        user: result.user,
       });
     } catch (error) {
       // Pass error to handler middleware
@@ -38,6 +47,13 @@ export class AuthController {
       const result = await AuthController.authService.login({
         email,
         password,
+      });
+
+      res.cookie("refreshToken", result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 1000 * 60 * 60, // 1h
       });
 
       return res.status(200).json({
@@ -83,7 +99,7 @@ export class AuthController {
       }
 
       return res.status(200).json({
-        user: req.user, // payload added in auth middleware
+        user: req.user, //Payload add to req by authMiddleware
       });
     } catch (error) {
       return res.status(500).json({ message: "Something went wrong" });
