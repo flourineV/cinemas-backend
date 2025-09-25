@@ -25,7 +25,15 @@ export class AuthService {
     password: string;
     phoneNumber: string;
     nationalId?: string;
-  }): Promise<User> {
+  }): Promise<{
+    accessToken: string;
+    tokenType: string;
+    user: {
+      id: string;
+      username: string;
+      role: string;
+    };
+  }> {
     // Check unique fields
     if (await this.userRepository.findByEmail(data.email)) {
       throw new ServiceError(ServiceErrorType.EMAIL_EXISTS);
@@ -47,14 +55,27 @@ export class AuthService {
       role: UserRole.USER, // Default is USER
     });
 
-    return user;
+    // Generate tokens same as login
+    const tokens = await this.generateTokens(user);
+
+    return {
+      accessToken: tokens.accessToken,
+      tokenType: "Bearer",
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+      },
+    };
   }
 
   async login(data: { email: string; password: string } | User): Promise<{
-    user: User;
-    tokens: {
-      accessToken: string;
-      refreshToken: string;
+    accessToken: string;
+    tokenType: string;
+    user: {
+      id: string;
+      username: string;
+      role: string;
     };
   }> {
     let user: User;
@@ -83,7 +104,15 @@ export class AuthService {
     // Generate tokens
     const tokens = await this.generateTokens(user);
 
-    return { user, tokens };
+    return {
+      accessToken: tokens.accessToken,
+      tokenType: "Bearer",
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+      },
+    };
   }
 
   async generateTokens(user: User): Promise<{

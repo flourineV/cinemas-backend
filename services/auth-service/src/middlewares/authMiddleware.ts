@@ -16,7 +16,7 @@ export function authMiddleware(
 
   try {
     const decoded = jwt.verify(token, jwtConfig.accessToken.secret);
-    (req as any).user = decoded; // gán payload vào req.user
+    (req as any).user = decoded; // Attach payload to request object
     next();
   } catch (err) {
     return res.status(403).json({ message: "Forbidden" });

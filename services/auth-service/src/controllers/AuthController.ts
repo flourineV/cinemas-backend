@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthService } from "../services/AuthService";
+import { access } from "fs";
 
 export class AuthController {
   private static authService = new AuthService();
@@ -7,11 +8,11 @@ export class AuthController {
   // Sign up new user
   static async register(req: Request, res: Response, next: NextFunction) {
     try {
-      // get data request body
+      // get data from request body
       const { email, username, password, phoneNumber, nationalId } = req.body;
 
-      // Call service to process logic
-      const user = await AuthController.authService.register({
+      // Call service
+      const result = await AuthController.authService.register({
         email,
         username,
         password,
@@ -19,19 +20,9 @@ export class AuthController {
         nationalId,
       });
 
-      // Return successful response
+      // Return successful response (format giống login)
       return res.status(201).json({
-        success: true,
-        message: "User registered successfully",
-        data: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          phoneNumber: user.phoneNumber,
-          nationalId: user.nationalId,
-          role: user.role,
-          createdAt: user.createdAt,
-        },
+        data: result,
       });
     } catch (error) {
       // Pass error to handler middleware
@@ -50,12 +41,9 @@ export class AuthController {
       });
 
       return res.status(200).json({
-        success: true,
-        message: "Login successful",
-        tokens: {
-          accessToken: result.tokens.accessToken,
-          refreshToken: result.tokens.refreshToken,
-        },
+        accessToken: result.accessToken,
+        tokenType: result.tokenType,
+        user: result.user,
       });
     } catch (error: unknown) {
       next(error);
@@ -69,21 +57,18 @@ export class AuthController {
         return res.status(400).json({ message: "Refresh token is required" });
       }
 
-      const { user, tokens } =
+      const { accessToken, user } =
         await AuthController.authService.refresh(refreshToken);
 
       return res.status(200).json({
-        success: true,
-        message: "Token refreshed successfully",
-        user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          role: user.role,
-        },
-        tokens: {
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
+        data: {
+          accessToken,
+          tokenType: "Bearer",
+          user: {
+            id: user.id,
+            username: user.username,
+            role: user.role,
+          },
         },
       });
     } catch (error) {
@@ -98,8 +83,7 @@ export class AuthController {
       }
 
       return res.status(200).json({
-        success: true,
-        user: req.user, // chính là payload từ access token
+        user: req.user, // payload added in auth middleware
       });
     } catch (error) {
       return res.status(500).json({ message: "Something went wrong" });
