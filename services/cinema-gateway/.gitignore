@@ -1,0 +1,17 @@
+# build & deps
+/node_modules
+/dist
+
+# env (giữ .env.example)
+.env
+.env.*
+
+# logs
+*.log
+logs/
+
+# editor
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
