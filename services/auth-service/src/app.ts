@@ -7,18 +7,18 @@ import { serviceErrorHandler } from "./middlewares/serviceErrorHandler";
 import cookieParser from "cookie-parser";
 const app = express();
 
-// Middleware
+//Middleware
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
-// Initialize database connection
+//Database connection
 AppDataSource.initialize()
   .then(() => {
-    console.log("✅ Database connected successfully");
+    console.log("Database connected successfully");
   })
   .catch((error) => {
-    console.error("❌ Error connecting to database. Details:", {
+    console.error("Error connecting to database. Details:", {
       message: error.message,
       code: error.code,
       stack: error.stack,

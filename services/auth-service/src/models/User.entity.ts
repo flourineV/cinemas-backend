@@ -17,10 +17,10 @@ export class User {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ length: 100, unique: true })
+  @Column({ name: "email", length: 100, unique: true })
   email: string;
 
-  @Column({ length: 50, unique: true })
+  @Column({ name: "username", length: 30, unique: true })
   username: string;
 
   @Column({ name: "phone_number", length: 15, unique: true })

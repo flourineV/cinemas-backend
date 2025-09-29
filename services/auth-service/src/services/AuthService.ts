@@ -22,9 +22,10 @@ export class AuthService {
   async register(data: {
     email: string;
     username: string;
-    password: string;
     phoneNumber: string;
-    nationalId?: string;
+    nationalId: string;
+    password: string;
+    confirmPassword: string;
   }): Promise<{
     accessToken: string;
     refreshToken: string;
@@ -36,7 +37,8 @@ export class AuthService {
     };
   }> {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    // Validate email format
+
+    //Validate Email
     if (!emailRegex.test(data.email)) {
       throw new ServiceError(ServiceErrorType.INVALID_EMAIL);
     }
@@ -49,6 +51,15 @@ export class AuthService {
     }
     if (await this.userRepository.findByPhoneNumber(data.phoneNumber)) {
       throw new ServiceError(ServiceErrorType.PHONE_EXISTS);
+    }
+    if (data.password !== data.confirmPassword) {
+        throw new ServiceError(ServiceErrorType.PASSWORD_MISMATCH); // Cần định nghĩa ServiceErrorType.PASSWORD_MISMATCH
+    }
+    if (data.password.length < 8) {
+        throw new ServiceError(ServiceErrorType.WEAK_PASSWORD); // Cần định nghĩa ServiceErrorType.WEAK_PASSWORD
+    }
+    if (await this.userRepository.findByNationalId(data.nationalId)){
+      throw new ServiceError(ServiceErrorType.NATIONAL_ID_EXISTS);
     }
 
     // Create new user
@@ -76,7 +87,7 @@ export class AuthService {
     };
   }
 
-  async login(data: { email: string; password: string } | User): Promise<{
+  async login(data: { usernameOrEmailOrPhone: string; password: string } | User): Promise<{
     accessToken: string;
     refreshToken: string;
     tokenType: string;
@@ -93,7 +104,7 @@ export class AuthService {
       user = data;
     } else {
       // Log in with email + password
-      const foundUser = await this.userRepository.findByEmail(data.email);
+      const foundUser = await this.userRepository.findByEmail(data.usernameOrEmailOrPhone);
       if (!foundUser) {
         throw new ServiceError(ServiceErrorType.USER_NOT_FOUND, 404);
       }

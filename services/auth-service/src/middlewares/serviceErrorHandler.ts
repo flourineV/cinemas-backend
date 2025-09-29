@@ -3,14 +3,22 @@ import { Request, Response, NextFunction } from "express";
 // Type of error service
 export enum ServiceErrorType {
   USER_NOT_FOUND = "USER_NOT_FOUND",
-  INVALID_PASSWORD = "INVALID_PASSWORD",
+
+  //Exists
   EMAIL_EXISTS = "EMAIL_EXISTS",
   USERNAME_EXISTS = "USERNAME_EXISTS",
   PHONE_EXISTS = "PHONE_EXISTS",
   NATIONAL_ID_EXISTS = "NATIONAL_ID_EXISTS",
+
+  //Invalid information
   INVALID_TOKEN = "INVALID_TOKEN",
   INVALID_REFRESH_TOKEN = "INVALID_REFRESH_TOKEN",
   INVALID_EMAIL = "INVALID_EMAIL",
+  INVALID_PASSWORD = "INVALID_PASSWORD",
+
+  //Password 
+  PASSWORD_MISMATCH = "PASSWORD_MISMATCH",
+  WEAK_PASSWORD = "WEAK_PASSWORD"
 }
 
 // Error class for service
@@ -35,6 +43,8 @@ const errorMessages = {
   [ServiceErrorType.INVALID_TOKEN]: "Invalid token",
   [ServiceErrorType.INVALID_REFRESH_TOKEN]: "Invalid refresh token",
   [ServiceErrorType.INVALID_EMAIL]: "Invalid email format",
+  [ServiceErrorType.PASSWORD_MISMATCH]: "Password mismatch",
+  [ServiceErrorType.WEAK_PASSWORD]: "Weak password",
 };
 
 // Middleware execute error
@@ -52,7 +62,5 @@ export const serviceErrorHandler = (
       error: err.type,
     });
   }
-
-  // If not a service error, pass to general error handler
   next(err);
 };

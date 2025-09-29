@@ -9,15 +9,16 @@ export class AuthController {
   static async register(req: Request, res: Response, next: NextFunction) {
     try {
       // get data from request body
-      const { email, username, password, phoneNumber, nationalId } = req.body;
+      const { email, username, phoneNumber, nationalId, password, confirmPassword } = req.body;
 
       // Call service
       const result = await AuthController.authService.register({
         email,
         username,
-        password,
         phoneNumber,
         nationalId,
+        password,
+        confirmPassword,
       });
 
       // Return successful response (format giống login)
@@ -41,11 +42,11 @@ export class AuthController {
 
   static async login(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email, password } = req.body;
+      const { usernameOrEmailOrPhone, password } = req.body;
 
       //Log in and get user info and tokens
       const result = await AuthController.authService.login({
-        email,
+        usernameOrEmailOrPhone,
         password,
       });
 

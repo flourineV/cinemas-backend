@@ -25,6 +25,10 @@ export class UserRepository {
     return await this.repository.findOne({ where: { username } });
   }
 
+  async findByNationalId(nationalId: string): Promise<User | null>{
+    return await this.repository.findOne({where : {nationalId}});
+  }
+
   async findByPhoneNumber(phoneNumber: string): Promise<User | null> {
     return await this.repository.findOne({ where: { phoneNumber } });
   }
