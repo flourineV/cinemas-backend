@@ -1,12 +1,8 @@
 import { AppDataSource } from "../config/database";
 import { UserProfileRepository } from "../repositories/UserProfileRepository";
 import { UserProfile } from "../models/UserProfile.entity";
-// import {
-//   ServiceError,
-//   ServiceErrorType,
-// } from "../middlewares/serviceErrorHandler";
 
-export class AuthService {
+export class UserProfileService {
   private userProfileRepository: UserProfileRepository;
 
   constructor() {

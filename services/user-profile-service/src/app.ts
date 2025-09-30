@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { AppDataSource } from "./config/database";
 import { errorHandler } from "./middlewares/errorHandler";
+import userProfileRoutes from "./routes/user_profile.route";
 const app = express();
 
 //Middleware
@@ -23,18 +24,18 @@ AppDataSource.initialize()
     process.exit(1);  });
 
 // Health check route
-// app.get("/", (req, res) => {
-//   res.json({
-//     status: "OK",
-//     service: "Auth Service",
-//     timestamp: new Date().toISOString(),
-//   });
-// });
+app.get("/", (req, res) => {
+  res.json({
+    status: "OK",
+    service: "User Profile Service",
+    timestamp: new Date().toISOString(),
+  });
+});
 
 app.use(express.json());
 
 // Routes
-//app.use("/api/auth", authRoutes);
+app.use("/api/user-profiles", userProfileRoutes);
 
 // Error handling middleware
 //app.use(serviceErrorHandler);

@@ -1,12 +1,17 @@
-import { Router } from "express";
-//import { AuthController } from "../controllers/AuthController";
-//import { authMiddleware } from "../middlewares/authMiddleware";
+import express from "express";
+import { UserProfileController } from "../controllers/UserProfileController";
 
-const router = Router();
+const router = express.Router();
 
-// router.post("/register", AuthController.register);
-// router.post("/login", AuthController.login);
-// router.post("/refresh-token", AuthController.refreshToken);
-// router.get("/me", authMiddleware, AuthController.getMe);
+router.post("/", UserProfileController.createProfile);
+router.get("/:userId", UserProfileController.getProfile);
+router.get("/identifier/:identifier", UserProfileController.getProfileByIdentifier);
+router.get("/", UserProfileController.getAllProfiles);
+router.get("/active", UserProfileController.getActiveProfiles);
+router.put("/:userId", UserProfileController.updateProfile);
+router.delete("/:userId", UserProfileController.deleteProfile);
+router.get("/search", UserProfileController.searchProfilesByName);
+router.post("/:userId/points/add", UserProfileController.addLoyaltyPoints);
+router.put("/:userId/points/update", UserProfileController.updateLoyaltyPoints);
 
 export default router;
