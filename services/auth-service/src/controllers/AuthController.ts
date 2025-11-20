@@ -1,108 +1,114 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthService } from "../services/AuthService";
-import { access } from "fs";
+import { SignUpRequest } from "../dtos/request/SignUpRequest";
+import { SignInRequest } from "../dtos/request/SignInRequest";
+import { JwtResponse } from "../dtos/response/JwtResponse";
 
 export class AuthController {
-  private static authService = new AuthService();
+  private authService: AuthService;
+  private includeAccessTokenInBody: boolean;
 
-  // Sign up new user
-  static async register(req: Request, res: Response, next: NextFunction) {
-    try {
-      // get data from request body
-      const { email, username, password, phoneNumber, nationalId } = req.body;
-
-      // Call service
-      const result = await AuthController.authService.register({
-        email,
-        username,
-        password,
-        phoneNumber,
-        nationalId,
-      });
-
-      // Return successful response (format giống login)
-      res.cookie("refreshToken", result.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 1000 * 60 * 60, // 1h
-      });
-
-      return res.status(200).json({
-        accessToken: result.accessToken,
-        tokenType: result.tokenType,
-        user: result.user,
-      });
-    } catch (error) {
-      // Pass error to handler middleware
-      next(error);
-    }
+  constructor(authService: AuthService) {
+    this.authService = authService;
+    this.includeAccessTokenInBody =
+      process.env.INCLUDE_ACCESS_TOKEN_IN_BODY === "true";
   }
 
-  static async login(req: Request, res: Response, next: NextFunction) {
+  async registerUser(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email, password } = req.body;
+      const body: SignUpRequest = req.body;
+      const jwtResponse = await this.authService.signUp(body);
 
-      //Log in and get user info and tokens
-      const result = await AuthController.authService.login({
-        email,
-        password,
-      });
+      this.setRefreshTokenCookie(res, jwtResponse.refreshToken);
+      this.setAccessTokenCookie(res, jwtResponse.accessToken);
 
-      res.cookie("refreshToken", result.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 1000 * 60 * 60, // 1h
-      });
+      const responseBody: Partial<JwtResponse> = {
+        tokenType: "Bearer",
+        user: jwtResponse.user,
+      };
 
-      return res.status(200).json({
-        accessToken: result.accessToken,
-        tokenType: result.tokenType,
-        user: result.user,
-      });
-    } catch (error: unknown) {
-      next(error);
-    }
-  }
-
-  static async refreshToken(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { refreshToken } = req.body;
-      if (!refreshToken) {
-        return res.status(400).json({ message: "Refresh token is required" });
+      if (this.includeAccessTokenInBody) {
+        responseBody.accessToken = jwtResponse.accessToken;
       }
 
-      const { accessToken, user } =
-        await AuthController.authService.refresh(refreshToken);
-
-      return res.status(200).json({
-        data: {
-          accessToken,
-          tokenType: "Bearer",
-          user: {
-            id: user.id,
-            username: user.username,
-            role: user.role,
-          },
-        },
-      });
-    } catch (error) {
-      next(error);
+      res.json(responseBody);
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async getMe(req: Request, res: Response) {
+  async authenticateUser(req: Request, res: Response, next: NextFunction) {
     try {
-      if (!req.user) {
-        return res.status(401).json({ message: "Unauthorized" });
+      const body: SignInRequest = req.body;
+      const jwtResponse = await this.authService.signIn(body);
+
+      this.setRefreshTokenCookie(res, jwtResponse.refreshToken);
+      this.setAccessTokenCookie(res, jwtResponse.accessToken);
+
+      const responseBody: Partial<JwtResponse> = {
+        tokenType: "Bearer",
+        user: jwtResponse.user,
+      };
+
+      if (this.includeAccessTokenInBody) {
+        responseBody.accessToken = jwtResponse.accessToken;
       }
 
-      return res.status(200).json({
-        user: req.user, //Payload add to req by authMiddleware
-      });
-    } catch (error) {
-      return res.status(500).json({ message: "Something went wrong" });
+      res.json(responseBody);
+    } catch (err) {
+      next(err);
     }
+  }
+
+  async logoutUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const refreshToken = req.cookies?.refreshToken;
+      if (refreshToken) {
+        await this.authService.signOut(refreshToken);
+      }
+
+      this.clearRefreshTokenCookie(res);
+      this.clearAccessTokenCookie(res);
+
+      res.json({ message: "Log out successful!" });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  private setAccessTokenCookie(res: Response, accessToken: string) {
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: false,
+      path: "/",
+      maxAge: 15 * 60 * 1000, // 15 phút
+    });
+  }
+
+  private setRefreshTokenCookie(res: Response, refreshToken: string) {
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false,
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+    });
+  }
+
+  private clearRefreshTokenCookie(res: Response) {
+    res.cookie("refreshToken", "", {
+      httpOnly: true,
+      secure: false,
+      path: "/",
+      maxAge: 0,
+    });
+  }
+
+  private clearAccessTokenCookie(res: Response) {
+    res.cookie("accessToken", "", {
+      httpOnly: true,
+      secure: false,
+      path: "/",
+      maxAge: 0,
+    });
   }
 }

@@ -1,177 +1,120 @@
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { AppDataSource } from "../config/database";
+// src/services/AuthService.ts
+import { SignUpRequest } from "../dtos/request/SignUpRequest";
+import { SignInRequest } from "../dtos/request/SignInRequest";
+import { JwtResponse } from "../dtos/response/JwtResponse";
+import { UserResponse } from "../dtos/response/UserResponse";
 import { UserRepository } from "../repositories/UserRepository";
-import { RefreshTokenRepository } from "../repositories/RefreshTokenRepository";
-import { User, UserRole } from "../models/User.entity";
-import { jwtConfig } from "../config/jwt.config";
-import {
-  ServiceError,
-  ServiceErrorType,
-} from "../middlewares/serviceErrorHandler";
+import { RoleRepository } from "../repositories/RoleRepository";
+import { RefreshTokenService } from "./RefreshTokenService";
+import { JWT } from "../config/JWT";
+import bcrypt from "bcrypt";
 
 export class AuthService {
   private userRepository: UserRepository;
-  private refreshTokenRepository: RefreshTokenRepository;
+  private roleRepository: RoleRepository;
+  private refreshTokenService: RefreshTokenService;
+  private jwtUtil: JWT;
 
-  constructor() {
-    this.userRepository = new UserRepository(AppDataSource);
-    this.refreshTokenRepository = new RefreshTokenRepository(AppDataSource);
+  constructor(
+    userRepository: UserRepository,
+    roleRepository: RoleRepository,
+    refreshTokenService: RefreshTokenService,
+    jwtUtil: JWT
+  ) {
+    this.userRepository = userRepository;
+    this.roleRepository = roleRepository;
+    this.refreshTokenService = refreshTokenService;
+    this.jwtUtil = jwtUtil;
   }
 
-  async register(data: {
-    email: string;
-    username: string;
-    password: string;
-    phoneNumber: string;
-    nationalId?: string;
-  }): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    tokenType: string;
-    user: {
-      id: string;
-      username: string;
-      role: string;
-    };
-  }> {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    // Validate email format
-    if (!emailRegex.test(data.email)) {
-      throw new ServiceError(ServiceErrorType.INVALID_EMAIL);
-    }
-    // Check unique fields
-    if (await this.userRepository.findByEmail(data.email)) {
-      throw new ServiceError(ServiceErrorType.EMAIL_EXISTS);
-    }
-    if (await this.userRepository.findByUsername(data.username)) {
-      throw new ServiceError(ServiceErrorType.USERNAME_EXISTS);
-    }
-    if (await this.userRepository.findByPhoneNumber(data.phoneNumber)) {
-      throw new ServiceError(ServiceErrorType.PHONE_EXISTS);
+  // đăng ký
+  async signUp(request: SignUpRequest): Promise<JwtResponse> {
+    if (request.password !== request.confirmPassword) {
+      throw new Error("Password and confirm password do not match!");
     }
 
-    // Create new user
-    const user = await this.userRepository.create({
-      email: data.email,
-      username: data.username,
-      passwordHash: await bcrypt.hash(data.password, 10),
-      phoneNumber: data.phoneNumber,
-      nationalId: data.nationalId,
-      role: UserRole.USER, // Default is USER
+    if (await this.userRepository.existsByEmail(request.email)) {
+      throw new Error("Email is already taken!");
+    }
+    if (await this.userRepository.existsByUsername(request.username)) {
+      throw new Error("Username is already taken!");
+    }
+    if (await this.userRepository.existsByPhoneNumber(request.phoneNumber)) {
+      throw new Error("Phone number is already taken!");
+    }
+    if (await this.userRepository.existsByNationalId(request.nationalId)) {
+      throw new Error("National ID is already taken!");
+    }
+
+    const defaultRole = await this.roleRepository.findByName("customer");
+    if (!defaultRole) {
+      throw new Error("Default role not found");
+    }
+
+    const passwordHash = await bcrypt.hash(request.password, 10);
+
+    const user = await this.userRepository.save({
+      email: request.email,
+      username: request.username,
+      phoneNumber: request.phoneNumber,
+      nationalId: request.nationalId,
+      passwordHash,
+      role: defaultRole,
     });
 
-    // Generate tokens same as login
-    const tokens = await this.generateTokens(user);
-    // Trong AuthService.ts
-    return {
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      tokenType: "Bearer",
-      user: {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-      },
-    };
+    const accessToken = this.jwtUtil.generateAccessToken(
+      user.id,
+      user.role.name
+    );
+    const refreshToken =
+      await this.refreshTokenService.createRefreshToken(user);
+
+    return new JwtResponse(
+      accessToken,
+      refreshToken.token,
+      "Bearer",
+      UserResponse.fromEntity(user)
+    );
   }
 
-  async login(data: { email: string; password: string } | User): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    tokenType: string;
-    user: {
-      id: string;
-      username: string;
-      role: string;
-    };
-  }> {
-    let user: User;
-
-    if (data instanceof User) {
-      // Log in again from refresh token
-      user = data;
-    } else {
-      // Log in with email + password
-      const foundUser = await this.userRepository.findByEmail(data.email);
-      if (!foundUser) {
-        throw new ServiceError(ServiceErrorType.USER_NOT_FOUND, 404);
-      }
-
-      const isPasswordValid = await bcrypt.compare(
-        data.password,
-        foundUser.passwordHash
-      );
-      if (!isPasswordValid) {
-        throw new ServiceError(ServiceErrorType.INVALID_PASSWORD, 401);
-      }
-
-      user = foundUser;
+  // đăng nhập
+  async signIn(request: SignInRequest): Promise<JwtResponse> {
+    const user = await this.userRepository.findByEmailOrUsernameOrPhoneNumber(
+      request.usernameOrEmailOrPhone
+    );
+    if (!user) {
+      throw new Error("User not found");
     }
 
-    // Generate tokens
-    const tokens = await this.generateTokens(user);
-
-    return {
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      tokenType: "Bearer",
-      user: {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-      },
-    };
-  }
-
-  async generateTokens(user: User): Promise<{
-    accessToken: string;
-    refreshToken: string;
-  }> {
-    const accessToken = jwt.sign(
-      { userId: user.id, username: user.username, role: user.role },
-      jwtConfig.accessToken.secret,
-      jwtConfig.accessToken.signOptions
+    const validPassword = await bcrypt.compare(
+      request.password,
+      user.passwordHash
     );
-
-    const refreshToken = jwt.sign(
-      { userId: user.id },
-      jwtConfig.refreshToken.secret,
-      jwtConfig.refreshToken.signOptions
-    );
-
-    // Store refresh token in DB
-    await this.refreshTokenRepository.create({
-      userId: user.id,
-      token: refreshToken,
-      expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1h
-    });
-
-    return { accessToken, refreshToken };
-  }
-
-  async refresh(refreshToken: string) {
-    try {
-      const payload = jwt.verify(
-        refreshToken,
-        jwtConfig.refreshToken.secret
-      ) as jwt.JwtPayload;
-
-      const stored =
-        await this.refreshTokenRepository.findOneByToken(refreshToken);
-      if (!stored || stored.expiresAt < new Date()) {
-        throw new ServiceError(ServiceErrorType.INVALID_REFRESH_TOKEN, 403);
-      }
-
-      const user = await this.userRepository.findById(stored.userId);
-      if (!user) {
-        throw new ServiceError(ServiceErrorType.USER_NOT_FOUND, 404);
-      }
-
-      // Call login again
-      return this.login(user);
-    } catch (e) {
-      throw new ServiceError(ServiceErrorType.INVALID_REFRESH_TOKEN, 403);
+    if (!validPassword) {
+      throw new Error("Invalid credentials");
     }
+
+    if (user.status?.toUpperCase() === "BANNED") {
+      throw new Error("Account disabled");
+    }
+
+    const accessToken = this.jwtUtil.generateAccessToken(
+      user.id,
+      user.role.name
+    );
+    const refreshToken =
+      await this.refreshTokenService.createRefreshToken(user);
+
+    return new JwtResponse(
+      accessToken,
+      refreshToken.token,
+      "Bearer",
+      UserResponse.fromEntity(user)
+    );
+  }
+
+  // đăng xuất
+  async signOut(refreshTokenString: string): Promise<void> {
+    await this.refreshTokenService.deleteByToken(refreshTokenString);
   }
 }

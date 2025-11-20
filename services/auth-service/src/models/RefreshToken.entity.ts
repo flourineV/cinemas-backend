@@ -2,33 +2,27 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   ManyToOne,
-  JoinColumn,
+  CreateDateColumn,
 } from "typeorm";
 import { User } from "./User.entity";
-import "reflect-metadata";
 
-@Entity("password_reset_tokens")
-export class PasswordResetToken {
+// khai báo table Refresh Token
+@Entity("refresh_tokens")
+export class RefreshToken {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @ManyToOne(() => User, { onDelete: "CASCADE" })
-  @JoinColumn({ name: "user_id" })
+  @ManyToOne(() => User, (user) => user.refreshTokens, {
+    onDelete: "CASCADE",
+  })
   user: User;
-
-  @Column({ name: "user_id" })
-  userId: string;
 
   @Column("text")
   token: string;
 
   @Column({ name: "expires_at", type: "timestamp" })
   expiresAt: Date;
-
-  @Column({ name: "used_at", type: "timestamp", nullable: true })
-  usedAt?: Date;
 
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;
