@@ -46,6 +46,7 @@ export class AuthService {
       throw new Error("National ID is already taken!");
     }
 
+    // đang test
     const defaultRole = await this.roleRepository.findByName("customer");
     if (!defaultRole) {
       throw new Error("Default role not found");

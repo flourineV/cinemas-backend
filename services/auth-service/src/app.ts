@@ -7,6 +7,7 @@ import statsRoutes from "./routes/StatsRoutes";
 import passwordResetRoutes from "./routes/PasswordResetRoutes";
 import refreshTokenRoutes from "./routes/RefreshTokenRoutes";
 import { errorHandler } from "./middlewares/errorHandler";
+import { JwtMiddleware } from "./middlewares/JwtMiddleware";
 // import { serviceErrorHandler } from "./middlewares/serviceErrorHandler";
 import cookieParser from "cookie-parser";
 const app = express();
@@ -39,10 +40,11 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use(express.json());
-
 // Routes
 app.use("/api/auth", authRoutes);
+
+// Protected routes
+app.use(JwtMiddleware(process.env.APP_JWT_SECRET!));
 app.use("/api/users", userRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/password-reset", passwordResetRoutes);
