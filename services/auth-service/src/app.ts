@@ -40,15 +40,12 @@ app.get("/", (req, res) => {
   });
 });
 
-// Routes
+// Routes and check route
 app.use("/api/auth", authRoutes);
-
-// Protected routes
-app.use(JwtMiddleware(process.env.APP_JWT_SECRET!));
-app.use("/api/users", userRoutes);
-app.use("/api/stats", statsRoutes);
-app.use("/api/password-reset", passwordResetRoutes);
+app.use("/api/users", JwtMiddleware(process.env.APP_JWT_SECRET!), userRoutes);
+app.use("/api/stats", JwtMiddleware(process.env.APP_JWT_SECRET!), statsRoutes);
 app.use("/api/refresh-token", refreshTokenRoutes);
+app.use("/api/password-reset", passwordResetRoutes);
 
 // Error handling middleware
 //app.use(serviceErrorHandler);

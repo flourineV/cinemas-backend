@@ -27,12 +27,18 @@ export class RefreshTokenRepository {
 
   // tìm token bằng token
   async findByToken(token: string): Promise<RefreshToken | null> {
-    return await this.repository.findOne({ where: { token } });
+    return await this.repository.findOne({
+      where: { token },
+      relations: ["user", "user.role"],
+    });
   }
 
   // tìm token bằng user
   async findByUser(user: User): Promise<RefreshToken | null> {
-    return await this.repository.findOne({ where: { user } });
+    return await this.repository.findOne({
+      where: { user },
+      relations: ["user", "user.role"], // load cả user và role
+    });
   }
 
   // xóa token bởi user

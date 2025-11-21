@@ -27,29 +27,32 @@ export class RefreshTokenController {
       }
 
       const verifiedToken =
-        this.refreshTokenService.verifyExpiration(refreshToken);
+        await this.refreshTokenService.verifyExpiration(refreshToken);
 
-      const roleName = (await verifiedToken).user.role
-        ? (await verifiedToken).user.role.name
-        : "guest";
+      const user = verifiedToken.user;
+      if (!user) {
+        return res
+          .status(401)
+          .json({ message: "User not found for refresh token" });
+      }
+
+      const roleName = user.role ? user.role.name : "guest";
 
       const newAccessToken = this.jwtUtil.generateAccessToken(
-        (await verifiedToken).user.id,
+        user.id,
         roleName
       );
 
-      const newRefreshToken = await this.refreshTokenService.createRefreshToken(
-        (await verifiedToken).user
-      );
+      const newRefreshToken =
+        await this.refreshTokenService.createRefreshToken(user);
 
       await this.refreshTokenService.deleteByToken(requestToken);
 
-      // Tạo response DTO
       const jwtResponse = new JwtResponse(
         newAccessToken,
         newRefreshToken.token,
         "Bearer",
-        UserResponse.fromEntity((await verifiedToken).user)
+        UserResponse.fromEntity(user)
       );
 
       res.json(jwtResponse);

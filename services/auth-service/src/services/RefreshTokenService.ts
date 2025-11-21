@@ -33,7 +33,7 @@ export class RefreshTokenService {
     return this.refreshTokenRepository.findByToken(token);
   }
 
-  // chech hạn của token
+  // check hạn của token
   async verifyExpiration(token: RefreshToken): Promise<RefreshToken> {
     if (token.expiresAt.getTime() < Date.now()) {
       await this.refreshTokenRepository.delete(token);
