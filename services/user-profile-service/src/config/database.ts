@@ -2,6 +2,10 @@ import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { UserProfile } from "../models/UserProfile.entity";
 import dotenv from "dotenv";
+import { UserRank } from "../models/UserRank.entity";
+import { StaffProfile } from "../models/StaffProfile.entity";
+import { UserFavoriteMovie } from "../models/UserFavoriteMovie.entity";
+import { ManagerProfile } from "../models/ManagerProfile.entity";
 
 // Load environment variables
 dotenv.config();
@@ -19,7 +23,7 @@ export const AppDataSource = new DataSource({
   },
   synchronize: process.env.NODE_ENV === "development", // turn on synchronize only in development environment
   logging: process.env.NODE_ENV === "development",
-  entities: [UserProfile],
+  entities: [UserProfile,UserRank,StaffProfile,UserFavoriteMovie,ManagerProfile],
   subscribers: [],
   migrations: [],
 });

@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
-import { AppDataSource } from "./config/database";
+import { AppDataSource } from "./config/Database";
 import { errorHandler } from "./middlewares/errorHandler";
-import userProfileRoutes from "./routes/user_profile.route";
+//import userProfileRoutes from "./routes/user_profile.route";
 const app = express();
 
 //Middleware
@@ -34,11 +34,11 @@ app.get("/", (req, res) => {
 
 app.use(express.json());
 
-// Routes
-app.use("/api/user-profiles", userProfileRoutes);
+// // Routes
+// app.use("/api/user-profiles", userProfileRoutes);
 
-// Error handling middleware
-//app.use(serviceErrorHandler);
-app.use(errorHandler);
+// // Error handling middleware
+// //app.use(serviceErrorHandler);
+// app.use(errorHandler);
 
 export default app;
