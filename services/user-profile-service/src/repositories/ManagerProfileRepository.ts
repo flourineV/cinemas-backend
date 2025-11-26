@@ -9,6 +9,11 @@ export class ManagerProfileRepository {
     this.repository = this.dataSource.getRepository(ManagerProfile);
   }
 
+  // Lưu managerProfile 
+  async save(manager: ManagerProfile): Promise<ManagerProfile> {
+    return await this.repository.save(manager);
+  }
+
   // Tìm ManagerProfile theo UserProfile entity
   async findByUserProfile(userProfile: UserProfile): Promise<ManagerProfile | null> {
     return await this.repository.findOne({ where: { userProfile } });
@@ -33,5 +38,23 @@ export class ManagerProfileRepository {
       where: { userProfile: { id: userProfileId } },
     });
     return count > 0;
+  }
+
+  // lấy tất cả ManagerProfile
+  async findAll(): Promise<ManagerProfile[]> {
+    return await this.repository.find();
+  }
+
+  // kiểm tra tồn tại theo managerId
+  async existsById(managerId: string): Promise<boolean> {
+    const count = await this.repository.count({
+      where: { id: managerId },
+    });
+    return count > 0;
+  }
+  
+  // Xóa ManagerProfile
+  async deleteById(managerId: string): Promise<void> {
+    await this.repository.delete(managerId);
   }
 }

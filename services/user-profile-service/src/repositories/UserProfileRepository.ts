@@ -8,6 +8,21 @@ export class UserProfileRepository {
     this.repository = this.dataSource.getRepository(UserProfile);
   }
 
+  // lưu profile
+  async save(profile: UserProfile): Promise<UserProfile> {
+    return await this.repository.save(profile);
+  }
+
+  // Xóa profile
+  async delete(profile: UserProfile): Promise<void> {
+    await this.repository.remove(profile);
+  }
+
+  // lấy tất cả user profile
+  async findAll(): Promise<UserProfile[]> {
+    return await this.repository.find();
+  }
+
   // Tìm theo userId (UUID)
   async findByUserId(userId: string): Promise<UserProfile | null> {
     return await this.repository.findOne({ where: { userId } });
@@ -55,7 +70,9 @@ export class UserProfileRepository {
   }
 
   // Tìm theo email OR username OR phoneNumber
-  async findByEmailOrUsernameOrPhoneNumber(identifier: string): Promise<UserProfile | null> {
+  async findByEmailOrUsernameOrPhoneNumber(
+    identifier: string
+  ): Promise<UserProfile | null> {
     return await this.repository.findOne({
       where: [
         { email: identifier },

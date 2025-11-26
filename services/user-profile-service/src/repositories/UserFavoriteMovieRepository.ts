@@ -8,6 +8,11 @@ export class UserFavoriteMovieRepository {
     this.repository = this.dataSource.getRepository(UserFavoriteMovie);
   }
 
+  // Lưu favorite movie
+  async save(favorite: UserFavoriteMovie): Promise<UserFavoriteMovie> {
+    return await this.repository.save(favorite);
+  }
+  
   // Tìm tất cả favorite movies theo userId
   async findByUserId(userId: string): Promise<UserFavoriteMovie[]> {
     return await this.repository.find({
@@ -16,7 +21,7 @@ export class UserFavoriteMovieRepository {
   }
 
   // Kiểm tra tồn tại theo composite key (userId + tmdbId)
-  async exists(userId: string, tmdbId: number): Promise<boolean> {
+  async existsByUserIdAndTmdbId(userId: string, tmdbId: number): Promise<boolean> {
     const count = await this.repository.count({
       where: { userId, tmdbId },
     });
@@ -24,7 +29,7 @@ export class UserFavoriteMovieRepository {
   }
 
   // Xóa theo composite key (userId + tmdbId)
-  async delete(userId: string, tmdbId: number): Promise<void> {
+  async deleteByUserIdAndTmdbId(userId: string, tmdbId: number): Promise<void> {
     await this.repository.delete({ userId, tmdbId });
   }
 }

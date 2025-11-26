@@ -9,6 +9,17 @@ export class StaffProfileRepository {
     this.repository = this.dataSource.getRepository(StaffProfile);
   }
 
+  // Lưu staff 
+  async save(staff: StaffProfile): Promise<StaffProfile> {
+    return await this.repository.save(staff);
+  }
+
+  // Lấy tất cả staff 
+  async findAll(): Promise<StaffProfile[]> {
+    return await this.repository.find();
+  }
+
+
   // Tìm StaffProfile theo UserProfile entity
   async findByUserProfile(userProfile: UserProfile): Promise<StaffProfile | null> {
     return await this.repository.findOne({ where: { userProfile } });
@@ -20,6 +31,14 @@ export class StaffProfileRepository {
       where: { userProfile: { id: userProfileId } },
       relations: ["userProfile"],
     });
+  }
+
+  // kiểm tra tồn tại theo staffId
+  async existsById(staffId: string): Promise<boolean> {
+    const count = await this.repository.count({
+      where: { id: staffId },
+    });
+    return count > 0;
   }
 
   // Kiểm tra tồn tại theo userProfileId
@@ -34,4 +53,10 @@ export class StaffProfileRepository {
   async findByCinemaId(cinemaId: string): Promise<StaffProfile[]> {
     return await this.repository.find({ where: { cinemaId } });
   }
+
+  // xóa staff by id 
+  async deleteById(staffId: string): Promise<void> {
+    await this.repository.delete(staffId);
+  }
+
 }

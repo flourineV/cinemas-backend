@@ -9,7 +9,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
 //Database connection
 AppDataSource.initialize()
   .then(() => {
@@ -21,7 +20,8 @@ AppDataSource.initialize()
       code: error.code,
       stack: error.stack,
     });
-    process.exit(1);  });
+    process.exit(1);
+  });
 
 // Health check route
 app.get("/", (req, res) => {

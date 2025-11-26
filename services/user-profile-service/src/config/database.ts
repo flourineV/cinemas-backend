@@ -23,7 +23,13 @@ export const AppDataSource = new DataSource({
   },
   synchronize: process.env.NODE_ENV === "development", // turn on synchronize only in development environment
   logging: process.env.NODE_ENV === "development",
-  entities: [UserProfile,UserRank,StaffProfile,UserFavoriteMovie,ManagerProfile],
+  entities: [
+    UserProfile,
+    UserRank,
+    StaffProfile,
+    UserFavoriteMovie,
+    ManagerProfile,
+  ],
   subscribers: [],
   migrations: [],
 });

@@ -36,28 +36,28 @@ export class UserProfile {
   email: string;
 
   @Column({ type: "varchar", length: 30, unique: true, nullable: true })
-  username: string | null;
+  username: string;
 
   @Column({ name: "full_name", type: "varchar", length: 100, nullable: true })
-  fullName: string | null;
+  fullName: string;
 
   @Column({ name: "avatar_url", type: "text", nullable: true })
-  avatarUrl: string | null;
+  avatarUrl: string;
 
   @Column({ type: "enum", enum: Gender, nullable: true })
-  gender: Gender | null;
+  gender: Gender;
 
   @Column({ name: "date_of_birth", type: "date", nullable: true })
-  dateOfBirth: Date | null;
+  dateOfBirth: Date;
 
   @Column({ name: "phone_number", type: "varchar", length: 20, nullable: true })
-  phoneNumber: string | null;
+  phoneNumber: string;
 
   @Column({ name: "national_id", type: "varchar", length: 20, nullable: true })
-  nationalId: string | null;
+  nationalId: string;
 
   @Column({ type: "text", nullable: true })
-  address: string | null;
+  address: string;
 
   @Column({ name: "loyalty_point", type: "int", default: 0 })
   loyaltyPoint: number;
@@ -66,7 +66,7 @@ export class UserProfile {
     onDelete: "SET NULL",
     nullable: true,
   })
-  rank: UserRank | null;
+  rank: UserRank;
 
   @Column({
     type: "enum",
