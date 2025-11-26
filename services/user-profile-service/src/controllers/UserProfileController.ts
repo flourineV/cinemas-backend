@@ -1,100 +1,109 @@
-// import { Request, Response, NextFunction } from "express";
-// import { UserProfileService } from "../services/UserProfileService";
+import { Request, Response } from "express";
+import { UserProfileService } from "../services/UserProfileService";
+import { AuthChecker } from "../middlewares/AuthChecker";
+import { InternalAuthChecker } from "../middlewares/InternalAuthChecker";
+import { UserProfileRequest } from "../dtos/request/UserProfileRequest";
+import { UserProfileUpdateRequest } from "../dtos/request/UserProfileUpdateRequest";
+import { UserProfileResponse } from "../dtos/response/UserProfileResponse";
+import { RankAndDiscountResponse } from "../dtos/response/RankAndDiscountResponse";
 
-// export class UserProfileController {
-//   private static userProfileService = new UserProfileService();
+export class UserProfileController {
+  private readonly profileService: UserProfileService;
+  private readonly internalAuthChecker: InternalAuthChecker;
 
-//   static async createProfile(req: Request, res: Response, next: NextFunction) {
-//     try {
-//       const profile = await UserProfileController.userProfileService.createProfile(req.body);
-//       res.status(201).json(profile);
-//     } catch (err) {
-//       next(err);
-//     }
-//   }
+  constructor(
+    profileService: UserProfileService,
+    internalAuthChecker: InternalAuthChecker
+  ) {
+    this.profileService = profileService;
+    this.internalAuthChecker = internalAuthChecker;
+  }
 
-//   static async getProfile(req: Request, res: Response, next: NextFunction) {
-//     try {
-//       const profile = await UserProfileController.userProfileService.getProfile(req.params.userId);
-//       if (!profile) return res.status(404).json({ message: "Profile not found" });
-//       res.json(profile);
-//     } catch (err) {
-//       next(err);
-//     }
-//   }
+  async createProfile(req: Request, res: Response): Promise<void> {
+    try {
+      AuthChecker.requireAuthenticated(req);
+      const request: UserProfileRequest = req.body;
+      const profile: UserProfileResponse =
+        await this.profileService.createProfile(request);
+      res.json(profile);
+    } catch (error: any) {
+      res.status(403).json({ message: error.message || "Forbidden" });
+    }
+  }
 
-//   static async getProfileByIdentifier(req: Request, res: Response, next: NextFunction) {
-//     try {
-//       const profile = await UserProfileController.userProfileService.getProfileByIdentifier(req.params.identifier);
-//       if (!profile) return res.status(404).json({ message: "Profile not found" });
-//       res.json(profile);
-//     } catch (err) {
-//       next(err);
-//     }
-//   }
+  async getProfileByUserId(req: Request, res: Response): Promise<void> {
+    try {
+      AuthChecker.requireAuthenticated(req);
+      const userId: string = req.params.userId;
+      const profile = await this.profileService.getProfileByUserId(userId);
+      if (profile) {
+        res.json(profile);
+      } else {
+        res.status(404).send();
+      }
+    } catch (error: any) {
+      res.status(403).json({ message: error.message || "Forbidden" });
+    }
+  }
 
-//   static async getAllProfiles(req: Request, res: Response, next: NextFunction) {
-//     try {
-//       const profiles = await UserProfileController.userProfileService.getAllProfiles();
-//       res.json(profiles);
-//     } catch (err) {
-//       next(err);
-//     }
-//   }
+  async replaceProfile(req: Request, res: Response): Promise<void> {
+    try {
+      AuthChecker.requireAuthenticated(req);
+      const userId: string = req.params.userId;
+      const request: UserProfileUpdateRequest = req.body;
+      const updated: UserProfileResponse =
+        await this.profileService.updateProfile(userId, request);
+      res.json(updated);
+    } catch (error: any) {
+      res.status(403).json({ message: error.message || "Forbidden" });
+    }
+  }
 
-//   static async getActiveProfiles(req: Request, res: Response, next: NextFunction) {
-//     try {
-//       const profiles = await UserProfileController.userProfileService.getActiveProfiles();
-//       res.json(profiles);
-//     } catch (err) {
-//       next(err);
-//     }
-//   }
+  async updateLoyalty(req: Request, res: Response): Promise<void> {
+    try {
+      const userId: string = req.params.userId;
+      const loyaltyPoint: number = req.body;
+      const internalKey: string | undefined = req.header("X-Internal-Secret");
+      this.internalAuthChecker.requireInternal(internalKey);
+      const updated: UserProfileResponse =
+        await this.profileService.updateLoyaltyAndRank(userId, loyaltyPoint);
+      res.json(updated);
+    } catch (error: any) {
+      res.status(403).json({ message: error.message || "Forbidden" });
+    }
+  }
 
-//   static async updateProfile(req: Request, res: Response, next: NextFunction) {
-//     try {
-//       const updated = await UserProfileController.userProfileService.updateProfile(req.params.userId, req.body);
-//       if (!updated) return res.status(404).json({ message: "Profile not found" });
-//       res.json(updated);
-//     } catch (err) {
-//       next(err);
-//     }
-//   }
+  async deleteProfile(req: Request, res: Response): Promise<void> {
+    try {
+      AuthChecker.requireAdmin(req);
+      const userId: string = req.params.userId;
+      await this.profileService.deleteProfile(userId);
+      res.json({ message: "Profile deleted successfully" });
+    } catch (error: any) {
+      res.status(403).json({ message: error.message || "Forbidden" });
+    }
+  }
 
-//   static async deleteProfile(req: Request, res: Response, next: NextFunction) {
-//     try {
-//       const deleted = await UserProfileController.userProfileService.deleteProfile(req.params.userId);
-//       if (!deleted) return res.status(404).json({ message: "Profile not found" });
-//       res.status(204).end();
-//     } catch (err) {
-//       next(err);
-//     }
-//   }
+  async searchProfiles(req: Request, res: Response): Promise<void> {
+    try {
+      AuthChecker.requireManagerOrAdmin(req);
+      const keyword: string | undefined = req.query.keyword as string;
+      const results: UserProfileResponse[] =
+        await this.profileService.searchProfiles(keyword);
+      res.json(results);
+    } catch (error: any) {
+      res.status(403).json({ message: error.message || "Forbidden" });
+    }
+  }
 
-//   static async searchProfilesByName(req: Request, res: Response, next: NextFunction) {
-//     try {
-//       const results = await UserProfileController.userProfileService.searchProfilesByName(req.query.name as string);
-//       res.json(results);
-//     } catch (err) {
-//       next(err);
-//     }
-//   }
-
-//   static async addLoyaltyPoints(req: Request, res: Response, next: NextFunction) {
-//     try {
-//       await UserProfileController.userProfileService.addLoyaltyPoints(req.params.userId, Number(req.body.points));
-//       res.status(200).json({ message: "Points added" });
-//     } catch (err) {
-//       next(err);
-//     }
-//   }
-
-//   static async updateLoyaltyPoints(req: Request, res: Response, next: NextFunction) {
-//     try {
-//       await UserProfileController.userProfileService.updateLoyaltyPoints(req.params.userId, Number(req.body.points));
-//       res.status(200).json({ message: "Points updated" });
-//     } catch (err) {
-//       next(err);
-//     }
-//   }
-// }
+  async getUserRankAndDiscount(req: Request, res: Response): Promise<void> {
+    try {
+      const userId: string = req.params.userId;
+      const response: RankAndDiscountResponse =
+        await this.profileService.getRankAndDiscount(userId);
+      res.json(response);
+    } catch (error: any) {
+      res.status(403).json({ message: error.message || "Forbidden" });
+    }
+  }
+}

@@ -2,7 +2,13 @@ import express from "express";
 import cors from "cors";
 import { AppDataSource } from "./config/Database";
 import { errorHandler } from "./middlewares/errorHandler";
-//import userProfileRoutes from "./routes/user_profile.route";
+import userProfileRoute from "./routes/UserProfileRoute";
+import userStatsRoute from "./routes/UserStatsRoute";
+import managerProfileRoute from "./routes/ManagerProfileRoute";
+import staffProfileRoute from "./routes/StaffProfileRoute";
+import userRankRoute from "./routes/UserRankRoute";
+import userFavorriteMovieRoute from "./routes/UserFavoriteMovieRoute";
+
 const app = express();
 
 //Middleware
@@ -34,11 +40,15 @@ app.get("/", (req, res) => {
 
 app.use(express.json());
 
-// // Routes
-// app.use("/api/user-profiles", userProfileRoutes);
+// Routes
+app.use("/api/profiles/profiles", userProfileRoute);
+app.use("/api/profiles/stats", userStatsRoute);
+app.use("/api/profiles/manager", managerProfileRoute);
+app.use("/api/profiles/staff", staffProfileRoute);
+app.use("/api/profiles/ranks", userRankRoute);
+app.use("/api/profiles/favorites", userFavorriteMovieRoute);
 
-// // Error handling middleware
-// //app.use(serviceErrorHandler);
-// app.use(errorHandler);
+// Error handling middleware
+app.use(errorHandler);
 
 export default app;

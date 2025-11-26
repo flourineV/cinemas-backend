@@ -1,5 +1,4 @@
 import { StaffProfile } from "../models/StaffProfile.entity";
-import { UserProfile } from "../models/UserProfile.entity";
 import { StaffProfileRepository } from "../repositories/StaffProfileRepository";
 import { UserProfileRepository } from "../repositories/UserProfileRepository";
 import { ResourceNotFoundException } from "../exceptions/ResourceNotFoundException";
@@ -8,19 +7,30 @@ export class StaffProfileService {
   private staffRepository: StaffProfileRepository;
   private userProfileRepository: UserProfileRepository;
 
-  constructor(staffRepo: StaffProfileRepository, userProfileRepo: UserProfileRepository) {
+  constructor(
+    staffRepo: StaffProfileRepository,
+    userProfileRepo: UserProfileRepository
+  ) {
     this.staffRepository = staffRepo;
     this.userProfileRepository = userProfileRepo;
   }
 
   // Tạo staff profile mới
-  async createStaff(userProfileId: string, cinemaId: string, startDate: Date): Promise<StaffProfile> {
-    const profile = await this.userProfileRepository.findByUserId(userProfileId);
+  async createStaff(
+    userProfileId: string,
+    cinemaId: string,
+    startDate: Date
+  ): Promise<StaffProfile> {
+    const profile =
+      await this.userProfileRepository.findByUserId(userProfileId);
     if (!profile) {
-      throw new ResourceNotFoundException(`User profile not found: ${userProfileId}`);
+      throw new ResourceNotFoundException(
+        `User profile not found: ${userProfileId}`
+      );
     }
 
-    const exists = await this.staffRepository.existsByUserProfileId(userProfileId);
+    const exists =
+      await this.staffRepository.existsByUserProfileId(userProfileId);
     if (exists) {
       throw new Error("This user already has a staff profile.");
     }
@@ -42,7 +52,9 @@ export class StaffProfileService {
   async getStaffByUserProfileId(userProfileId: string): Promise<StaffProfile> {
     const staff = await this.staffRepository.findByUserProfileId(userProfileId);
     if (!staff) {
-      throw new ResourceNotFoundException(`Staff not found for user: ${userProfileId}`);
+      throw new ResourceNotFoundException(
+        `Staff not found for user: ${userProfileId}`
+      );
     }
     return staff;
   }
@@ -56,7 +68,9 @@ export class StaffProfileService {
   async deleteStaff(staffId: string): Promise<void> {
     const exists = await this.staffRepository.existsById(staffId);
     if (!exists) {
-      throw new ResourceNotFoundException(`Staff not found with id: ${staffId}`);
+      throw new ResourceNotFoundException(
+        `Staff not found with id: ${staffId}`
+      );
     }
     await this.staffRepository.deleteById(staffId);
   }

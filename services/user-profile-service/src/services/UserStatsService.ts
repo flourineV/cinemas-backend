@@ -22,6 +22,7 @@ export class UserStatsService {
     this.staffRepository = staffRepo;
   }
 
+  // lấy thông tin thống kê
   async getOverviewStats(): Promise<UserStatsResponse> {
     // --- Rank distribution ---
     const allProfiles = await this.userProfileRepository.findAll();

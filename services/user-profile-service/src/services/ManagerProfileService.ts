@@ -8,19 +8,30 @@ export class ManagerProfileService {
   private managerRepository: ManagerProfileRepository;
   private userProfileRepository: UserProfileRepository;
 
-  constructor(managerRepo: ManagerProfileRepository, userProfileRepo: UserProfileRepository) {
+  constructor(
+    managerRepo: ManagerProfileRepository,
+    userProfileRepo: UserProfileRepository
+  ) {
     this.managerRepository = managerRepo;
     this.userProfileRepository = userProfileRepo;
   }
 
   // Tạo manager profile mới
-  async createManager(userProfileId: string, managedCinemaId: string, hireDate: Date): Promise<ManagerProfile> {
-    const profile = await this.userProfileRepository.findByUserId(userProfileId);
+  async createManager(
+    userProfileId: string,
+    managedCinemaId: string,
+    hireDate: Date
+  ): Promise<ManagerProfile> {
+    const profile =
+      await this.userProfileRepository.findByUserId(userProfileId);
     if (!profile) {
-      throw new ResourceNotFoundException(`User profile not found: ${userProfileId}`);
+      throw new ResourceNotFoundException(
+        `User profile not found: ${userProfileId}`
+      );
     }
 
-    const exists = await this.managerRepository.existsByUserProfileId(userProfileId);
+    const exists =
+      await this.managerRepository.existsByUserProfileId(userProfileId);
     if (exists) {
       throw new Error("This user already has a manager profile.");
     }
@@ -34,10 +45,15 @@ export class ManagerProfileService {
   }
 
   // Lấy manager theo userProfileId
-  async getManagerByUserProfileId(userProfileId: string): Promise<ManagerProfile> {
-    const manager = await this.managerRepository.findByUserProfileId(userProfileId);
+  async getManagerByUserProfileId(
+    userProfileId: string
+  ): Promise<ManagerProfile> {
+    const manager =
+      await this.managerRepository.findByUserProfileId(userProfileId);
     if (!manager) {
-      throw new ResourceNotFoundException(`Manager not found for user: ${userProfileId}`);
+      throw new ResourceNotFoundException(
+        `Manager not found for user: ${userProfileId}`
+      );
     }
     return manager;
   }
@@ -56,7 +72,9 @@ export class ManagerProfileService {
   async deleteManager(managerId: string): Promise<void> {
     const exists = await this.managerRepository.existsById(managerId);
     if (!exists) {
-      throw new ResourceNotFoundException(`Manager not found with id: ${managerId}`);
+      throw new ResourceNotFoundException(
+        `Manager not found with id: ${managerId}`
+      );
     }
     await this.managerRepository.deleteById(managerId);
   }
