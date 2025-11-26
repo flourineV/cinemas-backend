@@ -4,7 +4,7 @@ import { PasswordResetService } from "../services/PasswordResetService";
 import { PasswordResetOtpRepository } from "../repositories/PasswordResetOtpRepository";
 import { UserRepository } from "../repositories/UserRepository";
 import { EmailService } from "../services/EmailService";
-import { AppDataSource } from "../config/Database";
+import { AppDataSource } from "../config/database";
 
 const router = Router();
 

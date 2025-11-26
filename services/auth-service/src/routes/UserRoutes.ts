@@ -3,7 +3,7 @@ import { Router } from "express";
 import { UserController } from "../controllers/UserController";
 import { UserService } from "../services/UserService";
 import { UserRepository } from "../repositories/UserRepository";
-import { AppDataSource } from "../config/Database";
+import { AppDataSource } from "../config/database";
 import { RoleRepository } from "../repositories/RoleRepository";
 
 const router = Router();

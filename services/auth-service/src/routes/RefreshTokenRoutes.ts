@@ -4,7 +4,7 @@ import { RefreshTokenController } from "../controllers/RefreshTokenController";
 import { RefreshTokenService } from "../services/RefreshTokenService";
 import { RefreshTokenRepository } from "../repositories/RefreshTokenRepository";
 import { JWT as JwtUtil } from "../config/JWT";
-import { AppDataSource } from "../config/Database";
+import { AppDataSource } from "../config/database";
 
 const router = Router();
 

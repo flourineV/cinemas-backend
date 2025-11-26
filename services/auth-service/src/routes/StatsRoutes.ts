@@ -2,7 +2,7 @@ import { Router } from "express";
 import { StatsController } from "../controllers/StatsController";
 import { StatsService } from "../services/StatsService";
 import { UserRepository } from "../repositories/UserRepository";
-import { AppDataSource } from "../config/Database";
+import { AppDataSource } from "../config/database";
 
 const router = Router();
 

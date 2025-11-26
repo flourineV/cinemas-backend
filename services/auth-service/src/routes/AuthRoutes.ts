@@ -6,7 +6,7 @@ import { RoleRepository } from "../repositories/RoleRepository";
 import { RefreshTokenService } from "../services/RefreshTokenService";
 import { RefreshTokenRepository } from "../repositories/RefreshTokenRepository";
 import { JWT } from "../config/JWT";
-import { AppDataSource } from "../config/Database";
+import { AppDataSource } from "../config/database";
 
 const router = Router();
 
