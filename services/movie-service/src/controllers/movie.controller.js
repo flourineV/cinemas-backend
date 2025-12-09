@@ -71,11 +71,40 @@ router.get("/archived", requireManagerOrAdmin, async (req, res) => {
 // =========================
 
 // Giữ endpoint cũ /search cho chắc
+// router.get("/search", async (req, res) => {
+//   try {
+//     const keyword = req.query.keyword;
+//     const data = await movieService.searchMovies(keyword);
+//     res.json(data);
+//   } catch (e) {
+//     console.error(e);
+//     res.status(400).json({ message: e.message });
+//   }
+// });
 router.get("/search", async (req, res) => {
   try {
-    const keyword = req.query.keyword;
-    const data = await movieService.searchMovies(keyword);
-    res.json(data);
+    const page = Number(req.query.page || 0);
+    const size = Number(req.query.size || 10);
+
+    // FE gửi "title", mình hỗ trợ luôn các tên khác cho chắc
+    let keyword =
+      req.query.keyword || req.query.title || req.query.q || req.query.query;
+
+    if (!keyword || keyword.trim() === "") {
+      return res.status(400).json({ message: "Title parameter is required" });
+    }
+
+    // Dùng adminSearch để có paging (search theo title)
+    const result = await movieService.adminSearch(keyword, null, page, size);
+
+    // Trả đúng kiểu FE mong đợi: { content: MovieSummary[] }
+    return res.json({
+      content: result.data,
+      page: result.page,
+      size: result.size,
+      totalElements: result.totalElements,
+      totalPages: result.totalPages,
+    });
   } catch (e) {
     console.error(e);
     res.status(400).json({ message: e.message });
@@ -94,31 +123,38 @@ router.get("/search", async (req, res) => {
 //
 router.get("/", async (req, res) => {
   try {
-    const { keyword, status } = req.query;
+    let { keyword, status } = req.query;
     const page = Number(req.query.page || 0);
     const size = Number(req.query.size || 20);
 
-    const hasPagingOrStatus =
-      typeof req.query.page !== "undefined" ||
-      typeof req.query.size !== "undefined" ||
-      typeof status !== "undefined";
+    // const hasPagingOrStatus =
+    //   typeof req.query.page !== "undefined" ||
+    //   typeof req.query.size !== "undefined" ||
+    //   typeof status !== "undefined";
 
     const ctx = req.userContext;
     const role = ctx?.role?.toUpperCase?.() || "";
     const isManagerOrAdmin = role === "MANAGER" || role === "ADMIN";
 
     // Trường hợp FE chưa login, chỉ gửi ?keyword=...
-    if (keyword && !hasPagingOrStatus && !isManagerOrAdmin) {
+    // if (keyword && !hasPagingOrStatus && !isManagerOrAdmin) {
+    keyword = keyword || req.query.title || req.query.q || req.query.query;
+
+    // ------ USER THƯỜNG / CHƯA LOGIN: PUBLIC SEARCH ------
+    if (!isManagerOrAdmin) {
+      if (!keyword || keyword.trim() === "") {
+        return res.status(400).json({ message: "Title parameter is required" });
+      }
       const data = await movieService.searchMovies(keyword);
       return res.json(data);
     }
 
     // Còn lại: yêu cầu quyền manager/admin giống Java
-    if (!isManagerOrAdmin) {
-      return res
-        .status(403)
-        .json({ message: "Manager or Admin access required" });
-    }
+    // if (!isManagerOrAdmin) {
+    //   return res
+    //     .status(403)
+    //     .json({ message: "Manager or Admin access required" });
+    // }
 
     const data = await movieService.adminSearch(keyword, status, page, size);
     return res.json(data);
