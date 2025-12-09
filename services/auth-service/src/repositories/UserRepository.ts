@@ -77,6 +77,7 @@ export class UserRepository {
     return (await this.repository.count({ where: { nationalId } })) > 0;
   }
 
+  // tìm user bằng email hoặc username hoặc số điện thoại
   async findByEmailOrUsernameOrPhoneNumber(
     identifier: string
   ): Promise<User | null> {
