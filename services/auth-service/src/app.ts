@@ -42,10 +42,18 @@ app.get("/", (req, res) => {
 
 // Routes and check route
 app.use("/api/auth", authRoutes);
-app.use("/api/users", JwtMiddleware(process.env.APP_JWT_SECRET!), userRoutes);
-app.use("/api/stats", JwtMiddleware(process.env.APP_JWT_SECRET!), statsRoutes);
-app.use("/api/refresh-token", refreshTokenRoutes);
-app.use("/api/password-reset", passwordResetRoutes);
+app.use(
+  "/api/auth/users",
+  JwtMiddleware(process.env.APP_JWT_SECRET!),
+  userRoutes
+);
+app.use(
+  "/api/auth/stats",
+  JwtMiddleware(process.env.APP_JWT_SECRET!),
+  statsRoutes
+);
+app.use("/api/auth/refreshtoken", refreshTokenRoutes);
+app.use("/api/auth", passwordResetRoutes);
 
 // Error handling middleware
 //app.use(serviceErrorHandler);
