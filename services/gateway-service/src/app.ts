@@ -31,12 +31,22 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Logging
+app.use(loggerMiddleware);
+
+// Setup proxy routes
+console.log("[GATEWAY] Setting up routes...");
+gatewayConfig.routes.forEach((route) => {
+  console.log(
+    `[GATEWAY] Registering route: ${route.id} - ${route.path} -> ${route.target}`
+  );
+  const proxyRouter = createProxyRouter(route);
+  app.use(route.path, proxyRouter);
+});
+
 // Body parsing
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-
-// Logging
-app.use(loggerMiddleware);
 
 // Health check
 app.get("/health", (_req, res) => {
@@ -59,16 +69,6 @@ app.get("/", (_req, res) => {
       requireAuth: r.requireAuth,
     })),
   });
-});
-
-// Setup proxy routes
-console.log("[GATEWAY] Setting up routes...");
-gatewayConfig.routes.forEach((route) => {
-  console.log(
-    `[GATEWAY] Registering route: ${route.id} - ${route.path} -> ${route.target}`
-  );
-  const proxyRouter = createProxyRouter(route);
-  app.use(route.path, proxyRouter);
 });
 
 // Error handling
