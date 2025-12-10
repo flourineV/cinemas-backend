@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { AppDataSource } from "./config/database";
-// import authRoutes from "./routes/auth.route";
+import pricingRoute from "./routes/PricingRoutes";
 // import { errorHandler } from "./middlewares/errorHandler";
 // import { serviceErrorHandler } from "./middlewares/serviceErrorHandler";
 import cookieParser from "cookie-parser";
@@ -38,7 +38,7 @@ app.get("/", (req, res) => {
 app.use(express.json());
 
 // Routes
-// app.use("/api/auth", authRoutes);
+app.use("/api/pricing", pricingRoute);
 
 // Error handling middleware
 // app.use(serviceErrorHandler);
