@@ -2,7 +2,8 @@ import express from "express";
 import cors from "cors";
 import { AppDataSource } from "./config/database";
 import pricingRoute from "./routes/PricingRoutes";
-// import { errorHandler } from "./middlewares/errorHandler";
+import { errorHandler } from "./middlewares/errorHandler";
+import { JwtMiddleware } from "./middlewares/JwtMiddleware";
 // import { serviceErrorHandler } from "./middlewares/serviceErrorHandler";
 import cookieParser from "cookie-parser";
 const app = express();
@@ -38,10 +39,14 @@ app.get("/", (req, res) => {
 app.use(express.json());
 
 // Routes
-app.use("/api/pricing", pricingRoute);
+app.use(
+  "/api/pricing",
+  JwtMiddleware(process.env.APP_JWT_SECRET!),
+  pricingRoute
+);
 
 // Error handling middleware
 // app.use(serviceErrorHandler);
-// app.use(errorHandler);
+app.use(errorHandler);
 
 export default app;
