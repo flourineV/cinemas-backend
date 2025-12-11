@@ -2,13 +2,13 @@ import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { User } from "../models/User.entity";
 import dotenv from "dotenv";
-import { RefreshToken } from "../models/RefeshToken.entity";
-import { PasswordResetToken } from "../models/PasswordResetToken.entity";
-
-// Load environment variables
+import { RefreshToken } from "../models/RefreshToken.entity";
+import { PasswordResetOtp } from "../models/PasswordResetOtp.entity";
+import { Role } from "../models/Role.entity";
+// load biến môi trường
 dotenv.config();
 
-// Connect to database
+// kết nối database
 export const AppDataSource = new DataSource({
   type: "postgres",
   host: process.env.DB_HOST,
@@ -19,9 +19,9 @@ export const AppDataSource = new DataSource({
   ssl: {
     rejectUnauthorized: false,
   },
-  synchronize: process.env.NODE_ENV === "development", // turn on synchronize only in development environment
+  synchronize: process.env.NODE_ENV === "development",
   logging: process.env.NODE_ENV === "development",
-  entities: [User, RefreshToken, PasswordResetToken],
+  entities: [User, RefreshToken, PasswordResetOtp, Role],
   subscribers: [],
   migrations: [],
 });
