@@ -1,9 +1,14 @@
 import express from "express";
 import cors from "cors";
 import { AppDataSource } from "./config/database";
-import authRoutes from "./routes/auth.route";
+import authRoutes from "./routes/AuthRoutes";
+import userRoutes from "./routes/UserRoutes";
+import statsRoutes from "./routes/StatsRoutes";
+import passwordResetRoutes from "./routes/PasswordResetRoutes";
+import refreshTokenRoutes from "./routes/RefreshTokenRoutes";
 import { errorHandler } from "./middlewares/errorHandler";
-import { serviceErrorHandler } from "./middlewares/serviceErrorHandler";
+import { JwtMiddleware } from "./middlewares/JwtMiddleware";
+// import { serviceErrorHandler } from "./middlewares/serviceErrorHandler";
 import cookieParser from "cookie-parser";
 const app = express();
 
@@ -35,13 +40,23 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use(express.json());
-
-// Routes
+// Routes and check route
 app.use("/api/auth", authRoutes);
+app.use(
+  "/api/auth/users",
+  JwtMiddleware(process.env.APP_JWT_SECRET!),
+  userRoutes
+);
+app.use(
+  "/api/auth/stats",
+  JwtMiddleware(process.env.APP_JWT_SECRET!),
+  statsRoutes
+);
+app.use("/api/auth/refreshtoken", refreshTokenRoutes);
+app.use("/api/auth", passwordResetRoutes);
 
 // Error handling middleware
-app.use(serviceErrorHandler);
+//app.use(serviceErrorHandler);
 app.use(errorHandler);
 
 export default app;
