@@ -14,6 +14,9 @@ export class PasswordResetController {
   async sendOtp(req: Request, res: Response, next: NextFunction) {
     try {
       const body: ForgotPasswordRequest = req.body;
+      if (!body?.email) {
+        return res.status(400).json({ message: "email is required" });
+      }
       await this.passwordResetService.sendOtp(body.email);
       res.json({ message: "OTP has been sent to your email!" });
     } catch (err) {
@@ -24,6 +27,9 @@ export class PasswordResetController {
   async resendOtp(req: Request, res: Response, next: NextFunction) {
     try {
       const body: ForgotPasswordRequest = req.body;
+      if (!body?.email) {
+        return res.status(400).json({ message: "email is required" });
+      }
       await this.passwordResetService.resendOtp(body.email);
       res.json({ message: "A new OTP has been sent to your email!" });
     } catch (err) {
