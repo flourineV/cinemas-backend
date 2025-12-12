@@ -53,4 +53,9 @@ export const servicesConfig: Record<string, ServiceConfig> = {
       "http://localhost:8090/api/notifications",
     timeout: 30000,
   },
+  review: {
+    baseUrl:
+      process.env.REVIEW_SERVICE_URL || "http://localhost:8091/api/reviews",
+    timeout: 30000,
+  },
 };
