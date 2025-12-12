@@ -1,12 +1,35 @@
 const axios = require("axios");
 const config = require("../config");
 const reviewModel = require("../models/reviewModel");
+// Gọi sang Booking Service để kiểm tra user đã đặt vé cho movie chưa
+async function hasUserBookedMovie(movieId, userId) {
+  try {
+    // BOOKING_SERVICE_URL ví dụ: http://localhost:8085
+    const url = `${config.bookingServiceUrl}/bookings/check`;
+
+    const response = await axios.get(url, {
+      params: {
+        userId,
+        movieId,
+      },
+      headers: {
+        "X-Internal-Secret": config.internalSecret, // giống Java
+      },
+    });
+
+    // booking-service trả true/false
+    return Boolean(response.data);
+  } catch (err) {
+    console.error("Error calling BookingService:", err.message || err);
+    // giống Java: coi đây là lỗi hệ thống
+    throw new Error("Failed to connect to BookingService");
+  }
+}
 
 // TẠM THỜI: cho luôn là user đã đặt vé để test
-async function hasUserBookedMovie(movieId, userId) {
-  // TODO: sau này nối với booking-service thật
-  return true;
-}
+// async function hasUserBookedMovie(movieId, userId) {
+//   return true;
+// }
 
 // validate rating 1–5 sao
 function validateRating(rating) {
