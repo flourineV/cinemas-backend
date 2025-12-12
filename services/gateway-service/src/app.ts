@@ -9,7 +9,7 @@ import { gatewayConfig } from "./config/gateway.config";
 import { createProxyRouter } from "./proxy/proxy.handler";
 import { loggerMiddleware } from "./middleware/logger.middleware";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
-
+import searchRouter from "./controllers/search.controller";
 // Load environment variables
 dotenv.config();
 
@@ -70,7 +70,8 @@ app.get("/", (_req, res) => {
     })),
   });
 });
-
+// route search aggregator: /api/search
+app.use("/api/search", searchRouter);
 // Error handling
 app.use(notFoundHandler);
 app.use(errorHandler);

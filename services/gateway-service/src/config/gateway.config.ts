@@ -63,5 +63,11 @@ export const gatewayConfig: GatewayConfig = {
       target: servicesConfig.notification.baseUrl,
       requireAuth: false, // Người làm notification service sẽ config lại nếu cần
     },
+    {
+      id: "review-service",
+      path: "/api/reviews",
+      target: servicesConfig.review.baseUrl,
+      requireAuth: false, // Người làm review service sẽ config lại nếu cần
+    },
   ],
 };
