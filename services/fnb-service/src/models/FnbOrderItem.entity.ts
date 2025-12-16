@@ -25,6 +25,13 @@ export class FnbOrderItem {
   @Column({ type: "decimal", precision: 10, scale: 2, nullable: false })
   unitPrice: string;
 
-  @Column({ type: "decimal", precision: 10, scale: 2, nullable: false })
+  @Column({
+    name: "total_price",
+    type: "decimal",
+    precision: 10,
+    scale: 2,
+    insert: false,
+    update: false,
+  })
   totalPrice: string;
 }

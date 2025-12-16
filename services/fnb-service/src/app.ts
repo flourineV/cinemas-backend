@@ -9,6 +9,8 @@ import { FnbConsumer } from "./consumers/FnbConsumer";
 import { FnbOrderRepository } from "./repositories/FnbOrderRepository";
 import { FnbItemRepository } from "./repositories/FnbItemRepository";
 import { RabbitMQSetup } from "./config/rabbitmq.config";
+import fnbOrderRoute from "./routes/FnbOrderRoutes";
+import fnbRoute from "./routes/FnbRoutes";
 
 const app = express();
 
@@ -81,8 +83,16 @@ app.get("/", (req, res) => {
   });
 });
 
-// Routes (mở lại khi có fnbRoutes)
-// app.use("/api/fnb", JwtMiddleware(process.env.APP_JWT_SECRET!), fnbRoutes);
+// Routes
+// fnb order route
+app.use(
+  "/api/fnb/orders",
+  JwtMiddleware(process.env.APP_JWT_SECRET!),
+  fnbOrderRoute
+);
+
+// fnb route
+app.use("/api/fnb", JwtMiddleware(process.env.APP_JWT_SECRET!), fnbRoute);
 
 // Error handling middleware
 app.use(errorHandler);
