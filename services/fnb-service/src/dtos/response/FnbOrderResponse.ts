@@ -1,13 +1,13 @@
-import { FnbOrderItemResponse } from "../response/FnbOrderItemResponse";
+import { FnbOrderItemResponse } from "./FnbOrderItemResponse";
 
-export class FnbOrderResponse {
-  id!: string;
-  userId!: string;
-  theaterId!: string;
-  orderCode!: string;
-  totalAmount!: string;
-  status!: string;
-  paymentMethod!: string;
-  createdAt!: Date;
-  items!: FnbOrderItemResponse[];
+export interface FnbOrderResponse {
+  id: string;
+  userId: string;
+  theaterId: string;
+  orderCode: string;
+  totalAmount: string;
+  status: string;
+  paymentMethod: string;
+  createdAt: Date;
+  items: FnbOrderItemResponse[];
 }

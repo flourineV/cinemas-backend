@@ -1,13 +1,9 @@
-// Event Message Wrapper
 export class EventMessage<T> {
-  type: string;
+  eventType: string;
   data: T;
-  timestamp: Date;
 
   constructor(type: string, data: T) {
-    this.type = type;
+    this.eventType = type;
     this.data = data;
-    this.timestamp = new Date();
   }
 }
-

@@ -27,4 +27,12 @@ export class FnbItemRepository {
   async findAll(): Promise<FnbItem[]> {
     return this.repo.find();
   }
+
+  async existsById(id: string): Promise<boolean> {
+    return await this.repo.exist({ where: { id } });
+  }
+
+  async deleteById(id: string): Promise<void> {
+    await this.repo.delete(id);
+  }
 }

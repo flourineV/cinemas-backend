@@ -28,5 +28,5 @@ export class FnbItem {
   unitPrice: string;
 
   @Column({ name: "image_url", type: "varchar", length: 500, nullable: true })
-  imageUrl?: string;
+  imageUrl: string;
 }

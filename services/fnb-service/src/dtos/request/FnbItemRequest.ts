@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsNumber, Min } from "class-validator";
+import { IsNotEmpty, IsString, IsNumberString, Min } from "class-validator";
 
 export class FnbItemRequest {
   @IsNotEmpty({ message: "Tên mục F&B không được để trống" })
@@ -9,9 +9,9 @@ export class FnbItemRequest {
   description: string;
 
   @IsNotEmpty({ message: "Đơn giá không được để trống" })
-  @IsNumber()
+  @IsNumberString()
   @Min(0.01, { message: "Đơn giá phải lớn hơn 0" })
-  unitPrice: number;
+  unitPrice: string;
 
   @IsNotEmpty({ message: "URL hình ảnh không được để trống" })
   @IsString()

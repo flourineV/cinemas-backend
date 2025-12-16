@@ -1,9 +1,8 @@
-// FnbOrderConfirmedEvent - Sent to Notification Service
 export interface FnbOrderConfirmedEvent {
   fnbOrderId: string;
   userId: string;
   orderCode: string;
-  theaterId?: string; // Optional - not in database schema but used in Java code
+  theaterId?: string;
   totalAmount: string;
   items: FnbItemDetail[];
 }
@@ -14,4 +13,3 @@ export interface FnbItemDetail {
   unitPrice: string;
   totalPrice: string;
 }
-

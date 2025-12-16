@@ -1,7 +1,8 @@
-// PaymentFnbSuccessEvent - Received from Payment Service
 export interface PaymentFnbSuccessEvent {
-  fnbOrderId: string;
   paymentId: string;
+  fnbOrderId: string;
+  userId: string;
+  amount: string;
   method: string;
+  message: string;
 }
-
