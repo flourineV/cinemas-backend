@@ -9,27 +9,26 @@ export class ManagerProfileRepository {
     this.repository = this.dataSource.getRepository(ManagerProfile);
   }
 
-  // Lưu managerProfile 
-  async save(manager: ManagerProfile): Promise<ManagerProfile> {
-    return await this.repository.save(manager);
-  }
-
   // Tìm ManagerProfile theo UserProfile entity
-  async findByUserProfile(userProfile: UserProfile): Promise<ManagerProfile | null> {
-    return await this.repository.findOne({ where: { userProfile } });
+  async findByUserProfile(
+    userProfile: UserProfile
+  ): Promise<ManagerProfile | null> {
+    return this.repository.findOne({ where: { userProfile } });
   }
 
-  // Tìm ManagerProfile theo userProfileId (UUID)
-  async findByUserProfileId(userProfileId: string): Promise<ManagerProfile | null> {
-    return await this.repository.findOne({
+  // Tìm ManagerProfile theo userProfileId
+  async findByUserProfileId(
+    userProfileId: string
+  ): Promise<ManagerProfile | null> {
+    return this.repository.findOne({
       where: { userProfile: { id: userProfileId } },
       relations: ["userProfile"],
     });
   }
 
-  // Tìm tất cả ManagerProfile theo managedCinemaId
-  async findByManagedCinemaId(cinemaId: string): Promise<ManagerProfile[]> {
-    return await this.repository.find({ where: { managedCinemaId: cinemaId } });
+  // Tìm danh sách ManagerProfile theo managedCinemaName
+  async findByManagedCinemaName(cinemaName: string): Promise<ManagerProfile[]> {
+    return this.repository.find({ where: { managedCinemaName: cinemaName } });
   }
 
   // Kiểm tra tồn tại theo userProfileId
@@ -40,21 +39,20 @@ export class ManagerProfileRepository {
     return count > 0;
   }
 
-  // lấy tất cả ManagerProfile
+  // Các hàm bổ sung thường dùng
   async findAll(): Promise<ManagerProfile[]> {
-    return await this.repository.find();
+    return this.repository.find();
   }
 
-  // kiểm tra tồn tại theo managerId
-  async existsById(managerId: string): Promise<boolean> {
-    const count = await this.repository.count({
-      where: { id: managerId },
-    });
-    return count > 0;
+  async findById(id: string): Promise<ManagerProfile | null> {
+    return this.repository.findOne({ where: { id } });
   }
-  
-  // Xóa ManagerProfile
-  async deleteById(managerId: string): Promise<void> {
-    await this.repository.delete(managerId);
+
+  async save(profile: ManagerProfile): Promise<ManagerProfile> {
+    return this.repository.save(profile);
+  }
+
+  async deleteById(id: string): Promise<void> {
+    await this.repository.delete(id);
   }
 }

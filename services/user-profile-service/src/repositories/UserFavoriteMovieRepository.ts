@@ -8,28 +8,38 @@ export class UserFavoriteMovieRepository {
     this.repository = this.dataSource.getRepository(UserFavoriteMovie);
   }
 
-  // Lưu favorite movie
-  async save(favorite: UserFavoriteMovie): Promise<UserFavoriteMovie> {
-    return await this.repository.save(favorite);
-  }
-  
-  // Tìm tất cả favorite movies theo userId
+  // Tìm danh sách phim yêu thích theo userId
   async findByUserId(userId: string): Promise<UserFavoriteMovie[]> {
-    return await this.repository.find({
-      where: { userId },
-    });
+    return this.repository.find({ where: { userId } });
   }
 
-  // Kiểm tra tồn tại theo composite key (userId + tmdbId)
-  async existsByUserIdAndTmdbId(userId: string, tmdbId: number): Promise<boolean> {
-    const count = await this.repository.count({
-      where: { userId, tmdbId },
-    });
+  // Đếm số phim yêu thích theo userId
+  async countByUserId(userId: string): Promise<number> {
+    return this.repository.count({ where: { userId } });
+  }
+
+  // Kiểm tra tồn tại theo userId và movieId
+  async existsByUserIdAndMovieId(
+    userId: string,
+    movieId: string
+  ): Promise<boolean> {
+    const count = await this.repository.count({ where: { userId, movieId } });
     return count > 0;
   }
 
-  // Xóa theo composite key (userId + tmdbId)
-  async deleteByUserIdAndTmdbId(userId: string, tmdbId: number): Promise<void> {
-    await this.repository.delete({ userId, tmdbId });
+  // Xóa theo userId và movieId
+  async deleteByUserIdAndMovieId(
+    userId: string,
+    movieId: string
+  ): Promise<void> {
+    await this.repository.delete({ userId, movieId });
+  }
+
+  async save(favorite: UserFavoriteMovie): Promise<UserFavoriteMovie> {
+    return this.repository.save(favorite);
+  }
+
+  async findAll(): Promise<UserFavoriteMovie[]> {
+    return this.repository.find();
   }
 }

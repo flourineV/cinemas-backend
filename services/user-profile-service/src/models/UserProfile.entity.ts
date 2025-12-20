@@ -2,16 +2,12 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  ManyToOne,
+  JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToOne,
-  OneToMany,
-  OneToOne,
 } from "typeorm";
 import { UserRank } from "./UserRank.entity";
-import { UserFavoriteMovie } from "./UserFavoriteMovie.entity";
-import { StaffProfile } from "./StaffProfile.entity";
-import { ManagerProfile } from "./ManagerProfile.entity";
 
 export enum UserStatus {
   ACTIVE = "ACTIVE",
@@ -24,21 +20,21 @@ export enum Gender {
   OTHER = "OTHER",
 }
 
-@Entity("user_profiles")
+@Entity({ name: "user_profiles" })
 export class UserProfile {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ name: "user_id", type: "uuid", unique: true, nullable: false })
+  @Column({ name: "user_id", unique: true, nullable: false, type: "uuid" })
   userId: string;
 
-  @Column({ type: "varchar", length: 100, unique: true, nullable: false })
+  @Column({ unique: true, nullable: false, length: 100 })
   email: string;
 
-  @Column({ type: "varchar", length: 30, unique: true, nullable: true })
+  @Column({ unique: true, length: 30, nullable: true })
   username: string;
 
-  @Column({ name: "full_name", type: "varchar", length: 100, nullable: true })
+  @Column({ name: "full_name", length: 100, nullable: true })
   fullName: string;
 
   @Column({ name: "avatar_url", type: "text", nullable: true })
@@ -50,21 +46,22 @@ export class UserProfile {
   @Column({ name: "date_of_birth", type: "date", nullable: true })
   dateOfBirth: Date;
 
-  @Column({ name: "phone_number", type: "varchar", length: 20, nullable: true })
+  @Column({ name: "phone_number", length: 20, nullable: true })
   phoneNumber: string;
 
-  @Column({ name: "national_id", type: "varchar", length: 20, nullable: true })
+  @Column({ name: "national_id", length: 20, nullable: true })
   nationalId: string;
 
   @Column({ type: "text", nullable: true })
   address: string;
 
-  @Column({ name: "loyalty_point", type: "int", default: 0 })
+  @Column({ name: "loyalty_point", type: "int", default: 0, nullable: false })
   loyaltyPoint: number;
 
-  @ManyToOne(() => UserRank, (rank) => rank.userProfiles, {
-    onDelete: "SET NULL",
-    nullable: true,
+  @ManyToOne(() => UserRank, { eager: false })
+  @JoinColumn({
+    name: "rank_id",
+    foreignKeyConstraintName: "user_profiles_rank_id_fkey",
   })
   rank: UserRank;
 
@@ -76,19 +73,17 @@ export class UserProfile {
   })
   status: UserStatus;
 
+  @Column({
+    name: "receive_promo_email",
+    type: "boolean",
+    default: false,
+    nullable: false,
+  })
+  receivePromoEmail: boolean;
+
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;
 
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
-
-  // Quan hệ ngược
-  @OneToMany(() => UserFavoriteMovie, (fav) => fav.user)
-  favoriteMovies: UserFavoriteMovie[];
-
-  @OneToOne(() => StaffProfile, (staff) => staff.userProfile)
-  staffProfile: StaffProfile;
-
-  @OneToOne(() => ManagerProfile, (manager) => manager.userProfile)
-  managerProfile: ManagerProfile;
 }

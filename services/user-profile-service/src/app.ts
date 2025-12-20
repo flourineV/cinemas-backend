@@ -1,13 +1,13 @@
 import express from "express";
 import cors from "cors";
-import { AppDataSource } from "./config/Database";
+import { AppDataSource } from "./config/database";
 import { errorHandler } from "./middlewares/errorHandler";
-import userProfileRoute from "./routes/UserProfileRoute";
-import userStatsRoute from "./routes/UserStatsRoute";
-import managerProfileRoute from "./routes/ManagerProfileRoute";
-import staffProfileRoute from "./routes/StaffProfileRoute";
-import userRankRoute from "./routes/UserRankRoute";
-import userFavorriteMovieRoute from "./routes/UserFavoriteMovieRoute";
+// import userProfileRoute from "./routes/UserProfileRoute";
+// import userStatsRoute from "./routes/UserStatsRoute";
+// import managerProfileRoute from "./routes/ManagerProfileRoute";
+// import staffProfileRoute from "./routes/StaffProfileRoute";
+// import userRankRoute from "./routes/UserRankRoute";
+// import userFavorriteMovieRoute from "./routes/UserFavoriteMovieRoute";
 import { JwtMiddleware } from "./middlewares/JwtMiddleware";
 
 const app = express();
@@ -42,36 +42,36 @@ app.get("/", (req, res) => {
 app.use(express.json());
 
 // Routes
-app.use(
-  "/api/profiles/profiles",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  userProfileRoute
-);
-app.use(
-  "/api/profiles/stats",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  userStatsRoute
-);
-app.use(
-  "/api/profiles/manager",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  managerProfileRoute
-);
-app.use(
-  "/api/profiles/staff",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  staffProfileRoute
-);
-app.use(
-  "/api/profiles/ranks",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  userRankRoute
-);
-app.use(
-  "/api/profiles/favorites",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  userFavorriteMovieRoute
-);
+// app.use(
+//   "/api/profiles/profiles",
+//   JwtMiddleware(process.env.APP_JWT_SECRET!),
+//   userProfileRoute
+// );
+// app.use(
+//   "/api/profiles/stats",
+//   JwtMiddleware(process.env.APP_JWT_SECRET!),
+//   userStatsRoute
+// );
+// app.use(
+//   "/api/profiles/manager",
+//   JwtMiddleware(process.env.APP_JWT_SECRET!),
+//   managerProfileRoute
+// );
+// app.use(
+//   "/api/profiles/staff",
+//   JwtMiddleware(process.env.APP_JWT_SECRET!),
+//   staffProfileRoute
+// );
+// app.use(
+//   "/api/profiles/ranks",
+//   JwtMiddleware(process.env.APP_JWT_SECRET!),
+//   userRankRoute
+// );
+// app.use(
+//   "/api/profiles/favorites",
+//   JwtMiddleware(process.env.APP_JWT_SECRET!),
+//   userFavorriteMovieRoute
+// );
 
 // Error handling middleware
 app.use(errorHandler);

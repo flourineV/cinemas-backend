@@ -2,27 +2,27 @@ import {
   IsNotEmpty,
   IsString,
   IsInt,
+  IsOptional,
   Min,
   Max,
   IsNumber,
 } from "class-validator";
 
 export class RankRequest {
-  @IsNotEmpty({ message: "Rank name is required" })
   @IsString()
+  @IsNotEmpty({ message: "Rank name is required" })
   name: string;
 
-  @IsNotEmpty({ message: "Minimum points required" })
-  @IsInt()
+  @IsInt({ message: "Minimum points required" })
   minPoints: number;
 
+  @IsOptional()
+  @IsInt()
   maxPoints: number;
 
-  @IsNumber(
-    { maxDecimalPlaces: 2 },
-    { message: "Discount rate must be a number" }
-  )
-  @Min(0, { message: "Discount rate must be >= 0" })
-  @Max(100, { message: "Discount rate must be <= 100" })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.0, { message: "Discount rate must be >= 0" })
+  @Max(100.0, { message: "Discount rate must be <= 100" })
   discountRate: number;
 }

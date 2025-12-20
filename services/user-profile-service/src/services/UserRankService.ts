@@ -11,21 +11,19 @@ export class UserRankService {
     this.rankRepository = rankRepo;
   }
 
-  // Tạo Rank mới
   async createRank(request: RankRequest): Promise<RankResponse> {
+    // Logic nghiệp vụ: minPoints < maxPoints
     if (
       request.maxPoints !== undefined &&
       request.minPoints >= request.maxPoints
     ) {
       throw new Error("Minimum points must be less than maximum points.");
     }
-
     const rank = new UserRank();
     rank.name = request.name;
     rank.minPoints = request.minPoints;
     rank.maxPoints = request.maxPoints;
     rank.discountRate = request.discountRate;
-
     const saved = await this.rankRepository.save(rank);
     return this.mapToResponse(saved);
   }
@@ -37,9 +35,8 @@ export class UserRankService {
   ): Promise<RankResponse> {
     const existingRank = await this.rankRepository.findById(rankId);
     if (!existingRank) {
-      throw new ResourceNotFoundException(`Rank not found with id: ${rankId}`);
+      throw new Error(`Rank not found with id: ${rankId}`);
     }
-
     if (request.name !== undefined) {
       existingRank.name = request.name;
     }
@@ -51,17 +48,15 @@ export class UserRankService {
     }
     if (request.discountRate !== undefined) {
       existingRank.discountRate = request.discountRate;
-    }
-
+    } // Kiểm tra lại ràng buộc
     if (
       existingRank.maxPoints !== undefined &&
       existingRank.minPoints >= existingRank.maxPoints
     ) {
       throw new Error(
-        "Update failed: Minimum points must be less than maximum points."
+        "Cập nhật thất bại: Minimum points phải nhỏ hơn maximum points."
       );
     }
-
     const saved = await this.rankRepository.save(existingRank);
     return this.mapToResponse(saved);
   }
@@ -69,14 +64,14 @@ export class UserRankService {
   // Lấy tất cả Rank
   async getAllRanks(): Promise<RankResponse[]> {
     const ranks = await this.rankRepository.findAll();
-    return ranks.map((rank) => this.mapToResponse(rank));
+    return ranks.map((r) => this.mapToResponse(r));
   }
 
   // Lấy Rank theo id
   async getRankById(rankId: string): Promise<RankResponse> {
     const rank = await this.rankRepository.findById(rankId);
     if (!rank) {
-      throw new ResourceNotFoundException(`Rank not found with id: ${rankId}`);
+      throw new Error(`Rank not found with id: ${rankId}`);
     }
     return this.mapToResponse(rank);
   }
@@ -85,33 +80,30 @@ export class UserRankService {
   async deleteRank(rankId: string): Promise<void> {
     const existingRank = await this.rankRepository.findById(rankId);
     if (!existingRank) {
-      throw new ResourceNotFoundException(`Rank not found with id: ${rankId}`);
+      throw new Error(`Rank not found with id: ${rankId}`);
     }
-    await this.rankRepository.delete(existingRank);
+    await this.rankRepository.deleteById(rankId);
   }
 
   // Tìm default rank (minPoints = 0)
   async findDefaultRank(): Promise<UserRank | null> {
-    return await this.rankRepository.findByMinPoints(0);
+    return this.rankRepository.findByMinPoints(0);
   }
 
   // Tìm rank phù hợp với loyalty points
   async findRankByLoyaltyPoint(points: number): Promise<UserRank | null> {
-    return await this.rankRepository.findBestRankByPoints(points);
+    return this.rankRepository.findBestRankByPoints(points);
   }
 
-  // Map entity sang response DTO
   private mapToResponse(entity: UserRank): RankResponse {
-    if (!entity) throw new ResourceNotFoundException("Rank entity is null");
-
     return new RankResponse(
       entity.id,
       entity.name,
       entity.minPoints,
-      entity.discountRate,
+      entity.maxPoints,
+      Number(entity.discountRate),
       entity.createdAt,
-      entity.updatedAt,
-      entity.maxPoints
+      entity.updatedAt
     );
   }
 }

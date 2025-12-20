@@ -1,4 +1,4 @@
-import { DataSource, Repository, ILike } from "typeorm";
+import { DataSource, Repository, In } from "typeorm";
 import { UserProfile } from "../models/UserProfile.entity";
 
 export class UserProfileRepository {
@@ -8,72 +8,59 @@ export class UserProfileRepository {
     this.repository = this.dataSource.getRepository(UserProfile);
   }
 
-  // lưu profile
-  async save(profile: UserProfile): Promise<UserProfile> {
-    return await this.repository.save(profile);
-  }
-
-  // Xóa profile
-  async delete(profile: UserProfile): Promise<void> {
-    await this.repository.remove(profile);
-  }
-
-  // lấy tất cả user profile
-  async findAll(): Promise<UserProfile[]> {
-    return await this.repository.find();
-  }
-
-  // Tìm theo userId (UUID)
   async findByUserId(userId: string): Promise<UserProfile | null> {
-    return await this.repository.findOne({ where: { userId } });
+    return this.repository.findOne({ where: { userId } });
   }
 
-  // Tìm theo email
   async findByEmail(email: string): Promise<UserProfile | null> {
-    return await this.repository.findOne({ where: { email } });
+    return this.repository.findOne({ where: { email } });
   }
 
-  // Tìm theo username
   async findByUsername(username: string): Promise<UserProfile | null> {
-    return await this.repository.findOne({ where: { username } });
+    return this.repository.findOne({ where: { username } });
   }
 
-  // Tìm theo phoneNumber
   async findByPhoneNumber(phoneNumber: string): Promise<UserProfile | null> {
-    return await this.repository.findOne({ where: { phoneNumber } });
+    return this.repository.findOne({ where: { phoneNumber } });
   }
 
-  // Tìm theo nationalId
   async findByNationalId(nationalId: string): Promise<UserProfile | null> {
-    return await this.repository.findOne({ where: { nationalId } });
+    return this.repository.findOne({ where: { nationalId } });
   }
 
-  // Exists checks
   async existsByEmail(email: string): Promise<boolean> {
-    return (await this.repository.count({ where: { email } })) > 0;
+    const count = await this.repository.count({ where: { email } });
+    return count > 0;
   }
 
   async existsByUsername(username: string): Promise<boolean> {
-    return (await this.repository.count({ where: { username } })) > 0;
+    const count = await this.repository.count({ where: { username } });
+    return count > 0;
   }
 
   async existsByPhoneNumber(phoneNumber: string): Promise<boolean> {
-    return (await this.repository.count({ where: { phoneNumber } })) > 0;
+    const count = await this.repository.count({ where: { phoneNumber } });
+    return count > 0;
   }
 
   async existsByNationalId(nationalId: string): Promise<boolean> {
-    return (await this.repository.count({ where: { nationalId } })) > 0;
+    const count = await this.repository.count({ where: { nationalId } });
+    return count > 0;
   }
 
   async existsByUserId(userId: string): Promise<boolean> {
-    return (await this.repository.count({ where: { userId } })) > 0;
+    const count = await this.repository.count({ where: { userId } });
+    return count > 0;
   }
 
-  // Tìm theo email OR username OR phoneNumber
+  async findByReceivePromoEmailTrue(): Promise<UserProfile[]> {
+    return this.repository.find({ where: { receivePromoEmail: true } });
+  }
+
   async findByEmailOrUsernameOrPhoneNumber(
     identifier: string
   ): Promise<UserProfile | null> {
-    return await this.repository.findOne({
+    return this.repository.findOne({
       where: [
         { email: identifier },
         { username: identifier },
@@ -82,26 +69,49 @@ export class UserProfileRepository {
     });
   }
 
-  // Search theo username/email/fullName (ignore case)
-  async searchByUsernameEmailOrFullName(
+  async findByUsernameOrEmailOrFullNameContainingIgnoreCase(
     username: string,
     email: string,
     fullName: string
   ): Promise<UserProfile[]> {
-    return await this.repository.find({
-      where: [
-        { username: ILike(`%${username}%`) },
-        { email: ILike(`%${email}%`) },
-        { fullName: ILike(`%${fullName}%`) },
-      ],
-    });
+    return this.repository
+      .createQueryBuilder("p")
+      .where("LOWER(p.username) LIKE LOWER(:username)", {
+        username: `%${username}%`,
+      })
+      .orWhere("LOWER(p.email) LIKE LOWER(:email)", { email: `%${email}%` })
+      .orWhere("LOWER(p.fullName) LIKE LOWER(:fullName)", {
+        fullName: `%${fullName}%`,
+      })
+      .getMany();
   }
 
-  // Lấy top 20 mới nhất theo createdAt
   async findTop20ByOrderByCreatedAtDesc(): Promise<UserProfile[]> {
-    return await this.repository.find({
+    return this.repository.find({
       order: { createdAt: "DESC" },
       take: 20,
     });
+  }
+
+  async findAllByUserIdIn(userIds: string[]): Promise<UserProfile[]> {
+    return this.repository.find({
+      where: { userId: In(userIds) },
+    });
+  }
+
+  async findById(id: string): Promise<UserProfile | null> {
+    return this.repository.findOne({ where: { id } });
+  }
+
+  async findAll(): Promise<UserProfile[]> {
+    return this.repository.find();
+  }
+
+  async save(profile: UserProfile): Promise<UserProfile> {
+    return this.repository.save(profile);
+  }
+
+  async deleteById(id: string): Promise<void> {
+    await this.repository.delete(id);
   }
 }

@@ -6,6 +6,7 @@ import { UserRank } from "../models/UserRank.entity";
 import { StaffProfile } from "../models/StaffProfile.entity";
 import { UserFavoriteMovie } from "../models/UserFavoriteMovie.entity";
 import { ManagerProfile } from "../models/ManagerProfile.entity";
+import { LoyaltyHistory } from "../models/LoyaltyHistory.entity";
 
 // Load environment variables
 dotenv.config();
@@ -26,9 +27,10 @@ export const AppDataSource = new DataSource({
   entities: [
     UserProfile,
     UserRank,
-    StaffProfile,
     UserFavoriteMovie,
     ManagerProfile,
+    StaffProfile,
+    LoyaltyHistory,
   ],
   subscribers: [],
   migrations: [],
