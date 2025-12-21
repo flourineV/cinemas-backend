@@ -1,19 +1,13 @@
-import { IsOptional } from "class-validator";
-import { Gender } from "./UserProfileRequest";
+export enum Gender {
+  MALE = "MALE",
+  FEMALE = "FEMALE",
+  OTHER = "OTHER",
+}
 
 export class UserProfileUpdateRequest {
-  @IsOptional()
   fullName?: string;
-
-  @IsOptional()
   phoneNumber?: string;
-
-  @IsOptional()
   address?: string;
-
-  @IsOptional()
   avatarUrl?: string;
-
-  @IsOptional()
   gender?: Gender;
 }

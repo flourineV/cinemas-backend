@@ -57,6 +57,10 @@ export class UserProfileRepository {
     return this.repository.find({ where: { receivePromoEmail: true } });
   }
 
+  async delete(userProfile: UserProfile) {
+    return this.repository.remove(userProfile);
+  }
+
   async findByEmailOrUsernameOrPhoneNumber(
     identifier: string
   ): Promise<UserProfile | null> {

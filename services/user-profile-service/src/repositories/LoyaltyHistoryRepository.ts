@@ -41,6 +41,4 @@ export class LoyaltyHistoryRepository {
   async deleteById(id: string): Promise<void> {
     await this.repository.delete(id);
   }
-
-  async findAndCountByUserId(userId: string, skip: number, size: number) {}
 }

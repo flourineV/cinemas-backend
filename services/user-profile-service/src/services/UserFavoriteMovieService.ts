@@ -1,61 +1,77 @@
-// import { FavoriteMovieRequest } from "../dtos/request/FavoriteMovieRequest";
-// import { FavoriteMovieResponse } from "../dtos/response/FavoriteMovieResponse";
-// import { UserFavoriteMovie } from "../models/UserFavoriteMovie.entity";
-// import { UserFavoriteMovieRepository } from "../repositories/UserFavoriteMovieRepository";
-// import { ResourceNotFoundException } from "../exceptions/ResourceNotFoundException";
+import { UserFavoriteMovie } from "../models/UserFavoriteMovie.entity";
+import { FavoriteMovieRequest } from "../dtos/request/FavoriteMovieRequest";
+import { FavoriteMovieResponse } from "../dtos/response/FavoriteMovieResponse";
+import { UserFavoriteMovieRepository } from "../repositories/UserFavoriteMovieRepository";
 
-// export class UserFavoriteMovieService {
-//   private favoriteMovieRepository: UserFavoriteMovieRepository;
+export class UserFavoriteMovieService {
+  private favoriteMovieRepository: UserFavoriteMovieRepository;
+  private userProfileRepository: UserFavoriteMovieRepository;
+  constructor(
+    favoriteMovieRepository: UserFavoriteMovieRepository,
+    userProfileRepository: UserFavoriteMovieRepository
+  ) {
+    this.favoriteMovieRepository = favoriteMovieRepository;
+    this.userProfileRepository = userProfileRepository;
+  }
 
-//   constructor(favoriteMovieRepo: UserFavoriteMovieRepository) {
-//     this.favoriteMovieRepository = favoriteMovieRepo;
-//   }
+  async addFavorite(
+    request: FavoriteMovieRequest
+  ): Promise<FavoriteMovieResponse> {
+    const exists = await this.favoriteMovieRepository.existsByUserIdAndMovieId(
+      request.userId,
+      request.movieId
+    );
+    if (exists) {
+      throw new Error("Movie already in favorites");
+    }
 
-//   // Thêm phim yêu thích
-//   async addFavorite(
-//     request: FavoriteMovieRequest
-//   ): Promise<FavoriteMovieResponse> {
-//     const exists = await this.favoriteMovieRepository.existsByUserIdAndTmdbId(
-//       request.userId,
-//       request.tmdbId
-//     );
-//     if (exists) {
-//       throw new Error("Movie already in favorites");
-//     }
+    // Verify user profile exists
+    const user = await this.userProfileRepository.existsByUserIdAndMovieId(
+      request.userId,
+      request.movieId
+    );
+    if (!user) {
+      throw new Error(`User profile not found for userId: ${request.userId}`);
+    }
 
-//     const favorite = new UserFavoriteMovie();
-//     favorite.userId = request.userId;
-//     favorite.tmdbId = request.tmdbId;
-//     favorite.addedAt = new Date();
+    const favorite: UserFavoriteMovie = {
+      userId: request.userId,
+      movieId: request.movieId,
+      addedAt: new Date(),
+    };
 
-//     const saved = await this.favoriteMovieRepository.save(favorite);
-//     return this.mapToResponse(saved);
-//   }
+    const saved = await this.favoriteMovieRepository.save(favorite);
+    return this.mapToResponse(saved);
+  }
 
-//   // Lấy danh sách phim yêu thích theo userId
-//   async getFavoritesByUser(userId: string): Promise<FavoriteMovieResponse[]> {
-//     const favorites = await this.favoriteMovieRepository.findByUserId(userId);
-//     return favorites.map((fav) => this.mapToResponse(fav));
-//   }
+  async getFavoritesByUser(userId: string): Promise<FavoriteMovieResponse[]> {
+    const favorites = await this.favoriteMovieRepository.findByUserId(userId);
+    return favorites.map((f) => this.mapToResponse(f));
+  }
 
-//   // Xóa phim yêu thích
-//   async removeFavorite(userId: string, tmdbId: number): Promise<void> {
-//     const exists = await this.favoriteMovieRepository.existsByUserIdAndTmdbId(
-//       userId,
-//       tmdbId
-//     );
-//     if (!exists) {
-//       throw new ResourceNotFoundException(
-//         `Favorite movie not found for userId: ${userId}`
-//       );
-//     }
-//     await this.favoriteMovieRepository.deleteByUserIdAndTmdbId(userId, tmdbId);
-//   }
+  async removeFavorite(userId: string, movieId: string): Promise<void> {
+    const exists = await this.favoriteMovieRepository.existsByUserIdAndMovieId(
+      userId,
+      movieId
+    );
+    if (!exists) {
+      throw new Error(`Favorite movie not found for userId: ${userId}`);
+    }
+    await this.favoriteMovieRepository.deleteByUserIdAndMovieId(
+      userId,
+      movieId
+    );
+  }
 
-//   // Map entity sang response DTO
-//   private mapToResponse(entity: UserFavoriteMovie): FavoriteMovieResponse {
-//     if (!entity)
-//       throw new ResourceNotFoundException("Favorite movie entity is null");
-//     return new FavoriteMovieResponse(entity.tmdbId, entity.addedAt);
-//   }
-// }
+  async isFavorite(userId: string, movieId: string): Promise<boolean> {
+    const exists = await this.favoriteMovieRepository.existsByUserIdAndMovieId(
+      userId,
+      movieId
+    );
+    return exists;
+  }
+
+  private mapToResponse(entity: UserFavoriteMovie): FavoriteMovieResponse {
+    return new FavoriteMovieResponse(entity.movieId, entity.addedAt);
+  }
+}

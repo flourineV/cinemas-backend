@@ -1,12 +1,11 @@
 import {
-  IsUUID,
-  IsEmail,
   IsNotEmpty,
+  IsEmail,
   Length,
   MaxLength,
   IsOptional,
+  IsUUID,
 } from "class-validator";
-import { Type } from "class-transformer";
 
 export enum Gender {
   MALE = "MALE",
@@ -34,7 +33,6 @@ export class UserProfileRequest {
   gender: Gender;
 
   @IsOptional()
-  @Type(() => Date)
   dateOfBirth: Date;
 
   @MaxLength(20)

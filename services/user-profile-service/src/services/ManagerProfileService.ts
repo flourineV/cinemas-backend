@@ -1,81 +1,87 @@
-// import { ManagerProfile } from "../models/ManagerProfile.entity";
-// import { UserProfile } from "../models/UserProfile.entity";
-// import { ManagerProfileRepository } from "../repositories/ManagerProfileRepository";
-// import { UserProfileRepository } from "../repositories/UserProfileRepository";
-// import { ResourceNotFoundException } from "../exceptions/ResourceNotFoundException";
+import { ManagerProfile } from "../models/ManagerProfile.entity";
+import { ManagerProfileResponse } from "../dtos/response/ManagerProfileResponse";
+import { ManagerProfileRepository } from "../repositories/ManagerProfileRepository";
+import { UserProfileRepository } from "../repositories/UserProfileRepository";
+import { UserProfileService } from "./UserProfileService";
+import { v4 as uuidv4 } from "uuid";
 
-// export class ManagerProfileService {
-//   private managerRepository: ManagerProfileRepository;
-//   private userProfileRepository: UserProfileRepository;
+export class ManagerProfileService {
+  private managerRepository: ManagerProfileRepository;
+  private userProfileRepository: UserProfileRepository;
+  private userProfileService: UserProfileService;
 
-//   constructor(
-//     managerRepo: ManagerProfileRepository,
-//     userProfileRepo: UserProfileRepository
-//   ) {
-//     this.managerRepository = managerRepo;
-//     this.userProfileRepository = userProfileRepo;
-//   }
+  constructor(
+    managerRepository: ManagerProfileRepository,
+    userProfileRepository: UserProfileRepository,
+    userProfileService: UserProfileService
+  ) {
+    this.managerRepository = managerRepository;
+    this.userProfileRepository = userProfileRepository;
+    this.userProfileService = userProfileService;
+  }
 
-//   // Tạo manager profile mới
-//   async createManager(
-//     userProfileId: string,
-//     managedCinemaId: string,
-//     hireDate: Date
-//   ): Promise<ManagerProfile> {
-//     const profile =
-//       await this.userProfileRepository.findByUserId(userProfileId);
-//     if (!profile) {
-//       throw new ResourceNotFoundException(
-//         `User profile not found: ${userProfileId}`
-//       );
-//     }
+  async createManager(
+    userProfileId: string,
+    managedCinemaName: string,
+    hireDate: Date
+  ): Promise<ManagerProfileResponse> {
+    const profile = await this.userProfileRepository.findById(userProfileId);
+    if (!profile) throw new Error(`User profile not found: ${userProfileId}`);
 
-//     const exists =
-//       await this.managerRepository.existsByUserProfileId(userProfileId);
-//     if (exists) {
-//       throw new Error("This user already has a manager profile.");
-//     }
+    const exists =
+      await this.managerRepository.existsByUserProfileId(userProfileId);
+    if (exists) throw new Error("This user already has a manager profile.");
 
-//     const manager = new ManagerProfile();
-//     manager.userProfile = profile;
-//     manager.managedCinemaId = managedCinemaId;
-//     manager.hireDate = hireDate;
+    const manager: ManagerProfile = {
+      id: uuidv4(),
+      userProfile: profile,
+      managedCinemaName: managedCinemaName,
+      hireDate: hireDate,
+    };
 
-//     return await this.managerRepository.save(manager);
-//   }
+    const saved = await this.managerRepository.save(manager);
+    return this.toResponse(saved);
+  }
 
-//   // Lấy manager theo userProfileId
-//   async getManagerByUserProfileId(
-//     userProfileId: string
-//   ): Promise<ManagerProfile> {
-//     const manager =
-//       await this.managerRepository.findByUserProfileId(userProfileId);
-//     if (!manager) {
-//       throw new ResourceNotFoundException(
-//         `Manager not found for user: ${userProfileId}`
-//       );
-//     }
-//     return manager;
-//   }
+  async getManagerByUserProfileId(
+    userProfileId: string
+  ): Promise<ManagerProfileResponse> {
+    const manager =
+      await this.managerRepository.findByUserProfileId(userProfileId);
+    if (!manager)
+      throw new Error(`Manager not found for user: ${userProfileId}`);
+    return this.toResponse(manager);
+  }
 
-//   // Lấy tất cả managers
-//   async getAllManagers(): Promise<ManagerProfile[]> {
-//     return await this.managerRepository.findAll();
-//   }
+  async getAllManagers(): Promise<ManagerProfileResponse[]> {
+    const managers = await this.managerRepository.findAll();
+    return managers.map((m) => this.toResponse(m));
+  }
 
-//   // Lấy managers theo cinemaId
-//   async getManagersByCinema(cinemaId: string): Promise<ManagerProfile[]> {
-//     return await this.managerRepository.findByManagedCinemaId(cinemaId);
-//   }
+  async getManagersByCinema(
+    cinemaName: string
+  ): Promise<ManagerProfileResponse[]> {
+    const managers =
+      await this.managerRepository.findByManagedCinemaName(cinemaName);
+    return managers.map((m) => this.toResponse(m));
+  }
 
-//   // Xóa manager theo id
-//   async deleteManager(managerId: string): Promise<void> {
-//     const exists = await this.managerRepository.existsById(managerId);
-//     if (!exists) {
-//       throw new ResourceNotFoundException(
-//         `Manager not found with id: ${managerId}`
-//       );
-//     }
-//     await this.managerRepository.deleteById(managerId);
-//   }
-// }
+  async deleteManager(managerId: string): Promise<void> {
+    const exists =
+      await this.managerRepository.existsByUserProfileId(managerId);
+    if (!exists) throw new Error(`Manager not found with id: ${managerId}`);
+    await this.managerRepository.deleteById(managerId);
+  }
+
+  private toResponse(manager: ManagerProfile): ManagerProfileResponse {
+    return new ManagerProfileResponse(
+      manager.id,
+      manager.userProfile.id,
+      this.userProfileService.mapToResponse(manager.userProfile),
+      manager.managedCinemaName,
+      manager.hireDate,
+      manager.createdAt!,
+      manager.updatedAt!
+    );
+  }
+}

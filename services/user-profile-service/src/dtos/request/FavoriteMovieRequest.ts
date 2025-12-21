@@ -1,11 +1,11 @@
-import { IsNotEmpty, IsUUID, IsInt } from "class-validator";
+import { IsUUID, IsNotEmpty } from "class-validator";
 
 export class FavoriteMovieRequest {
-  @IsNotEmpty({ message: "User ID is required" })
   @IsUUID()
+  @IsNotEmpty({ message: "User ID is required" })
   userId: string;
 
-  @IsNotEmpty({ message: "TMDb ID is required" })
-  @IsInt()
-  tmdbId: number;
+  @IsUUID()
+  @IsNotEmpty({ message: "Movie ID is required" })
+  movieId: string;
 }
