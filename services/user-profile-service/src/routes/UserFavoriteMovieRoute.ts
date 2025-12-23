@@ -1,22 +1,30 @@
-// import { Router, Request, Response } from "express";
-// import { UserFavoriteMovieController } from "../controllers/UserFavoriteMovieController";
-// import { UserFavoriteMovieService } from "../services/UserFavoriteMovieService";
-// import { AppDataSource } from "../config/Database";
-// import { UserFavoriteMovieRepository } from "../repositories/UserFavoriteMovieRepository";
+import { Router } from "express";
+import { UserFavoriteMovieController } from "../controllers/UserFavoriteMovieController";
+import { UserFavoriteMovieService } from "../services/UserFavoriteMovieService";
+import { UserFavoriteMovieRepository } from "../repositories/UserFavoriteMovieRepository";
+import { AppDataSource } from "../config/database";
+import { UserProfileRepository } from "../repositories/UserProfileRepository";
 
-// const router = Router();
-// const favorMovieRepo = new UserFavoriteMovieRepository(AppDataSource);
-// const favoriteMovieService = new UserFavoriteMovieService(favorMovieRepo);
-// const controller = new UserFavoriteMovieController(favoriteMovieService);
+const router = Router();
 
-// router.post("/", (req: Request, res: Response) =>
-//   controller.addFavorite(req, res)
-// );
-// router.get("/:userId", (req: Request, res: Response) =>
-//   controller.getFavorites(req, res)
-// );
-// router.delete("/:userId/:tmdbId", (req: Request, res: Response) =>
-//   controller.removeFavorite(req, res)
-// );
+// Khởi tạo service và controller
+const favoriteMovieService = new UserFavoriteMovieService(
+  new UserFavoriteMovieRepository(AppDataSource),
+  new UserProfileRepository(AppDataSource)
+);
+const favoriteMovieController = new UserFavoriteMovieController(
+  favoriteMovieService
+);
 
-// export default router;
+router.post("/", (req, res) => favoriteMovieController.addFavorite(req, res));
+router.get("/:userId", (req, res) =>
+  favoriteMovieController.getFavorites(req, res)
+);
+router.delete("/:userId/:movieId", (req, res) =>
+  favoriteMovieController.removeFavorite(req, res)
+);
+router.get("/check/:userId/:movieId", (req, res) =>
+  favoriteMovieController.isFavorite(req, res)
+);
+
+export default router;

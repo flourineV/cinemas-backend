@@ -6,10 +6,10 @@ export class StaffProfileRequest {
   userProfileId!: string;
 
   @IsUUID()
-  @IsNotEmpty({ message: "CinemaId is required" })
-  cinemaId!: string;
+  @IsNotEmpty({ message: "CinemaName is required" })
+  cinemaName!: string;
 
   @IsDateString()
-  @IsNotEmpty({ message: "Work startDate is required" })
-  startDate!: Date;
+  @IsNotEmpty({ message: "HireDate is required" })
+  hireDate!: Date;
 }

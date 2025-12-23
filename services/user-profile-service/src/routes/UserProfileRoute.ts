@@ -1,62 +1,78 @@
-// import { Router, Request, Response } from "express";
-// import { UserProfileController } from "../controllers/UserProfileController";
-// import { UserProfileService } from "../services/UserProfileService";
-// import { InternalAuthChecker } from "../middlewares/InternalAuthChecker";
-// import { UserProfileRepository } from "../repositories/UserProfileRepository";
-// import { AppDataSource } from "../config/Database";
-// import { UserRankService } from "../services/UserRankService";
-// import { UserRankRepository } from "../repositories/UserRankRepository";
-// import { CloudinaryService } from "../services/CloudinaryService";
+import { Router } from "express";
+import { UserProfileController } from "../controllers/UserProfileController";
+import { UserProfileService } from "../services/UserProfileService";
+import { PromotionEmailService } from "../services/PromotionEmailService";
+import { InternalAuthChecker } from "../middlewares/InternalAuthChecker";
+import dotenv from "dotenv";
+import { UserProfileRepository } from "../repositories/UserProfileRepository";
+import { ManagerProfileRepository } from "../repositories/ManagerProfileRepository";
+import { UserRankService } from "../services/UserRankService";
+import { UserRankRepository } from "../repositories/UserRankRepository";
+import { LoyaltyHistoryService } from "../services/LoyaltyHistoryService";
+import { LoyaltyHistoryRepository } from "../repositories/LoyaltyHistoryRepository";
+import { AppDataSource } from "../config/database";
 
-// const router = Router();
+dotenv.config();
+const router = Router();
 
-// const userProfileRepo = new UserProfileRepository(AppDataSource);
-// const rankRepo = new UserRankRepository(AppDataSource);
-// const rankService = new UserRankService(rankRepo);
-// const cloudinaryService = new CloudinaryService();
+// Khởi tạo service và controller
+const userProfileRepo = new UserProfileRepository(AppDataSource);
+const managerRepo = new ManagerProfileRepository(AppDataSource);
+const userRankService = new UserRankService(
+  new UserRankRepository(AppDataSource)
+);
+const loyaltyHistoryService = new LoyaltyHistoryService(
+  new LoyaltyHistoryRepository(AppDataSource),
+  userProfileRepo
+);
+const userProfileService = new UserProfileService(
+  userProfileRepo,
+  userRankService,
+  loyaltyHistoryService
+);
+const internalAuthChecker = new InternalAuthChecker(
+  process.env.INTERNAL_SECRET_KEY!
+);
+const promotionEmailService = new PromotionEmailService(userProfileRepo);
+const userProfileController = new UserProfileController(
+  userProfileService,
+  internalAuthChecker,
+  promotionEmailService
+);
 
-// const userProfileService = new UserProfileService(
-//   userProfileRepo,
-//   rankService,
-//   cloudinaryService
-// );
-// const internalAuthChecker = new InternalAuthChecker(
-//   process.env.INTERNAL_SECRET_KEY || "defaultSecret"
-// );
-// const controller = new UserProfileController(
-//   userProfileService,
-//   internalAuthChecker
-// );
+router.post("/", (req, res) => userProfileController.createProfile(req, res));
+router.get("/:userId", (req, res) =>
+  userProfileController.getProfileByUserId(req, res)
+);
+router.put("/:userId", (req, res) =>
+  userProfileController.replaceProfile(req, res)
+);
+router.patch("/:userId/loyalty", (req, res) =>
+  userProfileController.updateLoyalty(req, res)
+);
+router.delete("/:userId", (req, res) =>
+  userProfileController.deleteProfile(req, res)
+);
+router.get("/search", (req, res) =>
+  userProfileController.searchProfiles(req, res)
+);
+router.get("/:userId/rank", (req, res) =>
+  userProfileController.getUserRankAndDiscount(req, res)
+);
+router.post("/batch/names", (req, res) =>
+  userProfileController.getBatchUserNames(req, res)
+);
+router.get("/batch/search-userids", (req, res) =>
+  userProfileController.searchUserIdsByUsername(req, res)
+);
+router.patch("/:userId/settings/promo-email", (req, res) =>
+  userProfileController.updatePromoEmailPreference(req, res)
+);
+router.patch("/:userId/status", (req, res) =>
+  userProfileController.updateUserStatus(req, res)
+);
+router.get("/subscribed-emails", (req, res) =>
+  userProfileController.getSubscribedUsersEmails(req, res)
+);
 
-// // Định nghĩa routes
-// router.post("/", (req: Request, res: Response) =>
-//   controller.createProfile(req, res)
-// );
-// router.get("/:userId", (req: Request, res: Response) =>
-//   controller.getProfileByUserId(req, res)
-// );
-// router.put("/:userId", (req: Request, res: Response) =>
-//   controller.replaceProfile(req, res)
-// );
-
-// router.patch("/:userId/loyalty", (req: Request, res: Response) => {
-//   try {
-//     const internalKey: string | undefined = req.header("X-Internal-Secret");
-//     internalAuthChecker.requireInternal(internalKey); // kiểm tra key
-//     controller.updateLoyalty(req, res);
-//   } catch (error: any) {
-//     res.status(403).json({ message: error.message || "Forbidden" });
-//   }
-// });
-
-// router.delete("/:userId", (req: Request, res: Response) =>
-//   controller.deleteProfile(req, res)
-// );
-// router.get("/search", (req: Request, res: Response) =>
-//   controller.searchProfiles(req, res)
-// );
-// router.get("/:userId/rank", (req: Request, res: Response) =>
-//   controller.getUserRankAndDiscount(req, res)
-// );
-
-// export default router;
+export default router;

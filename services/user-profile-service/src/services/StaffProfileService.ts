@@ -49,14 +49,14 @@ export class StaffProfileService {
   async getStaffByCinema(
     cinemaName: string,
     currentUserId: string,
-    userRole: string
+    userRole: string | null
   ): Promise<StaffProfileResponse[]> {
-    if (userRole.toUpperCase() === "ADMIN") {
+    if (userRole!.toUpperCase() === "ADMIN") {
       const staffList = await this.staffRepository.findByCinemaName(cinemaName);
       return staffList.map((s) => this.toResponse(s));
     }
 
-    if (userRole.toUpperCase() === "MANAGER") {
+    if (userRole!.toUpperCase() === "MANAGER") {
       const manager =
         await this.managerRepository.findByUserProfileId(currentUserId);
       if (!manager) throw new Error("Manager profile not found");
@@ -82,14 +82,14 @@ export class StaffProfileService {
 
   async getAllStaff(
     currentUserId: string,
-    userRole: string
+    userRole: string | null
   ): Promise<StaffProfileResponse[]> {
-    if (userRole.toUpperCase() === "ADMIN") {
+    if (userRole!.toUpperCase() === "ADMIN") {
       const staffList = await this.staffRepository.findAll();
       return staffList.map((s) => this.toResponse(s));
     }
 
-    if (userRole.toUpperCase() === "MANAGER") {
+    if (userRole!.toUpperCase() === "MANAGER") {
       const manager =
         await this.managerRepository.findByUserProfileId(currentUserId);
       if (!manager) throw new Error("Manager profile not found");

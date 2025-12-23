@@ -2,13 +2,14 @@ import { UserFavoriteMovie } from "../models/UserFavoriteMovie.entity";
 import { FavoriteMovieRequest } from "../dtos/request/FavoriteMovieRequest";
 import { FavoriteMovieResponse } from "../dtos/response/FavoriteMovieResponse";
 import { UserFavoriteMovieRepository } from "../repositories/UserFavoriteMovieRepository";
+import { UserProfileRepository } from "../repositories/UserProfileRepository";
 
 export class UserFavoriteMovieService {
   private favoriteMovieRepository: UserFavoriteMovieRepository;
-  private userProfileRepository: UserFavoriteMovieRepository;
+  private userProfileRepository: UserProfileRepository;
   constructor(
     favoriteMovieRepository: UserFavoriteMovieRepository,
-    userProfileRepository: UserFavoriteMovieRepository
+    userProfileRepository: UserProfileRepository
   ) {
     this.favoriteMovieRepository = favoriteMovieRepository;
     this.userProfileRepository = userProfileRepository;
@@ -26,10 +27,7 @@ export class UserFavoriteMovieService {
     }
 
     // Verify user profile exists
-    const user = await this.userProfileRepository.existsByUserIdAndMovieId(
-      request.userId,
-      request.movieId
-    );
+    const user = await this.userProfileRepository.findById(request.userId);
     if (!user) {
       throw new Error(`User profile not found for userId: ${request.userId}`);
     }

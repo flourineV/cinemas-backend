@@ -6,8 +6,8 @@ export class ManagerProfileRequest {
   userProfileId!: string;
 
   @IsUUID()
-  @IsNotEmpty({ message: "ManagedCinemaId is required" })
-  managedCinemaId!: string;
+  @IsNotEmpty({ message: "ManagedCinemaName is required" })
+  managedCinemaName!: string;
 
   @IsDateString()
   @IsNotEmpty({ message: "Work startDate is required" })

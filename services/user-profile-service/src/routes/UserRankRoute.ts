@@ -1,25 +1,18 @@
-// import { Router, Request, Response } from "express";
-// import { UserRankController } from "../controllers/UserRankController";
-// import { UserRankService } from "../services/UserRankService";
-// import { UserRankRepository } from "../repositories/UserRankRepository";
-// import { AppDataSource } from "../config/Database";
+import { Router } from "express";
+import { UserRankController } from "../controllers/UserRankController";
+import { UserRankService } from "../services/UserRankService";
+import { UserRankRepository } from "../repositories/UserRankRepository";
+import { AppDataSource } from "../config/database";
 
-// const router = Router();
-// const UserRankRepo = new UserRankRepository(AppDataSource);
-// const rankService = new UserRankService(UserRankRepo);
-// const controller = new UserRankController(rankService);
+// Khởi tạo service và controller
+const rankService = new UserRankService(new UserRankRepository(AppDataSource));
+const rankController = new UserRankController(rankService);
 
-// router.post("/", (req: Request, res: Response) =>
-//   controller.createRank(req, res)
-// );
-// router.get("/", (req: Request, res: Response) =>
-//   controller.getAllRanks(req, res)
-// );
-// router.get("/:rankId", (req: Request, res: Response) =>
-//   controller.getRankById(req, res)
-// );
-// router.delete("/:rankId", (req: Request, res: Response) =>
-//   controller.deleteRank(req, res)
-// );
+const router = Router();
 
-// export default router;
+router.post("/", (req, res) => rankController.createRank(req, res));
+router.get("/", (req, res) => rankController.getAllRanks(req, res));
+router.get("/:rankId", (req, res) => rankController.getRankById(req, res));
+router.delete("/:rankId", (req, res) => rankController.deleteRank(req, res));
+
+export default router;
