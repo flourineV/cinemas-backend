@@ -1,5 +1,4 @@
 import express from "express";
-import cors from "cors";
 import { AppDataSource } from "./config/database";
 import { errorHandler } from "./middlewares/errorHandler";
 import userProfileRoute from "./routes/UserProfileRoute";
@@ -14,7 +13,6 @@ import { JwtMiddleware } from "./middlewares/JwtMiddleware";
 const app = express();
 
 //Middleware
-app.use(cors());
 app.use(express.json());
 
 //Database connection
