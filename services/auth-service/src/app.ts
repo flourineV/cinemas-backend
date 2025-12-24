@@ -8,7 +8,6 @@ import passwordResetRoutes from "./routes/PasswordResetRoutes";
 import refreshTokenRoutes from "./routes/RefreshTokenRoutes";
 import { errorHandler } from "./middlewares/errorHandler";
 import { JwtMiddleware } from "./middlewares/JwtMiddleware";
-// import { serviceErrorHandler } from "./middlewares/serviceErrorHandler";
 import cookieParser from "cookie-parser";
 const app = express();
 
@@ -56,7 +55,6 @@ app.use("/api/auth/refreshtoken", refreshTokenRoutes);
 app.use("/api/auth", passwordResetRoutes);
 
 // Error handling middleware
-//app.use(serviceErrorHandler);
 app.use(errorHandler);
 
 export default app;

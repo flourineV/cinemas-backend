@@ -3,9 +3,10 @@ import { FnbController } from "../controllers/FnbController";
 import { FnbService } from "../services/FnbService";
 import { FnbItemRepository } from "../repositories/FnbItemRepository";
 import { AppDataSource } from "../config/database";
+import { CloudinaryService } from "../services/CloudinaryService";
 // Khởi tạo service và controller
 const fnbItemRepository = new FnbItemRepository(AppDataSource);
-const fnbService = new FnbService(fnbItemRepository);
+const fnbService = new FnbService(fnbItemRepository, new CloudinaryService());
 const fnbController = new FnbController(fnbService);
 
 const router = Router();
