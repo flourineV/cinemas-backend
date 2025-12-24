@@ -43,7 +43,7 @@ const provinceService = new ProvinceService(AppDataSource);
  */
 // POST /api/showtimes/provinces
 router.post("/", async (req: RequestWithUserContext, res: Response) => {
-  //requireAdmin(req.userContext); // middleware check quyền
+  requireAdmin(req.userContext); // middleware check quyền
   const request: ProvinceRequest = req.body;
   const response: ProvinceResponse = await provinceService.createProvince(request);
   return res.status(201).json(response);

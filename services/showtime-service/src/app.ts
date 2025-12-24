@@ -5,7 +5,7 @@ import morgan from "morgan";
 import compression from "compression";
 import { createClient } from "redis";
 import { AppDataSource } from "./data-source.js";
-import { requireInternal } from "./middleware/internalAuthChecker.js";
+//import { requireInternal } from "./middleware/internalAuthChecker.js";
 import { middleware } from "./middleware/middleware.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import {userContextMiddleware} from "./middleware/userContext.js";
@@ -36,7 +36,7 @@ app.use(userContextMiddleware); // inject user info if needed
 
 setupSwagger(app);
 
-app.use("/api/showtimes", requireInternal);
+//app.use("/api/showtimes", requireInternal);
 
 // Redis setup
 export const redisClient = createClient({

@@ -109,12 +109,10 @@ router.get("/:showtimeId/seats", async (req: Request, res: Response) => {
  *         description: Seat or showtime not found
  */
 // PATCH /api/showtimes/:showtimeId/seats/:seatId/status
-router.patch("/:showtimeId/seats/:seatId/status", async (req: Request, res: Response) => {
+router.patch("/:showtimeId/seats/:seatId/status", requireInternal, async (req: Request, res: Response) => {
   const showtimeId = req.params.showtimeId;
   const seatId = req.params.seatId;
   const internalKey = req.header("X-Internal-Secret");
-
-  requireInternal(internalKey);
 
   const request: UpdateSeatStatusRequest = {
     ...req.body,
