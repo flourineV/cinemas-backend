@@ -30,15 +30,15 @@ services:
     networks:
       - cinemas-net
 
-  # user-profile-service:
-  #   build: ./services/user-profile-service
-  #   env_file:
-  #     - ./services/user-profile-service/.env
-  #   container_name: user-profile-service
-  #   expose:
-  #     - "8082"
-  #   networks:
-  #     - cinemas-net
+  user-profile-service:
+    build: ./services/user-profile-service
+    env_file:
+      - ./services/user-profile-service/.env
+    container_name: user-profile-service
+    expose:
+      - "8082"
+    networks:
+      - cinemas-net
 
   # movie-service:
   #   build: ./services/movie-service
