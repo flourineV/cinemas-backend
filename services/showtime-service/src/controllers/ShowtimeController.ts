@@ -37,49 +37,9 @@ const showtimeService = new ShowtimeService(
  *   name: Showtimes
  *   description: Showtime management endpoints
  */
-
 /**
  * @swagger
- * /api/showtimes/{id}:
- *   get:
- *     summary: Get showtime by ID
- *     tags: [Showtimes]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: Showtime ID
- *     responses:
- *       200:
- *         description: Showtime details
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ShowtimeResponse'
- *       400:
- *         description: Missing showtime ID
- *       404:
- *         description: Showtime not found
- *       500:
- *         description: Internal server error
- */
-
-// GET /api/showtimes/:id
-router.get("/:id", async (req: Request, res: Response) => {
-  const id = req.params.id;
-  if (!id) {
-    return res.status(400).json({ message: "Showtime ID is required" });
-  }
-  const response: ShowtimeResponse = await showtimeService.getShowtimeById(id);
-  return res.json(response);
-});
-
-/**
- * @swagger
- * /api/showtimes:
+ * /api/showtimes/showtimes:
  *   post:
  *     summary: Create a new showtime (Manager/Admin only)
  *     tags: [Showtimes]
@@ -115,10 +75,9 @@ router.post("/", async (req: RequestWithUserContext, res: Response) => {
   const response: ShowtimeResponse = await showtimeService.createShowtime(request);
   return res.status(201).json(response);
 });
-
 /**
  * @swagger
- * /api/showtimes/batch:
+ * /api/showtimes/showtimes/batch:
  *   post:
  *     summary: Create multiple showtimes in batch (Manager/Admin only)
  *     tags: [Showtimes]
@@ -153,7 +112,7 @@ router.post("/batch", async (req: RequestWithUserContext, res: Response) => {
 });
 /**
  * @swagger
- * /api/showtimes:
+ * /api/showtimes/showtimes:
  *   get:
  *     summary: Get all showtimes
  *     tags: [Showtimes]
@@ -176,7 +135,7 @@ router.get("/", async (_req: Request, res: Response) => {
 });
 /**
  * @swagger
- * /api/showtimes/by-movie/{movieId}:
+ * /api/showtimes/showtimes/by-movie/{movieId}:
  *   get:
  *     summary: Get showtimes by movie ID (grouped by date and theater)
  *     tags: [Showtimes]
@@ -211,7 +170,7 @@ router.get("/by-movie/:movieId", async (req: Request, res: Response) => {
 });
 /**
  * @swagger
- * /api/showtimes/by-theater:
+ * /api/showtimes/showtimes/by-theater:
  *   get:
  *     summary: Get showtimes by theater and date range
  *     tags: [Showtimes]
@@ -253,7 +212,6 @@ router.get("/by-movie/:movieId", async (req: Request, res: Response) => {
  *       500:
  *         description: Internal server error
  */
-
 // GET /api/showtimes/by-theater?theaterId=...&startDate=...&endDate=...
 router.get("/by-theater", async (req: Request, res: Response) => {
   const { theaterId, startDate, endDate } = req.query;
@@ -266,94 +224,7 @@ router.get("/by-theater", async (req: Request, res: Response) => {
 });
 /**
  * @swagger
- * /api/showtimes/{id}:
- *   put:
- *     summary: Update a showtime by ID (Manager/Admin only)
- *     tags: [Showtimes]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: Showtime ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ShowtimeRequest'
- *     responses:
- *       200:
- *         description: Showtime updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ShowtimeResponse'
- *       400:
- *         description: Invalid input or time conflict
- *       401:
- *         description: Unauthorized - Manager/Admin access required
- *       404:
- *         description: Showtime not found
- *       500:
- *         description: Internal server error
- */
-// PUT /api/showtimes/:id
-router.put("/:id", async (req: RequestWithUserContext, res: Response) => {
-  requireManagerOrAdmin(req.userContext);
-  const id = req.params.id;
-  if (!id) {
-    return res.status(400).json({ message: "Showtime ID is required" });
-  }
-  const request: ShowtimeRequest = req.body;
-  const response: ShowtimeResponse = await showtimeService.updateShowtime(id, request);
-  return res.json(response);
-});
-/**
- * @swagger
- * /api/showtimes/{id}:
- *   delete:
- *     summary: Delete a showtime by ID (Manager/Admin only)
- *     tags: [Showtimes]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: Showtime ID
- *     responses:
- *       204:
- *         description: Showtime deleted successfully
- *       400:
- *         description: Missing showtime ID
- *       401:
- *         description: Unauthorized - Manager/Admin access required
- *       404:
- *         description: Showtime not found
- *       500:
- *         description: Internal server error
- */
-// DELETE /api/showtimes/:id
-router.delete("/:id", async (req: RequestWithUserContext, res: Response) => {
-  requireManagerOrAdmin(req.userContext);
-  const { id } = req.params;
-  if (!id) {
-    return res.status(400).json({ error: "id is required" });
-  }
-  await showtimeService.deleteShowtime(id);
-  return res.status(204).send();
-});
-/**
- * @swagger
- * /api/showtimes/admin/search:
+ * /api/showtimes/showtimes/admin/search:
  *   get:
  *     summary: Search showtimes with advanced filters and pagination (Manager/Admin only)
  *     tags: [Showtimes]
@@ -492,43 +363,102 @@ router.get("/admin/search", async (req: RequestWithUserContext, res: Response) =
 });
 /**
  * @swagger
- * /api/showtimes/validate:
- *   post:
- *     summary: Validate showtime for conflicts (Manager/Admin only)
+ * /api/showtimes/showtimes/by-movie-and-province:
+ *   get:
+ *     summary: Get theater showtimes by movie and province
  *     tags: [Showtimes]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ValidateShowtimeRequest'
+ *     parameters:
+ *       - in: query
+ *         name: movieId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Movie ID
+ *       - in: query
+ *         name: provinceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Province ID
  *     responses:
  *       200:
- *         description: Validation result
+ *         description: List of theaters with showtimes
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ShowtimeConflictResponse'
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/TheaterShowtimesResponse'
  *       400:
- *         description: Invalid input
- *       401:
- *         description: Unauthorized - Manager/Admin access required
+ *         description: Missing required parameters
  *       500:
  *         description: Internal server error
  */
-
-// POST /api/showtimes/validate
-router.post("/validate", async (req: RequestWithUserContext, res: Response) => {
-  requireManagerOrAdmin(req.userContext);
-  const request: ValidateShowtimeRequest = req.body;
-  const response: ShowtimeConflictResponse = await showtimeService.validateShowtime(request);
+// GET /api/showtimes/by-movie-and-province?movieId=...&provinceId=...
+router.get("/by-movie-and-province", async (req: Request, res: Response) => {
+  const { movieId, provinceId } = req.query;
+  const response: TheaterShowtimesResponse[] = await showtimeService.getTheaterShowtimesByMovieAndProvince(
+    movieId as string,
+    provinceId as string
+  );
   return res.json(response);
 });
 /**
  * @swagger
- * /api/showtimes/by-room:
+ * /api/showtimes/showtimes/movies-with-theaters:
+ *   get:
+ *     summary: Get movies with their theaters and showtimes by date
+ *     tags: [Showtimes]
+ *     parameters:
+ *       - in: query
+ *         name: date
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Date (YYYY-MM-DD)
+ *         example: "2024-12-25"
+ *       - in: query
+ *         name: movieId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Optional - Filter by movie ID
+ *       - in: query
+ *         name: theaterId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Optional - Filter by theater ID
+ *     responses:
+ *       200:
+ *         description: List of movies with theaters and showtimes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/MovieWithTheatersResponse'
+ *       400:
+ *         description: Invalid date format
+ *       500:
+ *         description: Internal server error
+ */
+// GET /api/showtimes/movies-with-theaters?date=...&movieId=...&theaterId=...
+router.get("/movies-with-theaters", async (req: Request, res: Response) => {
+  const { date, movieId, theaterId } = req.query;
+  const response: MovieWithTheatersResponse[] = await showtimeService.getMoviesWithTheatersByDate(
+    new Date(date as string),
+    movieId as string | undefined,
+    theaterId as string | undefined
+  );
+  return res.json(response);
+});
+/**
+ * @swagger
+ * /api/showtimes/showtimes/by-room:
  *   get:
  *     summary: Get showtimes by room and date range (Manager/Admin only)
  *     tags: [Showtimes]
@@ -585,7 +515,168 @@ router.get("/by-room", async (req: RequestWithUserContext, res: Response) => {
 });
 /**
  * @swagger
- * /api/showtimes/auto-generate:
+ * /api/showtimes/showtimes/{id}:
+ *   get:
+ *     summary: Get showtime by ID
+ *     tags: [Showtimes]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Showtime ID
+ *     responses:
+ *       200:
+ *         description: Showtime details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ShowtimeResponse'
+ *       400:
+ *         description: Missing showtime ID
+ *       404:
+ *         description: Showtime not found
+ *       500:
+ *         description: Internal server error
+ */
+// GET /api/showtimes/:id
+router.get("/:id", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  if (!id) {
+    return res.status(400).json({ message: "Showtime ID is required" });
+  }
+  const response: ShowtimeResponse = await showtimeService.getShowtimeById(id);
+  return res.json(response);
+});
+/**
+ * @swagger
+ * /api/showtimes/showtimes/{id}:
+ *   put:
+ *     summary: Update a showtime by ID (Manager/Admin only)
+ *     tags: [Showtimes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Showtime ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ShowtimeRequest'
+ *     responses:
+ *       200:
+ *         description: Showtime updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ShowtimeResponse'
+ *       400:
+ *         description: Invalid input or time conflict
+ *       401:
+ *         description: Unauthorized - Manager/Admin access required
+ *       404:
+ *         description: Showtime not found
+ *       500:
+ *         description: Internal server error
+ */
+// PUT /api/showtimes/:id
+router.put("/:id", async (req: RequestWithUserContext, res: Response) => {
+  requireManagerOrAdmin(req.userContext);
+  const id = req.params.id;
+  if (!id) {
+    return res.status(400).json({ message: "Showtime ID is required" });
+  }
+  const request: ShowtimeRequest = req.body;
+  const response: ShowtimeResponse = await showtimeService.updateShowtime(id, request);
+  return res.json(response);
+});
+/**
+ * @swagger
+ * /api/showtimes/showtimes/{id}:
+ *   delete:
+ *     summary: Delete a showtime by ID (Manager/Admin only)
+ *     tags: [Showtimes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Showtime ID
+ *     responses:
+ *       204:
+ *         description: Showtime deleted successfully
+ *       400:
+ *         description: Missing showtime ID
+ *       401:
+ *         description: Unauthorized - Manager/Admin access required
+ *       404:
+ *         description: Showtime not found
+ *       500:
+ *         description: Internal server error
+ */
+// DELETE /api/showtimes/:id
+router.delete("/:id", async (req: RequestWithUserContext, res: Response) => {
+  requireManagerOrAdmin(req.userContext);
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ error: "id is required" });
+  }
+  await showtimeService.deleteShowtime(id);
+  return res.status(204).send();
+});
+/**
+ * @swagger
+ * /api/showtimes/validate:
+ *   post:
+ *     summary: Validate showtime for conflicts (Manager/Admin only)
+ *     tags: [Showtimes]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ValidateShowtimeRequest'
+ *     responses:
+ *       200:
+ *         description: Validation result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ShowtimeConflictResponse'
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized - Manager/Admin access required
+ *       500:
+ *         description: Internal server error
+ */
+
+// POST /api/showtimes/validate
+router.post("/validate", async (req: RequestWithUserContext, res: Response) => {
+  requireManagerOrAdmin(req.userContext);
+  const request: ValidateShowtimeRequest = req.body;
+  const response: ShowtimeConflictResponse = await showtimeService.validateShowtime(request);
+  return res.json(response);
+});
+
+/**
+ * @swagger
+ * /api/showtimes/showtimes/auto-generate:
  *   post:
  *     summary: Auto-generate showtimes for a date range (Manager/Admin only)
  *     tags: [Showtimes]
@@ -624,7 +715,7 @@ router.get("/by-room", async (req: RequestWithUserContext, res: Response) => {
  */
 // POST /api/showtimes/auto-generate?startDate=...&endDate=...
 router.post("/auto-generate", async (req: RequestWithUserContext, res: Response) => {
-  requireManagerOrAdmin(req.userContext);
+  //requireManagerOrAdmin(req.userContext);
   const { startDate, endDate } = req.query;
   const response: AutoGenerateShowtimesResponse = await showtimeService.autoGenerateShowtimes(
     new Date(startDate as string),
@@ -632,101 +723,6 @@ router.post("/auto-generate", async (req: RequestWithUserContext, res: Response)
   );
   return res.status(201).json(response);
 });
-/**
- * @swagger
- * /api/showtimes/by-movie-and-province:
- *   get:
- *     summary: Get theater showtimes by movie and province
- *     tags: [Showtimes]
- *     parameters:
- *       - in: query
- *         name: movieId
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: Movie ID
- *       - in: query
- *         name: provinceId
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: Province ID
- *     responses:
- *       200:
- *         description: List of theaters with showtimes
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/TheaterShowtimesResponse'
- *       400:
- *         description: Missing required parameters
- *       500:
- *         description: Internal server error
- */
 
-// GET /api/showtimes/by-movie-and-province?movieId=...&provinceId=...
-router.get("/by-movie-and-province", async (req: Request, res: Response) => {
-  const { movieId, provinceId } = req.query;
-  const response: TheaterShowtimesResponse[] = await showtimeService.getTheaterShowtimesByMovieAndProvince(
-    movieId as string,
-    provinceId as string
-  );
-  return res.json(response);
-});
-/**
- * @swagger
- * /api/showtimes/movies-with-theaters:
- *   get:
- *     summary: Get movies with their theaters and showtimes by date
- *     tags: [Showtimes]
- *     parameters:
- *       - in: query
- *         name: date
- *         required: true
- *         schema:
- *           type: string
- *           format: date
- *         description: Date (YYYY-MM-DD)
- *         example: "2024-12-25"
- *       - in: query
- *         name: movieId
- *         schema:
- *           type: string
- *           format: uuid
- *         description: Optional - Filter by movie ID
- *       - in: query
- *         name: theaterId
- *         schema:
- *           type: string
- *           format: uuid
- *         description: Optional - Filter by theater ID
- *     responses:
- *       200:
- *         description: List of movies with theaters and showtimes
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/MovieWithTheatersResponse'
- *       400:
- *         description: Invalid date format
- *       500:
- *         description: Internal server error
- */
-// GET /api/showtimes/movies-with-theaters?date=...&movieId=...&theaterId=...
-router.get("/movies-with-theaters", async (req: Request, res: Response) => {
-  const { date, movieId, theaterId } = req.query;
-  const response: MovieWithTheatersResponse[] = await showtimeService.getMoviesWithTheatersByDate(
-    new Date(date as string),
-    movieId as string | undefined,
-    theaterId as string | undefined
-  );
-  return res.json(response);
-});
 
 export default router;

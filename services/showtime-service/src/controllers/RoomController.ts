@@ -52,43 +52,7 @@ router.post("/", async (req: RequestWithUserContext, res: Response) => {
   return res.status(201).json(response);
 });
 
-/**
- * @swagger
- * /api/showtimes/rooms/{id}:
- *   get:
- *     summary: Get a room by ID
- *     tags: [Rooms]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: Room ID
- *         example: "123e4567-e89b-12d3-a456-426614174000"
- *     responses:
- *       200:
- *         description: Room details
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/RoomResponse'
- *       404:
- *         description: Room not found
- *       500:
- *         description: Internal server error
- */
 
-// GET /api/showtimes/rooms/:id
-router.get("/:id", async (req: Request, res: Response) => {
-  const { id } = req.params;
-  if (!id) {
-    return res.status(400).json({ error: "id is required" });
-  }
-  const response: RoomResponse = await roomService.getRoomById(id);
-  return res.json(response);
-});
 /**
  * @swagger
  * /api/showtimes/rooms:
@@ -150,6 +114,42 @@ router.get("/by-theater/:theaterId", async (req: Request, res: Response) => {
   }
   const responseList: RoomResponse[] = await roomService.getRoomsByTheaterId(theaterId);
   return res.json(responseList);
+});
+/**
+ * @swagger
+ * /api/showtimes/rooms/{id}:
+ *   get:
+ *     summary: Get a room by ID
+ *     tags: [Rooms]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Room ID
+ *         example: "123e4567-e89b-12d3-a456-426614174000"
+ *     responses:
+ *       200:
+ *         description: Room details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RoomResponse'
+ *       404:
+ *         description: Room not found
+ *       500:
+ *         description: Internal server error
+ */
+// GET /api/showtimes/rooms/:id
+router.get("/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ error: "id is required" });
+  }
+  const response: RoomResponse = await roomService.getRoomById(id);
+  return res.json(response);
 });
 /**
  * @swagger

@@ -1,4 +1,3 @@
-import type { Connection, Channel } from "amqplib";
 import amqp, { connect } from "amqplib";
 import { randomUUID } from "crypto";
 

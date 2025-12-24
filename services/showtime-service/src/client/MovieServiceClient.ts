@@ -3,7 +3,7 @@ import type { MovieResponse } from './MovieResponse.js';
 import type { MovieSummaryResponse } from './MovieSummaryResponse.js';
 
 const MOVIE_SERVICE_URL = process.env.MOVIE_SERVICE_URL || 'http://movie-service:8083/api/movies';
-const INTERNAL_SECRET_KEY = process.env.APP_INTERNAL_SECRET_KEY as string;
+const INTERNAL_SECRET_KEY = process.env.INTERNAL_SECRET_KEY as string;
 
 export class MovieServiceClient {
   async getMovieTitle(movieId: string): Promise<string | null> {
@@ -33,7 +33,7 @@ export class MovieServiceClient {
       const url = `${MOVIE_SERVICE_URL}/${movieId}/set-now-playing`;
       await axios.post(url, null, {
         headers: {
-          'X-Internal-Secret': INTERNAL_SECRET_KEY,
+          'x-internal-secret': INTERNAL_SECRET_KEY,
         },
       });
       console.info(`Updated movie ${movieId} status to NOW_PLAYING`);

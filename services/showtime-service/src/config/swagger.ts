@@ -12,10 +12,17 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: "http://localhost:8084/api",
+        url: "http://localhost:8084",
       },
     ],
     components: {
+      // securitySchemes: {
+      //   InternalServiceKey: {
+      //     type: "apiKey",
+      //     in: "header",
+      //     name: "x-internal-secret",
+      //   },
+      // },
       schemas: {
         ProvinceRequest: {
           type: "object",
@@ -777,6 +784,11 @@ const options: swaggerJsdoc.Options = {
         },
       },
     },
+    // security: [
+    //   {
+    //     InternalServiceKey: [],
+    //   },
+    // ],
   },
   // Paths to files with OpenAPI annotations
   apis: ["./src/controllers/*.ts", "./src/dto/**/*.ts"],

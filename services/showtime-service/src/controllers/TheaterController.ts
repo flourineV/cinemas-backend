@@ -12,6 +12,7 @@ import { MovieServiceClient } from "../client/MovieServiceClient.js";
 import { ShowtimeMapper } from "../mappers/ShowtimeMapper.js";
 import { ShowtimeGenerationHelper } from "../helper/ShowtimeGenerationHelper.js";
 import { showtimeAutoGenerateConfig } from "../config/showtimeAutoGenerateConfig.js";
+import { validate as isUuid } from 'uuid';
 
 const router = Router();
 const movieServiceClient = new MovieServiceClient();
@@ -58,6 +59,119 @@ router.post("/", async (req: RequestWithUserContext, res: Response) => {
 });
 /**
  * @swagger
+ * /api/showtimes/theaters/search:
+ *   get:
+ *     summary: Get theaters by province ID
+ *     tags: [Theaters]
+ *     parameters:
+ *       - in: query
+ *         name: provinceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Province ID
+ *     responses:
+ *       200:
+ *         description: List of theaters in the province
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/TheaterResponse'
+ */
+// GET /api/showtimes/theaters/search?provinceId=...
+router.get("/search", async (req: Request, res: Response) => {
+  const responseList: TheaterResponse[] = await theaterService.getTheatersByProvince(req.query.provinceId as string);
+  return res.json(responseList);
+});
+/**
+ * @swagger
+ * /api/showtimes/theaters:
+ *   get:
+ *     summary: Get all theaters
+ *     tags: [Theaters]
+ *     responses:
+ *       200:
+ *         description: List of theaters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/TheaterResponse'
+ */
+// GET /api/showtimes/theaters
+router.get("/", async (_req: Request, res: Response) => {
+  const responseList: TheaterResponse[] = await theaterService.getAllTheaters();
+  return res.json(responseList);
+});
+/**
+ * @swagger
+ * /api/showtimes/theaters/search-by-name:
+ *   get:
+ *     summary: Search theaters by name keyword
+ *     tags: [Theaters]
+ *     parameters:
+ *       - in: query
+ *         name: keyword
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Keyword to search by theater name
+ *     responses:
+ *       200:
+ *         description: List of theaters matching the keyword
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/TheaterResponse'
+ */
+// GET /api/showtimes/theaters/search-by-name?keyword=...
+router.get("/search-by-name", async (req: Request, res: Response) => {
+  const responseList: TheaterResponse[] = await theaterService.searchByName(req.query.keyword as string);
+  return res.json(responseList);
+});
+/**
+ * @swagger
+ * /api/showtimes/theaters/{theaterId}/movies:
+ *   get:
+ *     summary: Get movies and showtimes for a theater
+ *     tags: [Theaters]
+ *     parameters:
+ *       - in: path
+ *         name: theaterId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Theater ID
+ *     responses:
+ *       200:
+ *         description: List of movies with showtimes for the theater
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/MovieShowtimesResponse'
+ *       400:
+ *         description: theaterId is required
+ *       404:
+ *         description: Theater not found
+ */
+// GET /api/showtimes/theaters/:theaterId/movies
+router.get("/:theaterId/movies", async (req: Request, res: Response) => {
+  const { theaterId } = req.params;
+  if (!theaterId) {
+    return res.status(400).json({ error: "id is required" });
+  }
+  const response: MovieShowtimesResponse[] = await theaterService.getMoviesByTheater(theaterId);
+  return res.json(response);
+});
+/**
+ * @swagger
  * /api/showtimes/theaters/{id}:
  *   get:
  *     summary: Get a theater by ID
@@ -87,58 +201,13 @@ router.get("/:id", async (req: Request, res: Response) => {
   if (!id) {
     return res.status(400).json({ error: "id is required" });
   }
+  if (!isUuid(id)) {
+    return res.status(400).json({ error: 'Invalid UUID' });
+  }
   const response: TheaterResponse = await theaterService.getTheaterById(id);
     return res.json(response);
 });
-/**
- * @swagger
- * /api/showtimes/theaters:
- *   get:
- *     summary: Get all theaters
- *     tags: [Theaters]
- *     responses:
- *       200:
- *         description: List of theaters
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/TheaterResponse'
- */
-// GET /api/showtimes/theaters
-router.get("/", async (_req: Request, res: Response) => {
-  const responseList: TheaterResponse[] = await theaterService.getAllTheaters();
-  return res.json(responseList);
-});
-/**
- * @swagger
- * /api/showtimes/theaters/search:
- *   get:
- *     summary: Get theaters by province ID
- *     tags: [Theaters]
- *     parameters:
- *       - in: query
- *         name: provinceId
- *         required: true
- *         schema:
- *           type: string
- *         description: Province ID
- *     responses:
- *       200:
- *         description: List of theaters in the province
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/TheaterResponse'
- */
-// GET /api/showtimes/theaters/search?provinceId=...
-router.get("/search", async (req: Request, res: Response) => {
-  const responseList: TheaterResponse[] = await theaterService.getTheatersByProvince(req.query.provinceId as string);
-  return res.json(responseList);
-});
+
 /**
  * @swagger
  * /api/showtimes/theaters/{id}:
@@ -216,69 +285,6 @@ router.delete("/:id", async (req: RequestWithUserContext, res: Response) => {
   await theaterService.deleteTheater(id);
   return res.status(204).send();
 });
-/**
- * @swagger
- * /api/showtimes/theaters/search-by-name:
- *   get:
- *     summary: Search theaters by name keyword
- *     tags: [Theaters]
- *     parameters:
- *       - in: query
- *         name: keyword
- *         required: true
- *         schema:
- *           type: string
- *         description: Keyword to search by theater name
- *     responses:
- *       200:
- *         description: List of theaters matching the keyword
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/TheaterResponse'
- */
-// GET /api/showtimes/theaters/search-by-name?keyword=...
-router.get("/search-by-name", async (req: Request, res: Response) => {
-  const responseList: TheaterResponse[] = await theaterService.searchByName(req.query.keyword as string);
-  return res.json(responseList);
-});
-/**
- * @swagger
- * /api/showtimes/theaters/{theaterId}/movies:
- *   get:
- *     summary: Get movies and showtimes for a theater
- *     tags: [Theaters]
- *     parameters:
- *       - in: path
- *         name: theaterId
- *         required: true
- *         schema:
- *           type: string
- *         description: Theater ID
- *     responses:
- *       200:
- *         description: List of movies with showtimes for the theater
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/MovieShowtimesResponse'
- *       400:
- *         description: theaterId is required
- *       404:
- *         description: Theater not found
- */
-// GET /api/showtimes/theaters/:theaterId/movies
-router.get("/:theaterId/movies", async (req: Request, res: Response) => {
-  const { theaterId } = req.params;
-  if (!theaterId) {
-    return res.status(400).json({ error: "id is required" });
-  }
-  const response: MovieShowtimesResponse[] = await theaterService.getMoviesByTheater(theaterId);
-  return res.json(response);
-});
+
 
 export default router;

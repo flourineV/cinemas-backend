@@ -43,12 +43,34 @@ const provinceService = new ProvinceService(AppDataSource);
  */
 // POST /api/showtimes/provinces
 router.post("/", async (req: RequestWithUserContext, res: Response) => {
-  requireAdmin(req.userContext); // middleware check quyền
+  //requireAdmin(req.userContext); // middleware check quyền
   const request: ProvinceRequest = req.body;
   const response: ProvinceResponse = await provinceService.createProvince(request);
   return res.status(201).json(response);
 });
-
+/**
+ * @swagger
+ * /api/showtimes/provinces:
+ *   get:
+ *     summary: Get all provinces
+ *     tags: [Provinces]
+ *     responses:
+ *       200:
+ *         description: List of all provinces
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ProvinceResponse'
+ *       500:
+ *         description: Internal server error
+ */
+// GET /api/showtimes/provinces
+router.get("/", async (_req: Request, res: Response) => {
+  const response: ProvinceResponse[] = await provinceService.getAllProvinces();
+  return res.json(response);
+});
 /**
  * @swagger
  * /api/showtimes/provinces/{id}:
@@ -76,7 +98,6 @@ router.post("/", async (req: RequestWithUserContext, res: Response) => {
  *       500:
  *         description: Internal server error
  */
-
 // GET /api/showtimes/provinces/:id
 router.get("/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -87,30 +108,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   return res.json(response);
 });
 
-/**
- * @swagger
- * /api/showtimes/provinces:
- *   get:
- *     summary: Get all provinces
- *     tags: [Provinces]
- *     responses:
- *       200:
- *         description: List of all provinces
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/ProvinceResponse'
- *       500:
- *         description: Internal server error
- */
 
-// GET /api/showtimes/provinces
-router.get("/", async (_req: Request, res: Response) => {
-  const response: ProvinceResponse[] = await provinceService.getAllProvinces();
-  return res.json(response);
-});
 
 /**
  * @swagger
@@ -147,7 +145,6 @@ router.get("/", async (_req: Request, res: Response) => {
  *       500:
  *         description: Internal server error
  */
-
 // PUT /api/showtimes/provinces/:id
 router.put("/:id", async (req: RequestWithUserContext, res: Response) => {
   requireAdmin(req.userContext);

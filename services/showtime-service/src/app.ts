@@ -36,14 +36,13 @@ app.use(userContextMiddleware); // inject user info if needed
 
 setupSwagger(app);
 
-app.use(requireInternal); // internal service auth
+app.use("/api/showtimes", requireInternal);
 
 // Redis setup
 export const redisClient = createClient({
   url: process.env.REDIS_URL || "redis://localhost:6379",
 });
-redisClient.on("error", (err) => console.error("Redis error:", err));
-redisClient.connect();
+redisClient.connect().catch(err => { console.error("❌ Redis connection failed:", err); });
 
 // Database connection
 AppDataSource.initialize()
