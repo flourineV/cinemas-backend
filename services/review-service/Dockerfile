@@ -13,7 +13,7 @@ RUN npm ci --only=production && npm cache clean --force
 COPY . .
 
 # Expose port
-EXPOSE 8083
+EXPOSE 8091
 
 # Run the application
 CMD ["npm", "start"]
