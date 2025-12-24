@@ -26,6 +26,9 @@ const movieSummarySchema = new Schema(
     time: Number,
     genres: [String],
     trailer: String,
+    startDate: { type: String, default: null },
+    endDate: { type: String, default: null },
+    popularity: { type: Number, default: 0 },
   },
   {
     collection: "movie_summaries",

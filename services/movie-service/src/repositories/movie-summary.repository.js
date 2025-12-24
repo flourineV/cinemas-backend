@@ -36,6 +36,18 @@ function searchByTitle(keyword) {
     title: { $regex: keyword, $options: "i" },
   }).exec();
 }
+//thêm api start_end
+function findAvailableForRange(startDate, endDate) {
+  return MovieSummary.find({
+    status: { $in: ["NOW_PLAYING", "UPCOMING"] },
+    startDate: { $exists: true, $ne: null, $lte: endDate },
+    $or: [
+      { endDate: { $exists: false } },
+      { endDate: null },
+      { endDate: { $gte: startDate } },
+    ],
+  }).exec();
+}
 
 // SAVE: insert hoặc update theo _id
 async function save(entity) {
@@ -100,6 +112,7 @@ module.exports = {
   findAll,
   findByTmdbId,
   findByStatus,
+  findAvailableForRange,
   countByStatus,
   countAll,
   searchByTitle,
