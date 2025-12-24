@@ -1,0 +1,175 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: cinemas-rabbitmq
+    ports:
+      - "5672:5672" # AMQP protocol
+      - "15672:15672" # RabbitMQ dashboard
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - cinemas-net
+
+  redis:
+    image: redis:7
+    container_name: cinemas-redis
+    command: ["redis-server", "--notify-keyspace-events", "KEA"]
+    ports:
+      - "6379:6379"
+    networks:
+      - cinemas-net
+
+  auth-service:
+    build: ./services/auth-service
+    env_file:
+      - ./services/auth-service/.env
+    container_name: auth-service
+    expose:
+      - "8081"
+    networks:
+      - cinemas-net
+
+  user-profile-service:
+    build: ./services/user-profile-service
+    env_file:
+      - ./services/user-profile-service/.env
+    container_name: user-profile-service
+    expose:
+      - "8082"
+    networks:
+      - cinemas-net
+
+  movie-service:
+    build: ./services/movie-service
+    env_file:
+      - ./services/movie-service/.env
+    container_name: movie-service
+    expose:
+      - "8083"
+    networks:
+      - cinemas-net
+
+  # showtime-service:
+  #   build: ./services/showtime-service
+  #   env_file:
+  #     - ./services/showtime-service/.env
+  #   container_name: showtime-service
+  #   ports:
+  #     - "8084:8084" # Expose for WebSocket direct connection
+  #   networks:
+  #     - cinemas-net
+  #   depends_on:
+  #     - rabbitmq
+  #     - redis
+
+  # booking-service:
+  #   build: ./services/booking-service
+  #   env_file:
+  #     - ./services/booking-service/.env
+  #   container_name: booking-service
+  #   expose:
+  #     - "8085"
+  #   networks:
+  #     - cinemas-net
+  #   depends_on:
+  #     - redis
+  #     - rabbitmq
+  #     - showtime-service
+  #     - pricing-service
+  #     - promotion-service
+  #     - fnb-service
+  #     - user-profile-service
+
+  # payment-service:
+  #   build: ./services/payment-service
+  #   env_file:
+  #     - ./services/payment-service/.env
+  #   container_name: payment-service
+  #   expose:
+  #     - "8086"
+  #   networks:
+  #     - cinemas-net
+  #   depends_on:
+  #     - rabbitmq
+
+  pricing-service:
+    build: ./services/pricing-service
+    env_file:
+      - ./services/pricing-service/.env
+    container_name: pricing-service
+    expose:
+      - "8087"
+    networks:
+      - cinemas-net
+
+  fnb-service:
+    build: ./services/fnb-service
+    env_file:
+      - ./services/fnb-service/.env
+    container_name: fnb-service
+    expose:
+      - "8088"
+    networks:
+      - cinemas-net
+    depends_on:
+      - redis
+      - rabbitmq
+
+  # promotion-service:
+  #   build: ./services/promotion-service
+  #   env_file:
+  #     - ./services/promotion-service/.env
+  #   container_name: promotion-service
+  #   expose:
+  #     - "8089"
+  #   networks:
+  #     - cinemas-net
+
+  # notification-service:
+  #   build: ./services/notification-service
+  #   env_file:
+  #     - ./services/notification-service/.env
+  #   container_name: notification-service
+  #   expose:
+  #     - "8090"
+  #   networks:
+  #     - cinemas-net
+  #   depends_on:
+  #     - rabbitmq
+
+  review-service:
+    build: ./services/review-service
+    env_file:
+      - ./services/review-service/.env
+    container_name: review-service
+    expose:
+      - "8091"
+    networks:
+      - cinemas-net
+
+  gateway-service:
+    build: ./services/gateway-service
+    env_file:
+      - ./services/gateway-service/.env
+    container_name: gateway-service
+    ports:
+      - "8099:8099"
+    networks:
+      - cinemas-net
+    depends_on:
+      - auth-service
+      # - user-profile-service
+      # - movie-service
+      # - showtime-service
+      # - booking-service
+      # - payment-service
+      - pricing-service
+      - fnb-service
+      # - promotion-service
+      # - notification-service
+      # - review-service
+
+networks:
+  cinemas-net:
+    driver: bridge

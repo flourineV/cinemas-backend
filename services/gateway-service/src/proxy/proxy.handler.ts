@@ -16,8 +16,8 @@ export const createProxyRouter = (route: RouteConfig): Router => {
     target: route.target,
     changeOrigin: route.changeOrigin !== false,
     pathRewrite: (path: string) => {
-      // Remove the route prefix from the path
-      return path.replace(route.path, "");
+      // Thêm lại prefix vì Express đã strip nó
+      return route.path + path;
     },
     timeout: route.timeout || 30000,
     proxyTimeout: route.timeout || 30000,
@@ -37,7 +37,7 @@ export const createProxyRouter = (route: RouteConfig): Router => {
         });
 
         console.log(
-          `[PROXY] ${req.method} ${req.url} -> ${route.target}${proxyReq.path}`
+          `[PROXY] ${req.method} ${req.url} -> ${route.target}${route.path}${req.url}`
         );
       },
       proxyRes: (
