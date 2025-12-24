@@ -6,12 +6,18 @@ import { FnbCalculationResponse } from "../dtos/response/FnbCalculationResponse"
 import { FnbItemResponse } from "../dtos/response/FnbItemResponse";
 import { FnbItem } from "../models/FnbItem.entity";
 import { FnbItemRepository } from "../repositories/FnbItemRepository";
+import { CloudinaryService } from "./CloudinaryService";
 
 export class FnbService {
   private fnbItemRepository: FnbItemRepository;
+  private cloudinaryService: CloudinaryService;
 
-  constructor(fnbItemRepository: FnbItemRepository) {
+  constructor(
+    fnbItemRepository: FnbItemRepository,
+    cloudService: CloudinaryService
+  ) {
     this.fnbItemRepository = fnbItemRepository;
+    this.cloudinaryService = cloudService;
   }
 
   async calculateTotalPrice(
@@ -112,6 +118,11 @@ export class FnbService {
     if (!exists) {
       throw new Error(`F&B Item not found with ID: ${id}`);
     }
+    const fnb_item = await this.fnbItemRepository.findById(id);
+    if (!fnb_item) {
+      throw new Error(`F&B Item not found with ID: ${id}`);
+    }
+    await this.cloudinaryService.deleteFileByUrl(fnb_item.imageUrl);
     await this.fnbItemRepository.deleteById(id);
     console.warn(`Deleted F&B item with ID: ${id}`);
   }
