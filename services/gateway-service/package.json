@@ -4,6 +4,7 @@
   "main": "dist/app.js",
   "scripts": {
     "dev": "ts-node src/app.ts",
+    "dev:local": "cp .env.local .env && ts-node src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js",
     "clean": "rimraf dist",
