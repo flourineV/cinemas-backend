@@ -18,14 +18,14 @@ export class AuthController {
     try {
       const body: SignUpRequest = req.body;
       const jwtResponse = await this.authService.signUp(body);
-
-      this.setRefreshTokenCookie(res, jwtResponse.refreshToken);
-      this.setAccessTokenCookie(res, jwtResponse.accessToken);
-
       const responseBody: Partial<JwtResponse> = {
+        accessToken: jwtResponse.accessToken,
+        refreshToken: jwtResponse.refreshToken,
         tokenType: "Bearer",
         user: jwtResponse.user,
       };
+      this.setRefreshTokenCookie(res, jwtResponse.refreshToken);
+      this.setAccessTokenCookie(res, jwtResponse.accessToken);
 
       if (this.includeAccessTokenInBody) {
         responseBody.accessToken = jwtResponse.accessToken;
@@ -41,14 +41,14 @@ export class AuthController {
     try {
       const body: SignInRequest = req.body;
       const jwtResponse = await this.authService.signIn(body);
-
-      this.setRefreshTokenCookie(res, jwtResponse.refreshToken);
-      this.setAccessTokenCookie(res, jwtResponse.accessToken);
-
       const responseBody: Partial<JwtResponse> = {
+        accessToken: jwtResponse.accessToken,
+        refreshToken: jwtResponse.refreshToken,
         tokenType: "Bearer",
         user: jwtResponse.user,
       };
+      this.setRefreshTokenCookie(res, jwtResponse.refreshToken);
+      this.setAccessTokenCookie(res, jwtResponse.accessToken);
 
       if (this.includeAccessTokenInBody) {
         responseBody.accessToken = jwtResponse.accessToken;
