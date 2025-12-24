@@ -1,13 +1,10 @@
 import express from "express";
 import cors from "cors";
 import { AppDataSource } from "./config/database";
-import authRoutes from "./routes/AuthRoutes";
-import userRoutes from "./routes/UserRoutes";
-import statsRoutes from "./routes/StatsRoutes";
-import passwordResetRoutes from "./routes/PasswordResetRoutes";
-import refreshTokenRoutes from "./routes/RefreshTokenRoutes";
+import pricingRoute from "./routes/PricingRoutes";
 import { errorHandler } from "./middlewares/errorHandler";
 import { JwtMiddleware } from "./middlewares/JwtMiddleware";
+// import { serviceErrorHandler } from "./middlewares/serviceErrorHandler";
 import cookieParser from "cookie-parser";
 const app = express();
 
@@ -34,27 +31,22 @@ AppDataSource.initialize()
 app.get("/", (req, res) => {
   res.json({
     status: "OK",
-    service: "Auth Service",
+    service: "Pricing Service",
     timestamp: new Date().toISOString(),
   });
 });
 
-// Routes and check route
-app.use("/api/auth", authRoutes);
+app.use(express.json());
+
+// Routes
 app.use(
-  "/api/auth/users",
+  "/api/pricing",
   JwtMiddleware(process.env.APP_JWT_SECRET!),
-  userRoutes
+  pricingRoute
 );
-app.use(
-  "/api/auth/stats",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  statsRoutes
-);
-app.use("/api/auth/refreshtoken", refreshTokenRoutes);
-app.use("/api/auth", passwordResetRoutes);
 
 // Error handling middleware
+// app.use(serviceErrorHandler);
 app.use(errorHandler);
 
 export default app;
