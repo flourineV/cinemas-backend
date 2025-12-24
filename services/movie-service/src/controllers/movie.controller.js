@@ -189,6 +189,31 @@ router.get("/tmdb/:tmdbId", async (req, res) => {
     res.status(404).json({ message: e.message });
   }
 });
+router.get("/available-for-range", async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+      return res
+        .status(400)
+        .json({ message: "startDate and endDate are required" });
+    }
+
+    const iso = /^\d{4}-\d{2}-\d{2}$/;
+    if (!iso.test(startDate) || !iso.test(endDate)) {
+      return res.status(400).json({ message: "Dates must be YYYY-MM-DD" });
+    }
+
+    const data = await movieService.getAvailableMoviesForDateRange(
+      startDate,
+      endDate
+    );
+    return res.json(data);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: e.message });
+  }
+});
 
 router.get("/:id", async (req, res) => {
   try {

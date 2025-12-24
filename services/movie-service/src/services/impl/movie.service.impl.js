@@ -91,6 +91,9 @@ class MovieServiceImpl {
       genres: movie.genres.map((g) => g.name),
       age,
       trailer,
+      startDate: movie.release_date || null,
+      endDate: null,
+      popularity: movie.popularity || 0,
     };
 
     await movieSummaryRepo.save(summaryEntity);
@@ -304,6 +307,16 @@ class MovieServiceImpl {
   async deleteMovie(id) {
     await movieDetailRepo.deleteById(id);
     await movieSummaryRepo.deleteById(id);
+  }
+  // -----------------------------
+  // AVAILABLE FOR RANGE (NOW_PLAYING + UPCOMING) like Java
+  // -----------------------------
+  async getAvailableMoviesForDateRange(startDate, endDate) {
+    const list = await movieSummaryRepo.findAvailableForRange(
+      startDate,
+      endDate
+    );
+    return list.map(movieMapper.toSummaryResponse);
   }
 }
 
