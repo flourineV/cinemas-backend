@@ -1,7 +1,6 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 
-// import your entities
 import { Province } from "./models/Province.js";
 import { Theater } from "./models/Theater.js";
 import { Room } from "./models/Room.js";

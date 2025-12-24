@@ -38,16 +38,8 @@ const provinceService = new ProvinceService(AppDataSource);
  *               $ref: '#/components/schemas/ProvinceResponse'
  *       400:
  *         description: Invalid input
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 // POST /api/showtimes/provinces
 router.post("/", async (req: RequestWithUserContext, res: Response) => {
@@ -81,16 +73,8 @@ router.post("/", async (req: RequestWithUserContext, res: Response) => {
  *               $ref: '#/components/schemas/ProvinceResponse'
  *       404:
  *         description: Province not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 
 // GET /api/showtimes/provinces/:id
@@ -120,10 +104,6 @@ router.get("/:id", async (req: Request, res: Response) => {
  *                 $ref: '#/components/schemas/ProvinceResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 
 // GET /api/showtimes/provinces
@@ -162,22 +142,10 @@ router.get("/", async (_req: Request, res: Response) => {
  *               $ref: '#/components/schemas/ProvinceResponse'
  *       400:
  *         description: Invalid input
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Province not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 
 // PUT /api/showtimes/provinces/:id
@@ -219,16 +187,8 @@ router.put("/:id", async (req: RequestWithUserContext, res: Response) => {
  *                   example: "Province deleted successfully"
  *       404:
  *         description: Province not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 
 // DELETE /api/showtimes/provinces/:id

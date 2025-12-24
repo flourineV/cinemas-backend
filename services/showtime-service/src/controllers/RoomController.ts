@@ -38,22 +38,10 @@ const roomService = new RoomService(AppDataSource);
  *               $ref: '#/components/schemas/RoomResponse'
  *       400:
  *         description: Invalid input
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Theater not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 
 // POST /api/showtimes/rooms
@@ -88,16 +76,8 @@ router.post("/", async (req: RequestWithUserContext, res: Response) => {
  *               $ref: '#/components/schemas/RoomResponse'
  *       404:
  *         description: Room not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 
 // GET /api/showtimes/rooms/:id
@@ -126,10 +106,6 @@ router.get("/:id", async (req: Request, res: Response) => {
  *                 $ref: '#/components/schemas/RoomResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 // GET /api/showtimes/rooms
 router.get("/", async (_req: Request, res: Response) => {
@@ -162,16 +138,8 @@ router.get("/", async (_req: Request, res: Response) => {
  *                 $ref: '#/components/schemas/RoomResponse'
  *       404:
  *         description: Theater not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 
 // GET /api/showtimes/rooms/by-theater/:theaterId
@@ -213,22 +181,10 @@ router.get("/by-theater/:theaterId", async (req: Request, res: Response) => {
  *               $ref: '#/components/schemas/RoomResponse'
  *       400:
  *         description: Invalid input
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Room not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 // PUT /api/showtimes/rooms/:id
 router.put("/:id", async (req: RequestWithUserContext, res: Response) => {
@@ -269,16 +225,8 @@ router.put("/:id", async (req: RequestWithUserContext, res: Response) => {
  *                   example: "Room deleted successfully"
  *       404:
  *         description: Room not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 // DELETE /api/showtimes/rooms/:id
 router.delete("/:id", async (req: RequestWithUserContext, res: Response) => {
