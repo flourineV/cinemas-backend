@@ -14,6 +14,9 @@ function toSummaryResponse(entity) {
     spokenLanguages: entity.spokenLanguages || [],
     genres: entity.genres || [],
     trailer: entity.trailer,
+    startDate: entity.startDate ?? null,
+    endDate: entity.endDate ?? null,
+    popularity: entity.popularity ?? 0,
   };
 }
 
@@ -57,6 +60,9 @@ function toDetailResponse(entity) {
     releaseDate: entity.releaseDate,
     overview: entity.overview,
     trailer: entity.trailer,
+    startDate: entity.startDate ?? null,
+    endDate: entity.endDate ?? null,
+    popularity: entity.popularity ?? 0,
   };
 }
 
