@@ -715,7 +715,7 @@ router.post("/validate", async (req: RequestWithUserContext, res: Response) => {
  */
 // POST /api/showtimes/auto-generate?startDate=...&endDate=...
 router.post("/auto-generate", async (req: RequestWithUserContext, res: Response) => {
-  requireManagerOrAdmin(req.userContext);
+  //requireManagerOrAdmin(req.userContext);
   const { startDate, endDate } = req.query;
   const response: AutoGenerateShowtimesResponse = await showtimeService.autoGenerateShowtimes(
     new Date(startDate as string),

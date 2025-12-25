@@ -704,11 +704,11 @@ export class ShowtimeService {
       skippedMovies: [] as string[],
       errors: [] as string[],
     };
-
+    
     const daysBetween = Math.floor(
       (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
     ) + 1;
-
+    
     for (let i = 0; i < daysBetween; i++) {
       const targetDate = new Date(startDate);
       targetDate.setDate(targetDate.getDate() + i);
@@ -752,13 +752,13 @@ export class ShowtimeService {
     const showtimeRepo = this.dataSource.getRepository(Showtime);
     
     return await showtimeRepo
-      .createQueryBuilder('showtime')
-      .leftJoinAndSelect('showtime.theater', 'theater')
-      .leftJoinAndSelect('showtime.room', 'room')
-      .where('showtime.roomId = :roomId', { roomId })
-      .andWhere('showtime.startTime < :endTime', { endTime })
-      .andWhere('showtime.endTime > :startTime', { startTime })
-      .getMany();
+    .createQueryBuilder('showtime')
+    .leftJoinAndSelect('showtime.theater', 'theater')
+    .leftJoinAndSelect('showtime.room', 'room')
+    .where('showtime.roomId = :roomId', { roomId })
+    .andWhere('showtime.startTime < :endTime', { endTime })
+    .andWhere('showtime.endTime > :startTime', { startTime })
+    .getMany();
   }
 
   private overlaps(start1: Date, end1: Date, start2: Date, end2: Date): boolean {
@@ -810,12 +810,14 @@ export class ShowtimeService {
     theaters: Theater[],
     stats: any
   ): Promise<void> {
+    console.log('📅 Generating for date:', date);
+    console.log('🎬 Total movies available:', movies.length);
     const todayMovies = movies.filter(m => this.isMovieAvailable(m, date));
     if (todayMovies.length === 0) return;
-
+    console.log('✅ Movies available for this date:', todayMovies.length);
     const weightedPool = this.createWeightedMoviePool(todayMovies);
     const roomRepo = this.dataSource.getRepository(Room);
-
+    
     for (const theater of theaters) {
       const rooms = await roomRepo.find({ where: { theater: { id: theater.id } } });
       for (const room of rooms) {
@@ -823,22 +825,34 @@ export class ShowtimeService {
       }
     }
   }
-    private isMovieAvailable(m: { startDate?: Date | null; endDate?: Date | null }, d: Date): boolean {
-        // Nếu không có startDate => không có lịch chiếu
-        if (!m.startDate) return false;
+  private isMovieAvailable(m: { startDate?: Date | null; endDate?: Date | null }, d: Date): boolean {
+    // console.log('Checking movie availability:', {
+    //   movieStartDate: m.startDate,
+    //   movieEndDate: m.endDate,
+    //   targetDate: d,
+    //   startDateType: typeof m.startDate
+    // });
+    // Nếu không có startDate => không có lịch chiếu
+    if (!m.startDate) return false;
 
-        // So sánh theo ngày: chuyển về timestamp để so sánh chính xác
-        const startTime = new Date(m.startDate).setHours(0, 0, 0, 0);
-        const targetTime = new Date(d).setHours(0, 0, 0, 0);
+    // So sánh theo ngày: chuyển về timestamp để so sánh chính xác
+    const startTime = new Date(m.startDate).setHours(0, 0, 0, 0);
+    const targetTime = new Date(d).setHours(0, 0, 0, 0);
 
-        // Nếu phim bắt đầu sau ngày d => không có sẵn
-        if (startTime > targetTime) return false;
-
-        // Nếu không có endDate => vẫn đang chiếu; nếu có endDate và endDate < d => không có sẵn
-        if (!m.endDate) return true;
-        const endTime = new Date(m.endDate).setHours(0, 0, 0, 0);
-        return endTime >= targetTime;
+    // Nếu phim bắt đầu sau ngày d => không có sẵn
+    if (startTime > targetTime) {
+      console.log('❌ Movie starts after target date');
+      return false;
     }
+
+    // Nếu không có endDate => vẫn đang chiếu; nếu có endDate và endDate < d => không có sẵn
+    if (!m.endDate){
+      console.log('✅ No endDate, movie is available');
+      return true;
+    }
+    const endTime = new Date(m.endDate).setHours(0, 0, 0, 0);
+    return endTime >= targetTime;
+  }
   private createWeightedMoviePool(movies: any[]): any[] {
     if (movies.length === 0) return [];
 

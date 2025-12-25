@@ -15,9 +15,7 @@ export class ShowtimeSeatService {
     this.dataSource = dataSource;
   }
 
-  /**
-   * Lấy layout ghế theo showtimeId
-   */
+  /* Lấy layout ghế theo showtimeId */
   public async getSeatsByShowtime(showtimeId: string): Promise<ShowtimeSeatsLayoutResponse> {
     const showtimeRepo = this.dataSource.getRepository(Showtime);
     const showtimeSeatRepo = this.dataSource.getRepository(ShowtimeSeat);
@@ -67,9 +65,7 @@ export class ShowtimeSeatService {
     };
   }
 
-  /**
-   * Cập nhật trạng thái ghế
-   */
+  /* Cập nhật trạng thái ghế */
   public async updateSeatStatus(request: UpdateSeatStatusRequest): Promise<ShowtimeSeatResponse> {
     const showtimeSeatRepo = this.dataSource.getRepository(ShowtimeSeat);
 
@@ -89,9 +85,7 @@ export class ShowtimeSeatService {
     return this.toResponse(saved);
   }
 
-  /**
-   * Khởi tạo ghế cho nhiều suất chiếu
-   */
+  /* Khởi tạo ghế cho nhiều suất chiếu */
   public async batchInitializeSeats(showtimeIds: string[]): Promise<number> {
     let count = 0;
     for (const showtimeId of showtimeIds) {
@@ -105,9 +99,7 @@ export class ShowtimeSeatService {
     return count;
   }
 
-  /**
-   * Khởi tạo ghế cho 1 suất chiếu
-   */
+  /* Khởi tạo ghế cho 1 suất chiếu */
   public async initializeSeatsForShowtime(showtimeId: string): Promise<void> {
     const showtimeRepo = this.dataSource.getRepository(Showtime);
     const seatRepo = this.dataSource.getRepository(Seat);
@@ -130,30 +122,13 @@ export class ShowtimeSeatService {
       ss.updatedAt = new Date();
       return ss;
     });
-
+    console.log(showtimeSeats);
     await showtimeSeatRepo.save(showtimeSeats);
   }
 
-  /**
-   * Khởi tạo ghế cho các suất chiếu trong khoảng ngày
-   */
+  /* Khởi tạo ghế cho các suất chiếu trong khoảng ngày */
   public async initializeSeatsByDateRange(startDate: Date, endDate: Date): Promise<number> {
-    const showtimeRepo = this.dataSource.getRepository(Showtime);
-
-    const start = new Date(startDate);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(endDate);
-    end.setDate(end.getDate() + 1);
-    end.setHours(0, 0, 0, 0);
-
-    // giả định bạn có custom query findShowtimesWithoutSeats
-    const showtimes = await showtimeRepo
-      .createQueryBuilder("showtime")
-      .leftJoin("showtime.seats", "seats")
-      .where("showtime.startTime >= :start AND showtime.startTime < :end", { start, end })
-      .andWhere("seats.id IS NULL")
-      .getMany();
-
+    const showtimes = await this.findShowtimesWithoutSeats(startDate, endDate);
     let count = 0;
     for (const st of showtimes) {
       await this.initializeSeatsForShowtime(st.id);
@@ -161,7 +136,20 @@ export class ShowtimeSeatService {
     }
     return count;
   }
-
+  public async findShowtimesWithoutSeats(startDate: Date, endDate: Date): Promise<Showtime[]> { 
+    const showtimeRepo = this.dataSource.getRepository(Showtime); 
+    const start = new Date(startDate); 
+    start.setHours(0, 0, 0, 0); 
+    const end = new Date(endDate); 
+    end.setDate(end.getDate() + 1); 
+    end.setHours(0, 0, 0, 0); 
+    // Equivalent to the JPA query with NOT EXISTS 
+    return await showtimeRepo 
+      .createQueryBuilder("s") .leftJoin("s.showtimeSeats", "ss") // use the relation name 
+      .where("s.startTime >= :start AND s.endTime <= :end", { start, end }) 
+      .andWhere("ss.id IS NULL") // only showtimes with no seats 
+      .getMany();
+  }
   private toResponse(seat: ShowtimeSeat): ShowtimeSeatResponse {
     return {
       seatId: seat.seat.id,

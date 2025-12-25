@@ -19,11 +19,28 @@ export class MovieServiceClient {
 
   async getAvailableMoviesForDateRange(startDate: string, endDate: string): Promise<MovieSummaryResponse[]> {
     try {
-      const url = `${MOVIE_SERVICE_URL}/available-for-range?startDate=${startDate}&endDate=${endDate}`;
+      // Format dates to YYYY-MM-DD format
+      const formatDate = (dateString: string): string => {
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      
+      const formattedStartDate = formatDate(startDate);
+      const formattedEndDate = formatDate(endDate);
+      
+      const url = `${MOVIE_SERVICE_URL}/available-for-range?startDate=${formattedStartDate}&endDate=${formattedEndDate}`;
+      
+      console.log('Requesting URL:', url); // Debug log
+      
       const response = await axios.get<MovieSummaryResponse[]>(url);
+      console.log(response);
       return response.data || [];
     } catch (err: any) {
       console.error(`Failed to fetch available movies for date range ${startDate} to ${endDate}`, err.message);
+      console.error('Full error:', err.response?.data); // More detailed error
       return [];
     }
   }

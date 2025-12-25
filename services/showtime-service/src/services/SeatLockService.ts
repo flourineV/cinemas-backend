@@ -3,7 +3,7 @@ import { ShowtimeSeat } from '../models/ShowtimeSeat.js';
 import { SeatStatus } from '../models/enums/SeatStatus.js';
 import { Showtime } from '../models/Showtime.js';
 import { ShowtimeStatus } from '../models/enums/ShowtimeStatus.js';
-import type { RedisClientType } from 'redis';
+import { createClient } from 'redis';
 import type { SeatSelectionDetail } from '../dto/request/SeatSelectionDetail.js';
 import type { SeatLockRequest } from '../dto/request/SeatLockRequest.js';
 import type { SingleSeatLockRequest } from '../dto/request/SingleSeatLockRequest.js';
@@ -32,7 +32,7 @@ export class SeatLockService {
 
   constructor(
     private dataSource: DataSource,
-    private redisClient: RedisClientType,
+    private redisClient: ReturnType<typeof createClient>,
     private showtimeProducer: ShowtimeProducer,
     private webSocketHandler: SeatLockWebSocketHandler,
     lockTimeout: number = 300 // Default 5 minutes

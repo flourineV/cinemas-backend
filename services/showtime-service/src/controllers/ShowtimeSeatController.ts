@@ -5,16 +5,12 @@ import type { BatchInitializeSeatsRequest } from "../dto/request/BatchInitialize
 import type { ShowtimeSeatResponse } from "../dto/response/ShowtimeSeatResponse.js";
 import type { ShowtimeSeatsLayoutResponse } from "../dto/response/ShowtimeSeatsLayoutResponse.js";
 import { ShowtimeSeatService } from "../services/ShowtimeSeatService.js";
-import { SeatLockWebSocketHandler } from "../websocket/SeatLockWebSocketHandler.js";
 import { requireManagerOrAdmin } from "../middleware/authChecker.js";
 import { requireInternal } from "../middleware/internalAuthChecker.js";
-import { createServer } from 'http';
 import type { RequestWithUserContext } from "../types/userContext.js";
 import { AppDataSource } from "../data-source.js";
-
+import { seatLockWebSocketHandler } from "../shared/instances.js";
 const router = Router();
-const server = createServer();
-const seatLockWebSocketHandler = new SeatLockWebSocketHandler(server);
 const showtimeSeatService = new ShowtimeSeatService(AppDataSource);
 /**
  * @swagger
@@ -25,7 +21,7 @@ const showtimeSeatService = new ShowtimeSeatService(AppDataSource);
 
 /**
  * @swagger
- * /api/showtimes/{showtimeId}/seats:
+ * /api/showtimes/showtimeseats/{showtimeId}/seats:
  *   get:
  *     summary: Get all seats for a showtime with their status
  *     tags: [Showtime Seats]
@@ -51,7 +47,7 @@ const showtimeSeatService = new ShowtimeSeatService(AppDataSource);
  *       500:
  *         description: Internal server error
  */
-// GET /api/showtimes/:showtimeId/seats
+// GET /api/showtimes/showtimeseats/:showtimeId/seats
 router.get("/:showtimeId/seats", async (req: Request, res: Response) => {
   const showtimeId = req.params.showtimeId;
   if (!showtimeId) {
@@ -62,7 +58,7 @@ router.get("/:showtimeId/seats", async (req: Request, res: Response) => {
 });
 /**
  * @swagger
- * /api/showtimes/{showtimeId}/seats/{seatId}/status:
+ * /api/showtimes/showtimeseats/{showtimeId}/seats/{seatId}/status:
  *   patch:
  *     summary: Update the status of a seat in a showtime
  *     tags: [ShowtimeSeats]
@@ -108,12 +104,11 @@ router.get("/:showtimeId/seats", async (req: Request, res: Response) => {
  *       404:
  *         description: Seat or showtime not found
  */
-// PATCH /api/showtimes/:showtimeId/seats/:seatId/status
+// PATCH /api/showtimes/showtimeseats/:showtimeId/seats/:seatId/status
 router.patch("/:showtimeId/seats/:seatId/status", requireInternal, async (req: Request, res: Response) => {
   const showtimeId = req.params.showtimeId;
   const seatId = req.params.seatId;
-  const internalKey = req.header("X-Internal-Secret");
-
+  
   const request: UpdateSeatStatusRequest = {
     ...req.body,
     showtimeId,
@@ -129,7 +124,7 @@ router.patch("/:showtimeId/seats/:seatId/status", requireInternal, async (req: R
 });
 /**
  * @swagger
- * /api/showtimes/initialize-seats:
+ * /api/showtimes/showtimeseats/initialize-seats:
  *   post:
  *     summary: Batch initialize seats for multiple showtimes
  *     tags: [ShowtimeSeats]
@@ -161,16 +156,16 @@ router.patch("/:showtimeId/seats/:seatId/status", requireInternal, async (req: R
  *       403:
  *         description: Forbidden (requires manager or admin role)
  */
-// POST /api/showtimes/initialize-seats
+// POST /api/showtimes/showtimeseats/initialize-seats
 router.post("/initialize-seats", async (req: RequestWithUserContext, res: Response) => {
-  requireManagerOrAdmin(req.userContext);
+  //requireManagerOrAdmin(req.userContext);
   const request: BatchInitializeSeatsRequest = req.body;
   const count = await showtimeSeatService.batchInitializeSeats(request.showtimeIds);
   return res.json({ message: `Seats initialized successfully for ${count} showtimes` });
 });
 /**
  * @swagger
- * /api/showtimes/initialize-seats/range:
+ * /api/showtimes/showtimeseats/initialize-seats/range:
  *   post:
  *     summary: Initialize seats for showtimes within a date range
  *     tags: [ShowtimeSeats]
@@ -205,9 +200,9 @@ router.post("/initialize-seats", async (req: RequestWithUserContext, res: Respon
  *       403:
  *         description: Forbidden (requires manager or admin role)
  */
-// POST /api/showtimes/initialize-seats/range?startDate=...&endDate=...
+// POST /api/showtimes/showtimeseats/initialize-seats/range?startDate=...&endDate=...
 router.post("/initialize-seats/range", async (req: RequestWithUserContext, res: Response) => {
-  requireManagerOrAdmin(req.userContext);
+  //requireManagerOrAdmin(req.userContext);
   const { startDate, endDate } = req.query;
 
   if (!startDate || !endDate) {
