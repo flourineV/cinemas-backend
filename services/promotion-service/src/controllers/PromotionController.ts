@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PromotionService } from "../services/PromotionService";
 import { PromotionRequest } from "../dtos/request/PromotionRequest";
+import { AuthChecker } from "../middlewares/AuthChecker";
 
 export class PromotionController {
   private promotionService: PromotionService;
@@ -38,7 +39,7 @@ export class PromotionController {
 
   async getAllPromotionsForAdmin(req: Request, res: Response): Promise<void> {
     try {
-      // giả lập AuthChecker.requireManagerOrAdmin()
+      AuthChecker.requireManagerOrAdmin(req);
       const { code, discountType, promotionType, isActive } = req.query;
       const promotions = await this.promotionService.getAllPromotionsForAdmin(
         code as string,
@@ -54,7 +55,7 @@ export class PromotionController {
 
   async createPromotion(req: Request, res: Response): Promise<void> {
     try {
-      // giả lập AuthChecker.requireAdmin()
+      AuthChecker.requireAdmin(req);
       const request: PromotionRequest = req.body;
       const response = await this.promotionService.createPromotion(request);
       res.status(201).json(response);
@@ -65,7 +66,7 @@ export class PromotionController {
 
   async updatePromotion(req: Request, res: Response): Promise<void> {
     try {
-      // giả lập AuthChecker.requireAdmin()
+      AuthChecker.requireAdmin(req);
       const id = req.params.id;
       const request: PromotionRequest = req.body;
       const response = await this.promotionService.updatePromotion(id, request);
@@ -77,7 +78,7 @@ export class PromotionController {
 
   async deletePromotion(req: Request, res: Response): Promise<void> {
     try {
-      // giả lập AuthChecker.requireAdmin()
+      AuthChecker.requireAdmin(req);
       const id = req.params.id;
       await this.promotionService.deletePromotion(id);
       res.status(204).send();
