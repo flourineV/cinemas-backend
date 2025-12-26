@@ -8,6 +8,22 @@ const { escapeRegExp } = require("../../utils/regex.util"); // bạn sẽ có fi
 const mongoose = require("mongoose");
 const { normalize } = require("../../utils/age-rating-normalizer");
 
+const COUNTRY_VI = {
+  US: "Hoa Kỳ",
+  VN: "Việt Nam",
+  KR: "Hàn Quốc",
+  JP: "Nhật Bản",
+  GB: "Vương quốc Anh",
+  FR: "Pháp",
+  CN: "Trung Quốc",
+  TH: "Thái Lan",
+};
+
+function countryToVi(c) {
+  const code = c?.iso_3166_1;
+  return COUNTRY_VI[code] || c?.name || null;
+}
+
 class MovieServiceImpl {
   // -----------------------------
   // GET MOVIE BY UUID
@@ -85,8 +101,11 @@ class MovieServiceImpl {
       title: movie.title,
       posterUrl: movie.poster_path,
       status,
-      spokenLanguages: movie.spoken_languages.map((l) => l.iso_639_1),
-      country: movie.production_countries[0]?.name || null,
+      spokenLanguages: movie.spoken_languages.map(
+        (l) => l.name || l.english_name
+      ),
+      country: countryToVi(movie.production_countries?.[0]),
+      countryCode: movie.production_countries?.[0]?.iso_3166_1 || null,
       time: movie.runtime,
       genres: movie.genres.map((g) => g.name),
       age,
@@ -107,8 +126,13 @@ class MovieServiceImpl {
       title: movie.title,
       overview: movie.overview,
       time: movie.runtime,
-      spokenLanguages: movie.spoken_languages.map((l) => l.english_name),
-      country: movie.production_countries[0]?.name || null,
+      spokenLanguages: movie.spoken_languages.map(
+        (l) => l.name || l.english_name
+      ),
+
+      country: countryToVi(movie.production_countries?.[0]),
+      countryCode: movie.production_countries?.[0]?.iso_3166_1 || null,
+
       releaseDate: movie.release_date,
       genres: movie.genres.map((g) => g.name),
       cast: credits.cast.map((c) => c.name).slice(0, 10),
@@ -219,8 +243,12 @@ class MovieServiceImpl {
       title: movie.title,
       overview: movie.overview,
       time: movie.runtime,
-      spokenLanguages: movie.spoken_languages.map((l) => l.english_name),
-      country: movie.production_countries[0]?.name || null,
+      spokenLanguages: movie.spoken_languages.map(
+        (l) => l.name || l.english_name
+      ),
+      country: countryToVi(movie.production_countries?.[0]),
+      countryCode: movie.production_countries?.[0]?.iso_3166_1 || null,
+
       releaseDate: movie.release_date,
       genres: movie.genres.map((g) => g.name),
       cast: credits.cast.map((c) => c.name).slice(0, 10),
