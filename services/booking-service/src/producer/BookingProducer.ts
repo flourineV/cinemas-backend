@@ -1,4 +1,3 @@
-// src/producer/BookingProducer.ts
 import { v4 as uuidv4 } from 'uuid';
 import { RabbitConfig } from '../config/RabbitConfig.js';
 import { publish } from '../messaging/RabbitClient.js';

@@ -102,7 +102,7 @@ export class UserProfileClient {
       userIds,
       { headers: { "x-internal-secret": this.internalSecret } }
     );
-    return res.data;
+    return res.data || new Map();
   }
 
   private async _searchUserIds(username: string): Promise<string[]> {

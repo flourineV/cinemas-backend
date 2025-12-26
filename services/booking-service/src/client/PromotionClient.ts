@@ -12,7 +12,7 @@ export class PromotionClient {
 
   // Circuit breakers
   private validatePromoBreaker: CircuitBreaker<[string], PromotionValidationResponse>;
-  private createRefundBreaker: CircuitBreaker<[string, number], RefundVoucherResponse>;
+  private createRefundBreaker: CircuitBreaker<[string, string], RefundVoucherResponse>;
   private markUsedBreaker: CircuitBreaker<[string], RefundVoucherResponse>;
 
   constructor(baseURL: string) {
@@ -36,7 +36,7 @@ export class PromotionClient {
     }));
 
     this.createRefundBreaker = new CircuitBreaker(this._createRefundVoucher.bind(this), options);
-    this.createRefundBreaker.fallback((userId: string, value: number) => ({
+    this.createRefundBreaker.fallback((userId: string, value: string) => ({
       id: uuidv4(),
       code: "N/A",
       userId,
@@ -59,7 +59,7 @@ export class PromotionClient {
     return this.validatePromoBreaker.fire(promoCode);
   }
 
-  async createRefundVoucher(userId: string, value: number): Promise<RefundVoucherResponse> {
+  async createRefundVoucher(userId: string, value: string): Promise<RefundVoucherResponse> {
     return this.createRefundBreaker.fire(userId, value);
   }
 
@@ -114,7 +114,7 @@ export class PromotionClient {
     }
   }
 
-  private async _createRefundVoucher(userId: string, value: number): Promise<RefundVoucherResponse> {
+  private async _createRefundVoucher(userId: string, value: string): Promise<RefundVoucherResponse> {
     const expiredAt = new Date();
     expiredAt.setMonth(expiredAt.getMonth() + 2);
 

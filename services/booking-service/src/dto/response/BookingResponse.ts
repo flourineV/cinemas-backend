@@ -4,7 +4,7 @@ export interface BookingResponse {
   bookingId: string; // UUID
   bookingCode: string;
   userId?: string; // UUID
-  fullName?: string; // From user-profile-service
+  fullName?: string | null; // From user-profile-service
   showtimeId: string; // UUID
   movieId?: string; // UUID
   movieTitle?: string;
