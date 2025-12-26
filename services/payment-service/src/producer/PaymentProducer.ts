@@ -15,9 +15,12 @@ const PAYMENT_BOOKING_FAILED_KEY = 'payment.booking.failed';
 const PAYMENT_FNB_SUCCESS_KEY = 'payment.fnb.success';
 const PAYMENT_FNB_FAILED_KEY = 'payment.fnb.failed';
 
+type AmqpConnection = Awaited<ReturnType<typeof amqp.connect>>; 
+type AmqpChannel = Awaited<ReturnType<AmqpConnection['createChannel']>>;
+
 export class PaymentProducer {
-  private connection: Connection | null = null;
-  private channel: Channel | null = null;
+  private connection: AmqpConnection | null = null;
+  private channel: AmqpChannel | null = null;
   private readonly rabbitUrl: string;
 
   constructor() {

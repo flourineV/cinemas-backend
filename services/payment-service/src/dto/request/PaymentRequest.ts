@@ -1,17 +1,6 @@
-import { PaymentStatus } from "../../models/PaymentStatus.js";
-
-export interface PaymentCriteria {
-  keyword?: string; // Partial match: userId, bookingId, showtimeId, transactionRef
-  userId?: string;  // UUID as string
-  bookingId?: string;
-  showtimeId?: string;
-  transactionRef?: string;
-  status?: PaymentStatus;
-  method?: string;
-
-  fromDate?: Date;
-  toDate?: Date;
-
-  minAmount?: string; // decimal as string
-  maxAmount?: string; // decimal as string
+export interface PaymentRequest {
+  bookingId?: string; // UUID as string
+  userId: string;     // UUID as string
+  amount: string;     // decimal stored as string to preserve precision
+  method: string;     // e.g. "VNPAY", "MOMO", "CASH"
 }

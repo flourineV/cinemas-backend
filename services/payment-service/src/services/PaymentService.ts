@@ -1,384 +1,414 @@
-import { PaymentProducer } from "../producer/PaymentProducer.js";
-import { UserProfileClient } from "../adapter/client/UserProfileClient.js";
-import { PaymentTransaction } from "../entities/PaymentTransaction.js";
-import { PaymentStatus } from "../entities/PaymentStatus.js";
+import { DataSource, Repository } from 'typeorm';
+import { PaymentTransaction } from '../models/PaymentTransaction.js';
+import { PaymentStatus } from '../models/PaymentStatus.js';
+import { PaymentProducer } from '../producer/PaymentProducer.js';
+import { UserProfileClient } from '../client/UserProfileClient.js';
 import type { BookingCreatedEvent } from "../events/BookingCreatedEvent.js";
 import type { BookingFinalizedEvent } from "../events/BookingFinalizedEvent.js";
 import type { FnbOrderCreatedEvent } from "../events/FnbOrderCreatedEvent.js";
 import type { SeatUnlockedEvent } from "../events/SeatUnlockedEvent.js";
 import type { PaymentBookingSuccessEvent } from "../events/PaymentBookingSuccessEvent.js";
 import type { PaymentFnbSuccessEvent } from "../events/PaymentFnbSuccessEvent.js";
+import type { PaymentFnbFailedEvent } from "../events/PaymentFnbFailedEvent.js";
 import type { PaymentBookingFailedEvent } from "../events/PaymentBookingFailedEvent.js";
 import type { PaymentCriteria } from "../dto/request/PaymentCriteria.js";
 import type { PagedResponse } from "../dto/response/PagedResponse.js";
 import type { PaymentTransactionResponse } from "../dto/response/PaymentTransactionResponse.js";
+import { v4 as uuidv4 } from 'uuid';
 
-/**
- * PaymentService
- *
- * Ported from the Java implementation. This service:
- * - creates pending transactions for bookings and FnB orders
- * - confirms payments from payment gateway callbacks
- * - updates amounts and statuses based on booking events
- * - exposes read methods for payments and paginated queries
- *
- * Note: This implementation assumes the repository and producer expose the
- * methods used below (existsByBookingId, existsByFnbOrderId, save,
- * findByTransactionRef, findByBookingId, findByUserId, findById,
- * findByCriteria). Adjust repository method names if your repository differs.
- */
 export class PaymentService {
-  private paymentProducer: PaymentProducer;
-  private paymentRepository: PaymentRepository;
-  private userProfileClient: UserProfileClient;
+  private readonly paymentRepository: Repository<PaymentTransaction>;
+  private readonly paymentProducer: PaymentProducer;
+  private readonly userProfileClient: UserProfileClient;
 
   constructor(
+    dataSource: DataSource,
     paymentProducer: PaymentProducer,
-    paymentRepository: PaymentRepository,
     userProfileClient: UserProfileClient
   ) {
+    this.paymentRepository = dataSource.getRepository(PaymentTransaction);
     this.paymentProducer = paymentProducer;
-    this.paymentRepository = paymentRepository;
     this.userProfileClient = userProfileClient;
   }
 
   /**
-   * Create a pending transaction when a booking is created.
+   * Create PENDING transaction when Booking is created
    */
   async createPendingTransaction(event: BookingCreatedEvent): Promise<void> {
-    try {
-      const exists = await this.paymentRepository.existsByBookingId(event.bookingId);
-      if (exists) {
-        console.warn(`[PaymentService] Transaction already exists for bookingId=${event.bookingId}. Skipping.`);
-        return;
-      }
-
-      const pendingTxn: Partial<PaymentTransaction> = {
-        bookingId: event.bookingId,
-        userId: event.userId,
-        showtimeId: event.showtimeId,
-        seatIds: event.seatIds ?? [],
-        amount: event.totalPrice, // keep as string/decimal representation per entity
-        method: "UNKNOWN",
-        status: PaymentStatus.PENDING,
-        transactionRef: `TXN_INIT_${cryptoRandomUuid()}`,
-      };
-
-      await this.paymentRepository.save(pendingTxn as PaymentTransaction);
-      console.info(`[PaymentService] PENDING Transaction created for bookingId=${event.bookingId}`);
-    } catch (err) {
-      console.error("[PaymentService] Error in createPendingTransaction:", err);
-      throw err;
+    // Check if transaction already exists to avoid duplicates
+    const exists = await this.paymentRepository.existsBy({ bookingId: event.bookingId });
+    
+    if (exists) {
+      console.warn(`[PaymentService] Transaction already exists for bookingId: ${event.bookingId}. Skipping.`);
+      return;
     }
+
+    const pendingTxn = this.paymentRepository.create({
+      bookingId: event.bookingId,
+      userId: event.userId,
+      showtimeId: event.showtimeId,
+      seatIds: event.seatIds,
+      amount: event.totalPrice,
+      method: 'UNKNOWN', // Will be updated later when user selects payment method
+      status: PaymentStatus.PENDING,
+      transactionRef: `TXN_INIT_${uuidv4()}`
+    });
+
+    await this.paymentRepository.save(pendingTxn);
+    console.log(`[PaymentService] PENDING Transaction created for bookingId: ${event.bookingId}`);
   }
 
   /**
-   * Create a pending transaction when an FnB order is created.
+   * Create PENDING transaction when FnbOrder is created
    */
   async createPendingTransactionForFnb(event: FnbOrderCreatedEvent): Promise<void> {
-    try {
-      const exists = await this.paymentRepository.existsByFnbOrderId(event.fnbOrderId);
-      if (exists) {
-        console.warn(`[PaymentService] Transaction already exists for fnbOrderId=${event.fnbOrderId}. Skipping.`);
-        return;
-      }
-
-      const pendingTxn: Partial<PaymentTransaction> = {
-        fnbOrderId: event.fnbOrderId,
-        userId: event.userId,
-        showtimeId: null,
-        seatIds: [],
-        amount: event.totalAmount,
-        method: "UNKNOWN",
-        status: PaymentStatus.PENDING,
-        transactionRef: `TXN_FNB_${cryptoRandomUuid()}`,
-      };
-
-      await this.paymentRepository.save(pendingTxn as PaymentTransaction);
-      console.info(
-        `[PaymentService] PENDING Transaction created for fnbOrderId=${event.fnbOrderId} | amount=${event.totalAmount}`
-      );
-    } catch (err) {
-      console.error("[PaymentService] Error in createPendingTransactionForFnb:", err);
-      throw err;
+    // Check if transaction already exists to avoid duplicates
+    const exists = await this.paymentRepository.existsBy({ fnbOrderId: event.fnbOrderId });
+    
+    if (exists) {
+      console.warn(`[PaymentService] Transaction already exists for fnbOrderId: ${event.fnbOrderId}. Skipping.`);
+      return;
     }
+
+    const pendingTxn = this.paymentRepository.create({
+      fnbOrderId: event.fnbOrderId,
+      userId: event.userId,
+      showtimeId: null, // FnB standalone has no showtime
+      seatIds: [], // No seats
+      amount: event.totalAmount,
+      method: 'UNKNOWN',
+      status: PaymentStatus.PENDING,
+      transactionRef: `TXN_FNB_${uuidv4()}`
+    });
+
+    await this.paymentRepository.save(pendingTxn);
+    console.log(
+      `[PaymentService] PENDING Transaction created for fnbOrderId: ${event.fnbOrderId} | amount=${event.totalAmount}`
+    );
   }
 
   /**
-   * Confirm payment success from payment gateway callback.
-   *
-   * @param appTransId - transaction reference (merchant/app transaction id)
-   * @param merchantTransId - gateway transaction id (unused but kept for parity)
-   * @param amountPaid - amount paid in smallest currency unit (e.g., VND)
+   * Confirm payment success (from ZaloPay callback)
    */
-  async confirmPaymentSuccess(appTransId: string, merchantTransId: string | null, amountPaid: number): Promise<void> {
-    try {
-      const optionalTxn = await this.paymentRepository.findByTransactionRef(appTransId);
-      if (!optionalTxn) {
-        throw new Error(`Transaction not found for ref: ${appTransId}`);
-      }
+  async confirmPaymentSuccess(
+    appTransId: string,
+    merchantTransId: string,
+    amountPaid: number
+  ): Promise<void> {
+    const txn = await this.paymentRepository.findOne({
+      where: { transactionRef: appTransId }
+    });
 
-      const txn = optionalTxn as PaymentTransaction;
+    if (!txn) {
+      throw new Error(`Transaction not found for ref: ${appTransId}`);
+    }
 
-      if (txn.status === PaymentStatus.SUCCESS) {
-        console.warn(`[PaymentService] Transaction ${appTransId} already SUCCESS. Ignoring callback.`);
-        return;
-      }
+    if (txn.status === PaymentStatus.SUCCESS) {
+      console.warn(`⚠️ [PaymentService] Transaction ${appTransId} already SUCCESS. Ignoring callback.`);
+      return;
+    }
 
-      // Compare amounts. Entity stores amount as string (decimal). Convert safely.
-      const txnAmountNumber = parseDecimalToNumber(txn.amount);
-      if (txnAmountNumber !== amountPaid) {
-        console.error(
-          `[PaymentService] Amount mismatch! Expected: ${txn.amount} (${txnAmountNumber}), Paid: ${amountPaid}`
-        );
-        return;
-      }
-
-      // Update DB
-      txn.status = PaymentStatus.SUCCESS;
-      txn.method = "ZALOPAY";
-      await this.paymentRepository.save(txn);
-
-      console.info(
-        `[PaymentService] Payment SUCCESS for bookingId=${txn.bookingId} | fnbOrderId=${txn.fnbOrderId}`
+    if (parseFloat(txn.amount) !== amountPaid) {
+      console.error(
+        `[PaymentService] Amount mismatch! Expected: ${txn.amount}, Paid: ${amountPaid}`
       );
+      return;
+    }
 
-      // If booking transaction, emit booking success event
-      if (txn.bookingId) {
-        const bookingSuccessEvent: PaymentBookingSuccessEvent = {
-          id: txn.id,
-          bookingId: txn.bookingId,
-          showtimeId: txn.showtimeId ?? null,
-          userId: txn.userId,
-          amount: txn.amount,
-          method: "ZALOPAY",
-          seatIds: txn.seatIds ?? [],
-          note: "Payment confirmed via ZaloPay Callback",
-        };
-        await this.paymentProducer.sendPaymentBookingSuccessEvent(bookingSuccessEvent);
-      }
+    // Update database
+    txn.status = PaymentStatus.SUCCESS;
+    txn.method = 'ZALOPAY'; // Or get from callback
+    await this.paymentRepository.save(txn);
 
-      // If FnB transaction, award loyalty points and emit FnB success event
-      if (txn.fnbOrderId) {
-        // 10,000 VND = 1 point
-        const divisor = 10000;
-        const pointsEarned = Math.floor(txnAmountNumber / divisor);
-        if (pointsEarned > 0) {
-          console.info(
-            `[PaymentService] Earning ${pointsEarned} loyalty points for FnB order ${txn.fnbOrderId} (amount: ${txn.amount})`
-          );
-          try {
-            await this.userProfileClient.updateLoyaltyPoints(txn.userId, pointsEarned);
-          } catch (err) {
-            console.error("[PaymentService] Failed to update loyalty points:", err);
-          }
+    console.log(
+      `💰 [PaymentService] Payment SUCCESS for bookingId: ${txn.bookingId} | fnbOrderId: ${txn.fnbOrderId}`
+    );
+
+    // Send event to Booking Service (only if bookingId exists)
+    if (txn.bookingId) {
+      const bookingSuccessEvent: PaymentBookingSuccessEvent = {
+        paymentId: txn.id,
+        bookingId: txn.bookingId,
+        showtimeId: txn.showtimeId!,
+        userId: txn.userId,
+        amount: txn.amount,
+        method: 'ZALOPAY',
+        seatIds: txn.seatIds,
+        message: 'Payment confirmed via ZaloPay Callback'
+      };
+      await this.paymentProducer.sendPaymentBookingSuccessEvent(bookingSuccessEvent);
+    }
+
+    // If it's an FnB order, send event to FnB Service and add loyalty points
+    if (txn.fnbOrderId) {
+      // Calculate loyalty points for FnB: 10,000 VND = 1 point
+      const pointsEarned = Math.floor(parseFloat(txn.amount) / 10000);
+
+      if (pointsEarned > 0) {
+        console.log(
+          `💎 [PaymentService] Earning ${pointsEarned} loyalty points for FnB order ${txn.fnbOrderId} (amount: ${txn.amount})`
+        );
+        try {
+          await this.userProfileClient.updateLoyaltyPoints(txn.userId, pointsEarned);
+        } catch (error) {
+          console.error(`[PaymentService] Failed to update loyalty points:`, error);
+          // Don't fail the entire transaction if loyalty update fails
         }
-
-        const fnbSuccessEvent: PaymentFnbSuccessEvent = {
-          id: txn.id,
-          fnbOrderId: txn.fnbOrderId,
-          userId: txn.userId,
-          amount: txn.amount,
-          method: "ZALOPAY",
-          note: "Payment confirmed via ZaloPay Callback",
-        };
-        await this.paymentProducer.sendPaymentFnbSuccessEvent(fnbSuccessEvent);
       }
-    } catch (err) {
-      console.error("[PaymentService] Error in confirmPaymentSuccess:", err);
-      throw err;
+
+      const fnbSuccessEvent: PaymentFnbSuccessEvent = {
+        paymentId: txn.id,
+        fnbOrderId: txn.fnbOrderId,
+        userId: txn.userId,
+        amount: txn.amount,
+        method: 'ZALOPAY',
+        message: 'Payment confirmed via ZaloPay Callback'
+      };
+      await this.paymentProducer.sendPaymentFnbSuccessEvent(fnbSuccessEvent);
     }
   }
 
   /**
-   * Update final amount after booking finalization.
+   * Update final amount after booking finalization
    */
   async updateFinalAmount(event: BookingFinalizedEvent): Promise<void> {
-    try {
-      console.info(
-        `[PaymentService] Updating Payment amount after finalization | bookingId=${event.bookingId} | newAmount=${event.finalPrice}`
+    console.log(
+      `💰 [PaymentService] Updating Payment amount after finalization | bookingId=${event.bookingId} | newAmount=${event.finalPrice}`
+    );
+
+    // Find PENDING transaction for this booking
+    const transactions = await this.paymentRepository.find({
+      where: { bookingId: event.bookingId, status: PaymentStatus.PENDING }
+    });
+
+    if (transactions.length === 0) {
+      console.warn(
+        `[PaymentService] No PENDING transaction found for bookingId ${event.bookingId}. Skipping update.`
       );
-
-      const txns = await this.paymentRepository.findByBookingId(event.bookingId);
-      const pendingTxn = txns.find((t) => t.status === PaymentStatus.PENDING);
-
-      if (!pendingTxn) {
-        console.warn(`[PaymentService] No PENDING transaction found for bookingId ${event.bookingId}. Skipping update.`);
-        return;
-      }
-
-      pendingTxn.amount = event.finalPrice;
-      await this.paymentRepository.save(pendingTxn);
-
-      console.info(`[PaymentService] Updated transaction amount for bookingId ${event.bookingId} → ${event.finalPrice}`);
-    } catch (err) {
-      console.error("[PaymentService] Error in updateFinalAmount:", err);
-      throw err;
+      return;
     }
+
+    const txn = transactions[0];
+    txn.amount = event.finalPrice;
+    await this.paymentRepository.save(txn);
+
+    console.log(
+      `[PaymentService] Updated transaction amount for bookingId ${event.bookingId} → ${event.finalPrice}`
+    );
   }
 
   /**
-   * Update status when seats are unlocked (e.g., payment timeout).
+   * Update status when seats are unlocked (expired)
    */
   async updateStatus(event: SeatUnlockedEvent): Promise<void> {
-    try {
-      console.info(
-        `[PaymentService] Updating payment status due to seat unlock | bookingId=${event.bookingId} | reason=${event.reason}`
+    console.log(
+      `🕐 [PaymentService] Updating payment status due to seat unlock | bookingId=${event.bookingId} | reason=${event.reason}`
+    );
+
+    // Find PENDING transaction
+    const transactions = await this.paymentRepository.find({
+      where: { bookingId: event.bookingId, status: PaymentStatus.PENDING }
+    });
+
+    if (transactions.length === 0) {
+      console.warn(
+        `[PaymentService] No PENDING transaction found for bookingId ${event.bookingId}. Skipping status update.`
       );
-
-      const txns = await this.paymentRepository.findByBookingId(event.bookingId);
-      const pendingTxn = txns.find((t) => t.status === PaymentStatus.PENDING);
-
-      if (!pendingTxn) {
-        console.warn(`[PaymentService] No PENDING transaction found for bookingId ${event.bookingId}. Skipping status update.`);
-        return;
-      }
-
-      pendingTxn.status = PaymentStatus.EXPIRED;
-      pendingTxn.transactionRef = `TXN_EXPIRED_${cryptoRandomUuid()}`;
-      await this.paymentRepository.save(pendingTxn);
-
-      console.info(`[PaymentService] Transaction marked as EXPIRED for bookingId ${event.bookingId}`);
-
-      const expiredEvent: PaymentBookingFailedEvent = {
-        id: pendingTxn.id,
-        bookingId: pendingTxn.bookingId,
-        userId: pendingTxn.userId,
-        showtimeId: pendingTxn.showtimeId ?? null,
-        amount: pendingTxn.amount,
-        method: pendingTxn.method,
-        seatIds: pendingTxn.seatIds ?? [],
-        reason: `Payment expired: ${event.reason}`,
-      };
-
-      await this.paymentProducer.sendPaymentBookingFailedEvent(expiredEvent);
-    } catch (err) {
-      console.error("[PaymentService] Error in updateStatus:", err);
-      throw err;
+      return;
     }
+
+    const txn = transactions[0];
+
+    // Update status to EXPIRED
+    txn.status = PaymentStatus.EXPIRED;
+    txn.transactionRef = `TXN_EXPIRED_${uuidv4()}`;
+    await this.paymentRepository.save(txn);
+
+    console.log(`💤 [PaymentService] Transaction marked as EXPIRED for bookingId ${event.bookingId}`);
+
+    // Send event to booking-service or notification-service
+    const expiredEvent: PaymentBookingFailedEvent = {
+      paymentId: txn.id,
+      bookingId: txn.bookingId!,
+      showtimeId: txn.showtimeId!,
+      userId: txn.userId,
+      amount: txn.amount,
+      method: txn.method,
+      seatIds: txn.seatIds,
+      reason: `Payment expired: ${event.reason}`
+    };
+
+    await this.paymentProducer.sendPaymentBookingFailedEvent(expiredEvent);
   }
 
   /**
-   * Get payments by user id.
+   * Get all payments by user ID
    */
   async getPaymentsByUserId(userId: string): Promise<PaymentTransactionResponse[]> {
-    const payments = await this.paymentRepository.findByUserId(userId);
-    return payments.map((p) => this.toResponse(p));
+    const payments = await this.paymentRepository.find({ where: { userId } });
+    return payments.map(this.toResponse);
   }
 
   /**
-   * Get single payment by id.
+   * Get payment by ID
    */
   async getPaymentById(id: string): Promise<PaymentTransactionResponse> {
-    const payment = await this.paymentRepository.findById(id);
+    const payment = await this.paymentRepository.findOne({ where: { id } });
+    
     if (!payment) {
       throw new Error(`Payment not found with id: ${id}`);
     }
+
     return this.toResponse(payment);
   }
 
   /**
-   * Get payments by criteria with pagination and sorting.
-   *
-   * This method delegates to repository.findByCriteria which is expected to accept
-   * (criteria, page, size, sortBy, sortDir) or a pageable object. If your repository
-   * exposes a different signature, adapt the call accordingly.
+   * Get transaction by reference
+   */
+  async getTransactionByRef(transactionRef: string): Promise<PaymentTransactionResponse | null> {
+    const payment = await this.paymentRepository.findOne({ where: { transactionRef } });
+    return payment ? this.toResponse(payment) : null;
+  }
+
+  /**
+   * Handle payment cancellation
+   */
+  async handlePaymentCancelled(appTransId: string, reason: string): Promise<void> {
+    console.log(
+      `❌ [PaymentService] Handling payment cancellation for appTransId: ${appTransId} | reason: ${reason}`
+    );
+
+    const txn = await this.paymentRepository.findOne({
+      where: { transactionRef: appTransId }
+    });
+
+    if (!txn) {
+      console.warn(
+        `[PaymentService] No transaction found for appTransId: ${appTransId}. Skipping cancellation.`
+      );
+      return;
+    }
+
+    // Only process if transaction is PENDING
+    if (txn.status !== PaymentStatus.PENDING) {
+      console.warn(
+        `[PaymentService] Transaction ${appTransId} is not PENDING (current: ${txn.status}). Skipping cancellation.`
+      );
+      return;
+    }
+
+    // Update status to FAILED
+    txn.status = PaymentStatus.FAILED;
+    await this.paymentRepository.save(txn);
+
+    console.log(`💔 [PaymentService] Transaction marked as FAILED for appTransId: ${appTransId}`);
+
+    // Send event to booking-service to unlock seats and cancel booking
+    if (txn.bookingId) {
+      const failedEvent: PaymentBookingFailedEvent = {
+        paymentId: txn.id,
+        bookingId: txn.bookingId,
+        showtimeId: txn.showtimeId!,
+        userId: txn.userId,
+        amount: txn.amount,
+        method: txn.method,
+        seatIds: txn.seatIds,
+        reason: `Payment cancelled: ${reason}`
+      };
+
+      await this.paymentProducer.sendPaymentBookingFailedEvent(failedEvent);
+      console.log(`📤 [PaymentService] Sent PaymentBookingFailedEvent for bookingId: ${txn.bookingId}`);
+    }
+
+    // Handle FnB order if exists
+    if (txn.fnbOrderId) {
+      const fnbFailedEvent: PaymentFnbFailedEvent = {
+        paymentId: txn.id,
+        fnbOrderId: txn.fnbOrderId,
+        userId: txn.userId,
+        amount: txn.amount,
+        method: txn.method,
+        message: 'Payment cancelled',
+        reason: reason
+      };
+
+      await this.paymentProducer.sendPaymentFnbFailedEvent(fnbFailedEvent);
+      console.log(`📤 [PaymentService] Sent PaymentFnbFailedEvent for fnbOrderId: ${txn.fnbOrderId}`);
+    }
+  }
+
+  /**
+   * Get payments by criteria with pagination
    */
   async getPaymentsByCriteria(
     criteria: PaymentCriteria,
     page: number,
     size: number,
     sortBy: string,
-    sortDir: "asc" | "desc"
+    sortDir: string
   ): Promise<PagedResponse<PaymentTransactionResponse>> {
-    const direction = sortDir === "desc" ? "DESC" : "ASC";
+    const direction = sortDir.toLowerCase() === 'desc' ? 'DESC' : 'ASC';
+    
+    const queryBuilder = this.paymentRepository.createQueryBuilder('payment');
 
-    // Delegate to repository. Expected to return an object with items and totalElements/totalPages.
-    const pageResult = await this.paymentRepository.findByCriteria(criteria, {
-      page,
-      size,
-      sortBy,
-      sortDir: direction,
-    });
+    // Apply filters from criteria
+    if (criteria.userId) {
+      queryBuilder.andWhere('payment.userId = :userId', { userId: criteria.userId });
+    }
+    if (criteria.bookingId) {
+      queryBuilder.andWhere('payment.bookingId = :bookingId', { bookingId: criteria.bookingId });
+    }
+    if (criteria.status) {
+      queryBuilder.andWhere('payment.status = :status', { status: criteria.status });
+    }
+    if (criteria.method) {
+      queryBuilder.andWhere('payment.method = :method', { method: criteria.method });
+    }
+    if (criteria.fromDate) {
+      queryBuilder.andWhere('payment.createdAt >= :fromDate', { fromDate: criteria.fromDate });
+    }
+    if (criteria.toDate) {
+      queryBuilder.andWhere('payment.createdAt <= :toDate', { toDate: criteria.toDate });
+    }
 
-    // pageResult is expected to be { items: PaymentTransaction[], totalElements: number, totalPages: number }
-    const items = pageResult.items ?? [];
-    const totalElements = pageResult.totalElements ?? 0;
-    const totalPages = pageResult.totalPages ?? Math.ceil(totalElements / Math.max(1, size));
+    // Apply sorting and pagination
+    queryBuilder
+      .orderBy(`payment.${sortBy}`, direction)
+      .skip(page * size)
+      .take(size);
 
-    const responses = items.map((t) => this.toResponse(t));
+    const [payments, totalElements] = await queryBuilder.getManyAndCount();
+    const totalPages = Math.ceil(totalElements / size);
+
+    const responses = payments.map(this.toResponse);
 
     return {
       data: responses,
       page,
       size,
       totalElements,
-      totalPages,
+      totalPages
     };
   }
 
   /**
-   * Map entity to DTO response.
+   * Convert entity to response DTO
    */
   private toResponse(txn: PaymentTransaction): PaymentTransactionResponse {
     return {
       id: txn.id,
-      bookingId: txn.bookingId ?? undefined,
+      bookingId: txn.bookingId,
       userId: txn.userId,
-      showtimeId: txn.showtimeId ?? undefined,
-      seatIds: txn.seatIds ?? undefined,
+      showtimeId: txn.showtimeId,
+      seatIds: txn.seatIds,
       amount: txn.amount,
       method: txn.method,
       status: txn.status,
       transactionRef: txn.transactionRef,
       createdAt: txn.createdAt,
-      updatedAt: txn.updatedAt,
+      updatedAt: txn.updatedAt
     };
   }
 }
 
-/* -------------------------
-   Helper utilities
-   ------------------------- */
-
-/**
- * Parse decimal string (e.g., "12345.00") to integer smallest unit number.
- * This helper assumes amounts are provided in the main currency unit (VND)
- * and the callback amountPaid is in the same unit (long). Adjust if your
- * gateway uses smallest currency unit.
- */
-function parseDecimalToNumber(decimalStr?: string | number | null): number {
-  if (decimalStr == null) return 0;
-  if (typeof decimalStr === "number") return Math.floor(decimalStr);
-  // Remove commas, trim
-  const cleaned = String(decimalStr).replace(/,/g, "").trim();
-  // If contains decimal point, take integer part (gateway uses integer)
-  const idx = cleaned.indexOf(".");
-  const integerPart = idx >= 0 ? cleaned.substring(0, idx) : cleaned;
-  const parsed = parseInt(integerPart, 10);
-  return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-/**
- * Generate a short random UUID-like string for transactionRef suffix.
- * Uses crypto if available.
- */
-function cryptoRandomUuid(): string {
-  try {
-    // Use crypto random values to create a UUID v4-like string
-    const bytes = crypto.getRandomValues(new Uint8Array(16));
-    // set version bits (4) and variant bits
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
-    const hex = Array.from(bytes)
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-    return `${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(
-      16,
-      20
-    )}-${hex.substring(20)}`;
-  } catch {
-    // fallback
-    return `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 10)}`;
-  }
-}
+export default PaymentService;
