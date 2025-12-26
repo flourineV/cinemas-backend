@@ -1,4 +1,4 @@
-import { DataSource, Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { PaymentTransaction } from '../models/PaymentTransaction.js';
 import { PaymentStatus } from '../models/PaymentStatus.js';
 import { PaymentProducer } from '../producer/PaymentProducer.js';
@@ -17,16 +17,15 @@ import type { PaymentTransactionResponse } from "../dto/response/PaymentTransact
 import { v4 as uuidv4 } from 'uuid';
 
 export class PaymentService {
-  private readonly paymentRepository: Repository<PaymentTransaction>;
+  private paymentRepository = this.dataSource.getRepository(PaymentTransaction);
   private readonly paymentProducer: PaymentProducer;
   private readonly userProfileClient: UserProfileClient;
 
   constructor(
-    dataSource: DataSource,
+    private dataSource: DataSource,
     paymentProducer: PaymentProducer,
     userProfileClient: UserProfileClient
   ) {
-    this.paymentRepository = dataSource.getRepository(PaymentTransaction);
     this.paymentProducer = paymentProducer;
     this.userProfileClient = userProfileClient;
   }
@@ -133,7 +132,7 @@ export class PaymentService {
         userId: txn.userId,
         amount: txn.amount,
         method: 'ZALOPAY',
-        seatIds: txn.seatIds,
+        seatIds: txn.seatIds ?? [],
         message: 'Payment confirmed via ZaloPay Callback'
       };
       await this.paymentProducer.sendPaymentBookingSuccessEvent(bookingSuccessEvent);
@@ -189,6 +188,9 @@ export class PaymentService {
     }
 
     const txn = transactions[0];
+    if (!txn) {
+      throw new Error('No transaction found');
+    }
     txn.amount = event.finalPrice;
     await this.paymentRepository.save(txn);
 
@@ -218,7 +220,9 @@ export class PaymentService {
     }
 
     const txn = transactions[0];
-
+    if (!txn) {
+      throw new Error('No transaction found');
+    }
     // Update status to EXPIRED
     txn.status = PaymentStatus.EXPIRED;
     txn.transactionRef = `TXN_EXPIRED_${uuidv4()}`;
@@ -234,7 +238,7 @@ export class PaymentService {
       userId: txn.userId,
       amount: txn.amount,
       method: txn.method,
-      seatIds: txn.seatIds,
+      seatIds: txn.seatIds ?? [],
       reason: `Payment expired: ${event.reason}`
     };
 
@@ -312,7 +316,7 @@ export class PaymentService {
         userId: txn.userId,
         amount: txn.amount,
         method: txn.method,
-        seatIds: txn.seatIds,
+        seatIds: txn.seatIds ?? [],
         reason: `Payment cancelled: ${reason}`
       };
 
@@ -397,10 +401,10 @@ export class PaymentService {
   private toResponse(txn: PaymentTransaction): PaymentTransactionResponse {
     return {
       id: txn.id,
-      bookingId: txn.bookingId,
+      bookingId: txn.bookingId ?? '',
       userId: txn.userId,
-      showtimeId: txn.showtimeId,
-      seatIds: txn.seatIds,
+      showtimeId: txn.showtimeId ?? '',
+      seatIds: txn.seatIds ?? [],
       amount: txn.amount,
       method: txn.method,
       status: txn.status,

@@ -22,7 +22,7 @@ export class PaymentTransaction {
   userId!: string;
 
   @Column({ type: "uuid", nullable: true })
-  showtimeId?: string;
+  showtimeId?: string | null;
 
   @Column("uuid", { array: true, nullable: true })
   seatIds?: string[];

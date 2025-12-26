@@ -6,7 +6,7 @@ export interface PaymentBookingFailedEvent {
   bookingId: string;
   showtimeId: string;
   userId: string;
-  amount: number;
+  amount: string; //bigNumber -> string
   method: string;
   seatIds: string[];
   reason: string;
