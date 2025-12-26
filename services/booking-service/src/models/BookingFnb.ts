@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import type{ Relation } from 'typeorm';
 import { Booking } from './Booking.js';
 
 @Entity({ name: 'booking_fnb' })
@@ -7,7 +8,7 @@ export class BookingFnb {
   id!: string;
 
   @ManyToOne(() => Booking, (booking) => booking.fnbItems, { onDelete: 'CASCADE' })
-  booking!: Booking;
+  booking!: Relation<Booking>;
 
   @Column({ type: 'uuid', nullable: false })
   fnbItemId!: string;

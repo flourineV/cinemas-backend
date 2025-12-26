@@ -56,7 +56,7 @@ export class Booking {
   @Column({ name: 'payment_id', type: 'uuid', nullable: true })
   paymentId?: string;
 
-  @Column({ type: 'enum', enum: BookingStatus, length: 20, default: BookingStatus.PENDING })
+  @Column({ type: 'enum', enum: BookingStatus, default: BookingStatus.PENDING })
   status!: BookingStatus;
 
   @Column({ type: 'numeric', precision: 12, scale: 2 })

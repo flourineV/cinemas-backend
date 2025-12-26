@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
+import type {Relation} from "typeorm";
 import { Booking } from './Booking.js';
 import { DiscountType } from './DiscountType.js';
 
@@ -8,7 +9,7 @@ export class BookingPromotion {
   id!: string;
 
   @OneToOne(() => Booking, (booking) => booking.promotion, { onDelete: 'CASCADE' })
-  booking!: Booking;
+  booking!: Relation<Booking>;
 
   @Column({ name: 'promotion_code', length: 50 })
   promotionCode!: string;

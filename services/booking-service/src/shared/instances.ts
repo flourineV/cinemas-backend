@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-import { SeatLockRedisService } from 'services/SeatLockRedisService.js';
+import { SeatLockRedisService } from '../services/SeatLockRedisService.js';
 import { BookingService } from '../services/BookingService.js';
 import { FnbClient } from '../client/FnbClient.js';
 import { MovieClient } from '../client/MovieClient.js';

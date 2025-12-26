@@ -2,8 +2,8 @@ import axios from "axios";
 import type { AxiosInstance } from "axios";
 import CircuitBreaker from "opossum";
 import { v4 as uuidv4 } from "uuid";
-import { DiscountType } from "../models/DiscountType";
-import type { PromotionValidationResponse } from "../dto/external/PromotionValidationResponse";
+import { DiscountType } from "../models/DiscountType.js";
+import type { PromotionValidationResponse } from "../dto/external/PromotionValidationResponse.js";
 import type { RefundVoucherResponse } from "../dto/response/RefundVoucherResponse.js";
 import { BookingException } from "../exception/BookingException.js";
 

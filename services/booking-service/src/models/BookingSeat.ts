@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import type {Relation} from "typeorm";
 import { Booking } from './Booking.js';
 
 @Entity({ name: 'booking_seat' })
@@ -25,5 +26,5 @@ export class BookingSeat {
   createdAt!: Date;
 
   @ManyToOne(() => Booking, (booking) => booking.seats, { onDelete: 'CASCADE' })
-  booking!: Booking;
+  booking!: Relation<Booking>;
 }
