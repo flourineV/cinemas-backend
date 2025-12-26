@@ -300,7 +300,33 @@ class MovieServiceImpl {
     if (!status) throw new Error("Status required");
     await movieSummaryRepo.update(id, { status });
   }
+  // -----------------------------
+  // INTERNAL: BATCH TITLES (like Java)
+  // POST /api/movies/batch/titles
+  // -----------------------------
+  async getBatchMovieTitles(movieIds) {
+    if (!Array.isArray(movieIds)) {
+      throw new Error("movieIds must be an array");
+    }
 
+    const ids = movieIds
+      .filter((x) => typeof x === "string" && x.trim() !== "")
+      .map((x) => x.trim());
+
+    if (ids.length === 0) return {};
+
+    const docs = await mongoose
+      .model("MovieSummary")
+      .find({ _id: { $in: ids } })
+      .select({ _id: 1, title: 1 })
+      .exec();
+
+    const result = {};
+    for (const d of docs) {
+      result[String(d._id)] = d.title;
+    }
+    return result;
+  }
   // -----------------------------
   // DELETE MOVIE
   // -----------------------------

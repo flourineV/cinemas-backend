@@ -29,6 +29,6 @@ const movieStatsController = require("./controllers/movie-stats.controller");
 app.use("/api/movies", movieController);
 app.use("/api/movies/stats", movieStatsController);
 
-app.use("/", movieController);
-app.use("/stats", movieStatsController);
+// app.use("/", movieController);
+// app.use("/stats", movieStatsController);
 module.exports = app;

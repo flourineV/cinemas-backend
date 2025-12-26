@@ -1,14 +1,13 @@
 const { internalAuthSecret } = require("../config");
 
 /**
- * Check header nội bộ, tương đương InternalAuthChecker.requireInternal(...)
- * Header dùng: X-Internal-Key
+ * Java: @RequestHeader("X-Internal-Secret")
  */
 function requireInternal(req, res, next) {
-  const headerKey = req.header("X-Internal-Key");
+  const secret = req.header("X-Internal-Secret");
 
-  if (!headerKey || headerKey !== internalAuthSecret) {
-    return res.status(403).json({ message: "Invalid internal service key" });
+  if (!secret || secret !== internalAuthSecret) {
+    return res.status(403).json({ message: "Invalid internal secret" });
   }
 
   next();
