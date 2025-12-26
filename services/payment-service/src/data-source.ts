@@ -1,8 +1,6 @@
+import { PaymentTransaction } from "./models/PaymentTransaction.js";
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-
-// import your entities
-
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -11,7 +9,7 @@ export const AppDataSource = new DataSource({
   synchronize: false, // dev mode only; use migrations in production
   logging: true,
   entities: [
-    
+    PaymentTransaction
   ],
   migrations: [],
   subscribers: [],

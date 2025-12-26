@@ -24,7 +24,6 @@ export class PaymentTransaction {
   @Column({ type: "uuid", nullable: true })
   showtimeId?: string;
 
-  // Equivalent to @ElementCollection in JPA
   @Column("uuid", { array: true, nullable: true })
   seatIds?: string[];
 
