@@ -21,7 +21,7 @@ router.get("/", async (req: Request, res: Response) => {
 
   // ----- MOVIE SERVICE -----
   try {
-    const movieUrl = `${servicesConfig.movie.baseUrl}/search?keyword=${encoded}`;
+    const movieUrl = `${servicesConfig.movie.baseUrl}/api/movies/search?keyword=${encoded}`;
     const movieResp = await axios.get(movieUrl);
 
     const data = movieResp.data;
