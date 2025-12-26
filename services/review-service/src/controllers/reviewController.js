@@ -9,6 +9,7 @@ const {
 // POST /api/reviews
 router.post("/", requireAuthenticated, async (req, res) => {
   try {
+    req.body.userId = req.user.userId;
     const review = await reviewService.createReview(req.body);
     res.json(review);
   } catch (err) {
@@ -19,6 +20,7 @@ router.post("/", requireAuthenticated, async (req, res) => {
 // PUT /api/reviews/:id
 router.put("/:id", requireAuthenticated, async (req, res) => {
   try {
+    req.body.userId = req.user.userId;
     const review = await reviewService.updateReview(req.params.id, req.body);
     res.json(review);
   } catch (err) {

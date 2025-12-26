@@ -68,7 +68,10 @@ async function updateReview(id, body) {
   if (!existing) {
     throw new Error("Review not found");
   }
-
+  // CHẶN: chỉ owner mới sửa được
+  if (String(existing.userId) !== String(body.userId)) {
+    throw new Error("Forbidden");
+  }
   const allowed = await hasUserBookedMovie(existing.movieId, existing.userId);
   if (!allowed) {
     throw new Error("User chưa xem phim này, không thể sửa review!");
