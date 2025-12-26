@@ -1,27 +1,37 @@
 const axios = require("axios");
 const config = require("../config");
 const reviewModel = require("../models/reviewModel");
+
 // Gọi sang Booking Service để kiểm tra user đã đặt vé cho movie chưa
 // async function hasUserBookedMovie(movieId, userId) {
+//   // 1) Cho phép bypass khi dev/demo
+//   if (String(process.env.BYPASS_BOOKING_CHECK).toLowerCase() === "true") {
+//     return true;
+//   }
+
 //   try {
-//     // BOOKING_SERVICE_URL ví dụ: http://localhost:8085
+//     // bookingServiceUrl ví dụ trong docker: http://booking-service:8085
 //     const url = `${config.bookingServiceUrl}/bookings/check`;
 
 //     const response = await axios.get(url, {
-//       params: {
-//         userId,
-//         movieId,
-//       },
+//       params: { userId, movieId },
 //       headers: {
-//         "X-Internal-Secret": config.internalSecret, // giống Java
+//         // 2) Header nội bộ phải KHỚP giữa service
+//         // Bạn đang dùng X-Internal-Secret ở các chỗ khác -> giữ 1 chuẩn
+//         "X-Internal-Secret": config.internalSecret,
 //       },
+//       timeout: 5000,
 //     });
 
-//     // booking-service trả true/false
-//     return Boolean(response.data);
+//     // booking-service nên trả true/false hoặc {data:true}
+//     const data = response.data;
+//     if (typeof data === "boolean") return data;
+//     if (typeof data?.result === "boolean") return data.result;
+//     if (typeof data?.data === "boolean") return data.data;
+
+//     return Boolean(data);
 //   } catch (err) {
 //     console.error("Error calling BookingService:", err.message || err);
-//     // giống Java: coi đây là lỗi hệ thống
 //     throw new Error("Failed to connect to BookingService");
 //   }
 // }
