@@ -8,7 +8,7 @@ export interface UserProfileResponse {
 
 const USER_PROFILE_SERVICE_URL =
   process.env.USER_PROFILE_SERVICE_URL ||
-  "http://user-profile-service:8082";
+  "http://user-profile-service:8082/api/profiles";
 
 const INTERNAL_SECRET_KEY = process.env.APP_INTERNAL_SECRET_KEY!;
 
@@ -16,7 +16,7 @@ const userProfileAxios = axios.create({
   baseURL: USER_PROFILE_SERVICE_URL,
   timeout: 5000,
   headers: {
-    "X-Internal-Secret": INTERNAL_SECRET_KEY,
+    "x-internal-secret": INTERNAL_SECRET_KEY,
   },
 });
 

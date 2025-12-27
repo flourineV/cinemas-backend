@@ -11,7 +11,7 @@ const server = createServer(app);
 
 server.listen(PORT, async () => {
   console.log(`[Server] 🚀 Running on http://localhost:${PORT}`);
-
+  console.log(`Swagger docs available at http://localhost:${PORT}/api-docs`);
   try {
     const notificationService = new NotificationService(AppDataSource);
     const consumer = new NotificationConsumer(notificationService);

@@ -11,11 +11,11 @@ type AmqpChannel = Awaited<ReturnType<AmqpConnection["createChannel"]>>;
 async function createRabbitConnection(url: string, retries = 5, delay = 3000) {
   for (let i = 0; i < retries; i++) {
     try {
-      const conn = await amqp.connect(url);
+      const conn = await connect(url);
       console.log("[RabbitMQ] ✅ Connected");
       return conn;
     } catch (err: any) {
-      console.warn(`[RabbitMQ] ❌ Connection attempt ${i + 1} failed:`, err.message);
+      console.warn(`[RabbitMQ] ❌ ${url} Connection attempt ${i + 1} failed:`, err.message);
       if (i === retries - 1) throw err;
       await new Promise((r) => setTimeout(r, delay));
     }

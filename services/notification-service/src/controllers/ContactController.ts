@@ -1,7 +1,6 @@
 import { Router } from "express";
 import type { Request, Response} from "express";
 import { EmailService } from "../services/EmailService.js";
-import { AppDataSource } from "../data-source.js";
 
 const router = Router();
 const emailService = new EmailService();
