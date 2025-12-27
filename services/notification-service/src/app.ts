@@ -33,7 +33,7 @@ AppDataSource.initialize()
   });
 
 // Controllers
-app.use("/api/contact", ContactController);
-app.use("/api/notifications", NotificationController);
+app.use("/api/notifications/contact", ContactController);
+app.use("/api/notifications/notifications", NotificationController);
 
 export default app;

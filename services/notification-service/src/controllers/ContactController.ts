@@ -5,7 +5,7 @@ import { EmailService } from "../services/EmailService.js";
 const router = Router();
 const emailService = new EmailService();
   
-// POST /api/contact/send
+// POST /api/notifications/contact/send
 router.post("/send", async (req: Request, res: Response) => {
   const { name, email, message } = req.body;
 

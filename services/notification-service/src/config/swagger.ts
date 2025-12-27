@@ -12,7 +12,7 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: "http://localhost:8089/api",
+        url: "http://localhost:8089/api/notifications",
         description: "Local server",
       },
     ],

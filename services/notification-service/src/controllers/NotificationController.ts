@@ -8,7 +8,7 @@ import { AppDataSource } from "../data-source.js";
 const router = Router();
 const notificationService = new NotificationService(AppDataSource);
 
-// GET /api/notifications
+// GET /api/notifications/notifications
 router.get("/", async (_req: Request, res: Response) => {
   try {
     const notifications = await notificationService.getAll();
@@ -19,7 +19,7 @@ router.get("/", async (_req: Request, res: Response) => {
   }
 });
 
-// GET /api/notifications/user/:userId
+// GET /api/notifications/notifications/user/:userId
 router.get("/user/:userId", async (req: Request, res: Response) => {
   try {
     const userId = req.params.userId;
@@ -34,7 +34,7 @@ router.get("/user/:userId", async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/notifications/promotion
+// POST /api/notifications/notifications/promotion
 router.post("/promotion", async (req: Request, res: Response) => {
   try {
     const request: PromotionNotificationRequest = req.body;
@@ -46,7 +46,7 @@ router.post("/promotion", async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/notifications/fnb-order-confirmation
+// POST /api/notifications/notifications/fnb-order-confirmation
 router.post("/fnb-order-confirmation", async (req: Request, res: Response) => {
   try {
     const request: FnbOrderConfirmationRequest = req.body;
