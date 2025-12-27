@@ -9,15 +9,15 @@ export class UserStatsController {
     this.userStatsService = userStatsService;
   }
 
-  async getOverview(req: Request, res: Response): Promise<void> {
-    try {
-      AuthChecker.requireAdmin(req);
-      const stats = await this.userStatsService.getOverviewStats();
-      res.json(stats);
-    } catch (error: any) {
-      res.status(403).json({ message: error.message });
-    }
-  }
+  // async getOverview(req: Request, res: Response): Promise<void> {
+  //   try {
+  //     AuthChecker.requireAdmin(req);
+  //     const stats = await this.userStatsService.getOverviewStats();
+  //     res.json(stats);
+  //   } catch (error: any) {
+  //     res.status(403).json({ message: error.message });
+  //   }
+  // }
 
   async getUserStats(req: Request, res: Response): Promise<void> {
     try {
