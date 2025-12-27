@@ -12,7 +12,7 @@ const openApiDocument: OpenAPIV3.Document = {
   },
   servers: [
     {
-      url: process.env.SWAGGER_SERVER_URL ?? 'http://localhost:3000',
+      url: process.env.SWAGGER_SERVER_URL ?? 'http://localhost:8085/api/bookings',
       description: 'Default server',
     },
   ],
@@ -237,7 +237,7 @@ const openApiDocument: OpenAPIV3.Document = {
 
   paths: {
     // Booking controller
-    '/api/bookings': {
+    '/bookings': {
       post: {
         summary: 'Create a booking',
         tags: ['Booking'],
@@ -254,7 +254,7 @@ const openApiDocument: OpenAPIV3.Document = {
       },
     },
 
-    '/api/bookings/{id}': {
+    '/bookings/{id}': {
       get: {
         summary: 'Get booking by id',
         tags: ['Booking'],
@@ -280,7 +280,7 @@ const openApiDocument: OpenAPIV3.Document = {
       },
     },
 
-    '/api/bookings/user/{userId}': {
+    '/bookings/user/{userId}': {
       get: {
         summary: 'Get bookings by user',
         tags: ['Booking'],
@@ -293,7 +293,7 @@ const openApiDocument: OpenAPIV3.Document = {
       },
     },
 
-    '/api/bookings/{id}/finalize': {
+    '/bookings/{id}/finalize': {
       patch: {
         summary: 'Finalize a booking',
         tags: ['Booking'],
@@ -311,7 +311,7 @@ const openApiDocument: OpenAPIV3.Document = {
       },
     },
 
-    '/api/bookings/{id}/cancel': {
+    '/bookings/{id}/cancel': {
       post: {
         summary: 'Cancel a booking',
         tags: ['Booking'],
@@ -325,7 +325,7 @@ const openApiDocument: OpenAPIV3.Document = {
       },
     },
 
-    '/api/bookings/admin/search': {
+    '/bookings/admin/search': {
       get: {
         summary: 'Search bookings (admin)',
         tags: ['Admin'],
@@ -358,7 +358,7 @@ const openApiDocument: OpenAPIV3.Document = {
       },
     },
 
-    '/api/bookings/check': {
+    '/bookings/check': {
       get: {
         summary: 'Check if user booked a movie (internal or authenticated)',
         tags: ['Booking'],
@@ -376,7 +376,7 @@ const openApiDocument: OpenAPIV3.Document = {
       },
     },
 
-    '/api/bookings/count': {
+    '/bookings/count': {
       get: {
         summary: 'Get booking count by user id (internal or authenticated)',
         tags: ['Booking'],
@@ -391,7 +391,7 @@ const openApiDocument: OpenAPIV3.Document = {
     },
 
     // Stats controller
-    '/api/bookings/stats/overview': {
+    '/stats/overview': {
       get: {
         summary: 'Booking overview stats',
         tags: ['Stats'],
@@ -405,7 +405,7 @@ const openApiDocument: OpenAPIV3.Document = {
       },
     },
 
-    '/api/bookings/stats/revenue': {
+    '/stats/revenue': {
       get: {
         summary: 'Revenue stats',
         tags: ['Stats'],

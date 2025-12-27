@@ -73,7 +73,7 @@ export const bootstrap = async () => {
 
 // Routes
 app.use("/api/bookings/stats", BookingStatsController);
-app.use("/api/bookings", BookingController);
+app.use("/api/bookings/bookings", BookingController);
 
 // Error handler
 
