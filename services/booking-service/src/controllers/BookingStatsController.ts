@@ -5,10 +5,10 @@ import type { BookingStatsResponse } from '../dto/response/BookingStatsResponse.
 import type { RevenueStatsResponse } from '../dto/response/RevenueStatsResponse.js';
 import { requireManagerOrAdmin, isManager } from '../middleware/authChecker.js';
 import type { RequestWithUserContext  } from 'types/userContext.js';
-import { bookingStatsService } from '../shared/instances.js';
+import { createBookingStatsService } from '../shared/instances.js';
 
 const router = Router();
-
+const bookingStatsService = createBookingStatsService();
 //GET /api/bookings/stats/overview
 router.get('/overview', requireManagerOrAdmin, async (req: RequestWithUserContext, res: Response, next: NextFunction) => {
     try {

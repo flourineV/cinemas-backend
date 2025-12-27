@@ -12,12 +12,8 @@ import { userContextMiddleware } from "./middleware/userContextMiddleware.js";
 // Controllers
 import BookingStatsController from "./controllers/BookingStatsController.js";
 import BookingController from "./controllers/BookingController.js";
-
-// Import shared instances
-import "./shared/instances.js";
-import {
-  redisClient,
-} from "./shared/instances.js";
+import {startUnifiedEventConsumer} from "./consumer/UnifiedEventConsumer.js";
+import { createBookingService, redisClient} from './shared/instances.js';
 import { setupSwagger } from "./config/swagger.js";
 
 const app = express();
@@ -34,7 +30,7 @@ app.use(userContextMiddleware); // inject user info if needed
 
 setupSwagger(app);
 
-//app.use("/api/showtimes", requireInternal);
+//app.use("/api/bookings", requireInternal);
 
 // Database connection
 const initializeDatabase = async () => {
@@ -62,6 +58,11 @@ export const bootstrap = async () => {
     // Initialize database
     await initializeDatabase();
     initializeRedisLogging(); 
+
+    // Start your unified event consumer
+    const bookingService = createBookingService();
+    await startUnifiedEventConsumer(bookingService);
+    console.log("✅ UnifiedEventConsumer started");
            
     console.log("🚀 All services initialized successfully!");
   } catch (error) {
@@ -73,9 +74,6 @@ export const bootstrap = async () => {
 // Routes
 app.use("/api/bookings/stats", BookingStatsController);
 app.use("/api/bookings", BookingController);
-
-// WebSocket handler (if using socket.io or ws)
-//SeatLockWebSocketHandler(app, redisClient);
 
 // Error handler
 

@@ -11,10 +11,10 @@ import type { BookingCriteria } from '../dto/request/BookingCriteria.js';
 import type { BookingResponse } from '../dto/response/BookingResponse.js';
 import type { PagedResponse } from '../dto/response/PagedResponse.js';
 import { BookingStatus } from '../models/BookingStatus.js';
-import { bookingService } from '../shared/instances.js'
+import { createBookingService } from '../shared/instances.js'
 
 const router = Router();
-
+const bookingService = createBookingService();
 //POST /api/bookings
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
