@@ -15,7 +15,7 @@ export const swaggerDefinition: OpenAPIV3.Document = {
   },
   servers: [
     {
-      url: 'http://localhost:8086',
+      url: process.env.SWAGGER_URL ?? 'localhost:8086/api/payments',
       description: 'Development server',
     },
   ],
@@ -34,7 +34,7 @@ export const swaggerDefinition: OpenAPIV3.Document = {
     },
   ],
   paths: {
-    '/api/payments/create-zalopay-url': {
+    '/payments/create-zalopay-url': {
       post: {
         tags: ['ZaloPay'],
         summary: 'Create ZaloPay payment URL for booking',
@@ -70,7 +70,7 @@ export const swaggerDefinition: OpenAPIV3.Document = {
         },
       },
     },
-    '/api/payments/create-zalopay-url-fnb': {
+    '/payments/create-zalopay-url-fnb': {
       post: {
         tags: ['ZaloPay'],
         summary: 'Create ZaloPay payment URL for F&B order',
@@ -106,7 +106,7 @@ export const swaggerDefinition: OpenAPIV3.Document = {
         },
       },
     },
-    '/api/payments/callback': {
+    '/payments/callback': {
       post: {
         tags: ['ZaloPay'],
         summary: 'ZaloPay callback endpoint',
@@ -135,7 +135,7 @@ export const swaggerDefinition: OpenAPIV3.Document = {
         },
       },
     },
-    '/api/payments/check-status': {
+    '/payments/check-status': {
       get: {
         tags: ['ZaloPay'],
         summary: 'Check transaction status with ZaloPay',
@@ -170,7 +170,7 @@ export const swaggerDefinition: OpenAPIV3.Document = {
         },
       },
     },
-    '/api/payments/admin/search': {
+    '/payments/admin/search': {
       get: {
         tags: ['Payment'],
         summary: 'Search payments with criteria (Admin only)',
@@ -334,7 +334,7 @@ export const swaggerDefinition: OpenAPIV3.Document = {
         },
       },
     },
-    '/api/payments/user/{userId}': {
+    '/payments/user/{userId}': {
       get: {
         tags: ['Payment'],
         summary: 'Get payments by user ID',
@@ -381,7 +381,7 @@ export const swaggerDefinition: OpenAPIV3.Document = {
         },
       },
     },
-    '/api/payments/{id}': {
+    '/payments/{id}': {
       get: {
         tags: ['Payment'],
         summary: 'Get payment by ID',
@@ -429,7 +429,7 @@ export const swaggerDefinition: OpenAPIV3.Document = {
         },
       },
     },
-    '/api/payments/stats/overview': {
+    '/stats/overview': {
       get: {
         tags: ['Statistics'],
         summary: 'Get payment statistics overview',
@@ -461,7 +461,7 @@ export const swaggerDefinition: OpenAPIV3.Document = {
         },
       },
     },
-    '/api/payments/stats/revenue': {
+    '/stats/revenue': {
       get: {
         tags: ['Statistics'],
         summary: 'Get revenue statistics',

@@ -59,7 +59,7 @@ export const bootstrap = async () => {
 
 // Routes
 app.use("/api/payments/stats", PaymentStatsController);
-app.use("/api/payments", PaymentController);
+app.use("/api/payments/payments", PaymentController);
 
 // WebSocket handler (if using socket.io or ws)
 //SeatLockWebSocketHandler(app, redisClient);
