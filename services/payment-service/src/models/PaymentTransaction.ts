@@ -37,7 +37,6 @@ export class PaymentTransaction {
     type: "enum",
     enum: PaymentStatus,
     nullable: false,
-    length: 20,
   })
   status!: PaymentStatus;
 

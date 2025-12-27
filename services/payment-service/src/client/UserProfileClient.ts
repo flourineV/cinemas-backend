@@ -7,9 +7,9 @@ export class UserProfileClient {
   private readonly internalSecret: string;
   private readonly circuitBreaker: CircuitBreaker;
 
-  constructor() {
-    const userProfileServiceUrl = process.env.USER_PROFILE_SERVICE_URL || 'http://user-profile-service:8082';
-    this.internalSecret = process.env.INTERNAL_SECRET_KEY || '';
+  constructor(user_profile_service_url: string, internal_secret: string) {
+    const userProfileServiceUrl = user_profile_service_url;
+    this.internalSecret = internal_secret;
 
     // Configure axios instance
     this.axiosInstance = axios.create({

@@ -8,17 +8,14 @@ import { createServer } from "http";
 //import { requireInternal } from "./middleware/internalAuthChecker.js";
 import { middleware } from "./middleware/middleware.js";
 import { userContextMiddleware } from "./middleware/userContextMiddleware.js";
-
+import swaggerUi from 'swagger-ui-express';
 // Controllers
 import PaymentStatsController from "./controllers/PaymentStatsController.js";
 import PaymentController from "./controllers/PaymentController.js";
 
 // Import shared instances
 import "./shared/instances.js";
-import {
-  redisClient,
-} from "./shared/instances.js";
-import { setupSwagger } from "./config/swagger.js";
+import swaggerDefinition from "./config/swagger.js";
 
 const app = express();
 const server = createServer(app);
@@ -32,7 +29,8 @@ app.use(express.json());
 app.use(middleware);
 app.use(userContextMiddleware); // inject user info if needed
 
-setupSwagger(app);
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDefinition));
 
 //app.use("/api/showtimes", requireInternal);
 
@@ -46,23 +44,12 @@ const initializeDatabase = async () => {
     throw err;
   }
 };
-const initializeRedisLogging = () => {
-  redisClient.on("connect", () => {
-    console.log("✅ Redis connected");
-  });
-
-  redisClient.on("error", (err) => {
-    console.error("❌ Redis error:", err);
-  });
-};
-
 // Bootstrap function to initialize all connections
 export const bootstrap = async () => {
   try {
     // Initialize database
     await initializeDatabase();
-    initializeRedisLogging(); 
-           
+               
     console.log("🚀 All services initialized successfully!");
   } catch (error) {
     console.error("❌ Failed to initialize services:", error);

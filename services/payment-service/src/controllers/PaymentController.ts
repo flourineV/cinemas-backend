@@ -14,14 +14,12 @@ import { ZaloPayConfig } from '../config/ZaloPayConfig.js';
 import { requireAuthenticated, requireAdmin } from '../middleware/authChecker.js';
 import { PaymentStatus } from '../models/PaymentStatus.js';
 import { AppDataSource } from '../data-source.js';
-import { ShowtimeServiceClient } from '../client/ShowtimeServiceClient.js';
-import '../shared/instances.js';
-import { paymentProducer, userProfileClient } from '../shared/instances.js';
+import { paymentProducer, userProfileClient, showtimeServiceClient } from '../shared/instances.js';
 import type { RequestWithUserContext } from 'types/userContext.js';
 // Initialize services
 const logger = new Logger();
 const zaloPayConfig = new ZaloPayConfig();
-const showtimeServiceClient = new ShowtimeServiceClient();
+
 const zaloPayService = new ZaloPayService(
   AppDataSource,
   logger,

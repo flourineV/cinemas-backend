@@ -7,9 +7,9 @@ export class ShowtimeServiceClient {
     private readonly showtimeServiceUrl: string;
     private readonly internalSecretKey: string;
 
-    constructor() {
-        this.showtimeServiceUrl = process.env.SHOWTIME_SERVICE_URL || 'http://showtime-service:8084/api/showtimes';
-        this.internalSecretKey = process.env.INTERNAL_SECRET_KEY || '';
+    constructor(showtime_service_url: string, interal_secret_key: string) {
+        this.showtimeServiceUrl = showtime_service_url
+        this.internalSecretKey = interal_secret_key;
 
         this.axiosInstance = axios.create({
         baseURL: this.showtimeServiceUrl,

@@ -9,7 +9,7 @@ import {PaymentTransaction} from '../models/PaymentTransaction.js'
 import type {ZaloPayCreateOrderResponse} from '../dto/zalodto/ZaloPayCreateOrderResponse.js';
 import { ZaloPayConfig } from '../config/ZaloPayConfig.js';
 import { ShowtimeServiceClient } from '../client/ShowtimeServiceClient.js'
-import { AuthChecker } from '../security/AuthChecker';
+import { requireAuthenticated } from '../middleware/authChecker.js';
 
 export class ZaloPayService {
     private readonly axiosInstance: AxiosInstance;
@@ -66,7 +66,7 @@ export class ZaloPayService {
         const paymentRepository = manager.getRepository(PaymentTransaction);
 
         // 1. Check authentication (comment out for quick testing if needed)
-        AuthChecker.requireAuthenticated();
+        //requireAuthenticated();
 
         // 2. Get pending transaction
         const transactions = await paymentRepository.find({
@@ -265,7 +265,7 @@ export class ZaloPayService {
         const paymentRepository = manager.getRepository(PaymentTransaction);
 
         // 1. Check authentication
-        AuthChecker.requireAuthenticated();
+        //requireAuthenticated();
 
         // 2. Get pending FnB payment transaction with retry (wait for RabbitMQ event processing)
         let transaction: PaymentTransaction | null = null;

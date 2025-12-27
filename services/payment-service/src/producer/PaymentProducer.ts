@@ -1,4 +1,4 @@
-import amqp from 'amqplib';
+import amqp, {connect} from 'amqplib';
 import type { Channel, Connection } from 'amqplib'
 import { v4 as uuidv4 } from 'uuid';
 import type { EventMessage } from '../events/EventMessage.js';
@@ -23,8 +23,8 @@ export class PaymentProducer {
   private channel: AmqpChannel | null = null;
   private readonly rabbitUrl: string;
 
-  constructor() {
-    this.rabbitUrl = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
+  constructor(rabbit_url: string) {
+    this.rabbitUrl = rabbit_url;
   }
 
   /**
@@ -32,7 +32,7 @@ export class PaymentProducer {
    */
   async connect(): Promise<void> {
     try {
-      this.connection = await amqp.connect(this.rabbitUrl);
+      this.connection = await connect(this.rabbitUrl);
       this.channel = await this.connection.createChannel();
 
       // Declare exchanges
