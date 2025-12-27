@@ -27,7 +27,7 @@ const openApiDocument: OpenAPIV3.Document = {
       internalAuth: {
         type: 'apiKey',
         in: 'header',
-        name: 'X-Internal-Secret',
+        name: 'x-internal-secret',
         description: 'Internal service key. Use this OR bearer token for internal endpoints.',
       },
     },

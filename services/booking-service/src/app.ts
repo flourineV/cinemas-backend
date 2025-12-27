@@ -71,8 +71,8 @@ export const bootstrap = async () => {
 };
 
 // Routes
-app.use("/api/showtimes/bookingstats", BookingStatsController);
-app.use("/api/showtimes/booking", BookingController);
+app.use("/api/bookings/stats", BookingStatsController);
+app.use("/api/bookings", BookingController);
 
 // WebSocket handler (if using socket.io or ws)
 //SeatLockWebSocketHandler(app, redisClient);
