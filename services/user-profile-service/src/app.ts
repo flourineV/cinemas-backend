@@ -61,11 +61,11 @@ app.use(
   JwtMiddleware(process.env.APP_JWT_SECRET!),
   managerProfileRoute
 );
-app.use(
-  "/api/profiles/staff",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  staffProfileRoute
-);
+// app.use(
+//   "/api/profiles/staff",
+//   JwtMiddleware(process.env.APP_JWT_SECRET!),
+//   staffProfileRoute
+// );
 app.use(
   "/api/profiles/ranks",
   JwtMiddleware(process.env.APP_JWT_SECRET!),

@@ -29,7 +29,6 @@ export const AppDataSource = new DataSource({
     UserRank,
     UserFavoriteMovie,
     ManagerProfile,
-    StaffProfile,
     LoyaltyHistory,
   ],
   subscribers: [],
