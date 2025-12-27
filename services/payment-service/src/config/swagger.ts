@@ -1,6 +1,8 @@
 import { OpenAPIV3 } from 'openapi-types';
+import type {Express} from 'express'
+import swaggerUi from 'swagger-ui-express';
 
-const swaggerDefinition: OpenAPIV3.Document = {
+export const swaggerDefinition: OpenAPIV3.Document = {
   openapi: '3.0.0',
   info: {
     title: 'Payment Service API',
@@ -913,4 +915,11 @@ const swaggerDefinition: OpenAPIV3.Document = {
   },
 };
 
-export default swaggerDefinition;
+export function setupSwagger(app: Express) {
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDefinition, {
+      explorer: true,
+    })
+  );
+  const PORT = process.env.PORT ?? '8086'
+  console.log(`📚 Swagger docs available at http://localhost:${PORT}/api-docs`);
+}

@@ -8,14 +8,14 @@ import { createServer } from "http";
 //import { requireInternal } from "./middleware/internalAuthChecker.js";
 import { middleware } from "./middleware/middleware.js";
 import { userContextMiddleware } from "./middleware/userContextMiddleware.js";
-import swaggerUi from 'swagger-ui-express';
+
 // Controllers
 import PaymentStatsController from "./controllers/PaymentStatsController.js";
 import PaymentController from "./controllers/PaymentController.js";
 
 // Import shared instances
-import "./shared/instances.js";
-import swaggerDefinition from "./config/swagger.js";
+import {paymentProducer} from "./shared/instances.js";
+import {setupSwagger} from "./config/swagger.js";
 
 const app = express();
 const server = createServer(app);
@@ -30,9 +30,9 @@ app.use(middleware);
 app.use(userContextMiddleware); // inject user info if needed
 
 // Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDefinition));
+setupSwagger(app);
 
-//app.use("/api/showtimes", requireInternal);
+//app.use("/api/payments", requireInternal);
 
 // Database connection
 const initializeDatabase = async () => {
@@ -49,7 +49,7 @@ export const bootstrap = async () => {
   try {
     // Initialize database
     await initializeDatabase();
-               
+    await paymentProducer.connect();
     console.log("🚀 All services initialized successfully!");
   } catch (error) {
     console.error("❌ Failed to initialize services:", error);

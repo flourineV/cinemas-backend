@@ -22,6 +22,7 @@ export class PaymentProducer {
   private connection: AmqpConnection | null = null;
   private channel: AmqpChannel | null = null;
   private readonly rabbitUrl: string;
+  private connecting = false;
 
   constructor(rabbit_url: string) {
     this.rabbitUrl = rabbit_url;
@@ -30,28 +31,41 @@ export class PaymentProducer {
   /**
    * Initialize RabbitMQ connection and channel
    */
-  async connect(): Promise<void> {
-    try {
-      this.connection = await connect(this.rabbitUrl);
-      this.channel = await this.connection.createChannel();
+  async connect(retries = 5, delay = 3000): Promise<void> {
+    if (this.connection || this.connecting) return;
+    this.connecting = true;
+    for (let attempt = 1; attempt <= retries; attempt++){
+      try {
+        const conn = await connect(this.rabbitUrl);
+      const ch = await conn.createChannel();
 
-      // Declare exchanges
-      await this.channel.assertExchange(PAYMENT_EXCHANGE, 'topic', { durable: true });
-      await this.channel.assertExchange(FNB_EXCHANGE, 'topic', { durable: true });
+      await ch.assertExchange(PAYMENT_EXCHANGE, 'topic', { durable: true });
+      await ch.assertExchange(FNB_EXCHANGE, 'topic', { durable: true });
 
-      console.log('[PaymentProducer] Connected to RabbitMQ successfully');
-
-      // Handle connection errors
-      this.connection.on('error', (err) => {
-        console.error('[PaymentProducer] Connection error:', err);
+      conn.on('close', () => {
+        console.warn('[PaymentProducer] RabbitMQ connection closed');
+        this.connection = null;
+        this.channel = null;
       });
 
-      this.connection.on('close', () => {
-        console.warn('[PaymentProducer] Connection closed');
+      conn.on('error', (err) => {
+        console.error('[PaymentProducer] RabbitMQ error:', err);
       });
-    } catch (error) {
-      console.error('[PaymentProducer] Failed to connect to RabbitMQ:', error);
-      throw error;
+
+      this.connection = conn;
+      this.channel = ch;
+      this.connecting = false;
+
+      console.log('[PaymentProducer] Connected to RabbitMQ');
+      return;
+      } catch (error) {
+        console.error(`[PaymentProducer] Connection attempt ${attempt}/${retries} failed`, error);
+        if (attempt === retries) {
+          this.connecting = false;
+          throw error;
+        }
+        await new Promise((r) => setTimeout(r, delay));
+      }
     }
   }
 
@@ -60,9 +74,9 @@ export class PaymentProducer {
    */
   private async ensureChannel(): Promise<Channel> {
     if (!this.channel) {
-      await this.connect();
+    throw new Error('PaymentProducer not initialized. Call connect() during bootstrap.');
     }
-    return this.channel!;
+    return this.channel;
   }
 
   /**
