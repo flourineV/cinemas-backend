@@ -1,0 +1,18 @@
+# Use Node.js 20 as base image
+FROM node:20
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Expose the port your app uses
+EXPOSE 8084
+
+# Command to start your app
+CMD ["npm", "run", "dev"]
