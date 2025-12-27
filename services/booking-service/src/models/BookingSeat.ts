@@ -1,0 +1,30 @@
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import type {Relation} from "typeorm";
+import { Booking } from './Booking.js';
+
+@Entity({ name: 'booking_seat' })
+export class BookingSeat {
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
+
+  @Column({ type: 'uuid', nullable: false })
+  seatId!: string;
+
+  @Column({ name: 'seat_number', length: 10, nullable: true })
+  seatNumber?: string;
+
+  @Column({ name: 'seat_type', length: 50 })
+  seatType!: string;
+
+  @Column({ name: 'ticket_type', length: 50 })
+  ticketType!: string;
+
+  @Column({ type: 'numeric', precision: 12, scale: 2 })
+  price!: string;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt!: Date;
+
+  @ManyToOne(() => Booking, (booking) => booking.seats, { onDelete: 'CASCADE' })
+  booking!: Relation<Booking>;
+}
