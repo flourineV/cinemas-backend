@@ -48,15 +48,15 @@ export class PromotionRequest {
 
   @IsOptional()
   @IsEnum(UsageTimeRestriction)
-  usageTimeRestriction: UsageTimeRestriction;
+  usageTimeRestriction?: UsageTimeRestriction;
 
   @IsOptional()
   @IsString()
-  allowedDaysOfWeek: string; // e.g., "SATURDAY,SUNDAY"
+  allowedDaysOfWeek?: string; // e.g., "SATURDAY,SUNDAY"
 
   @IsOptional()
   @IsString()
-  allowedDaysOfMonth: string; // e.g., "1,2,3,15,20"
+  allowedDaysOfMonth?: string; // e.g., "1,2,3,15,20"
 
   @IsOptional()
   @IsString()
