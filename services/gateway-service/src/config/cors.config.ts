@@ -10,6 +10,7 @@ export const corsOptions: CorsOptions = {
     "X-Requested-With",
     "X-User-Id",
     "X-User-Role",
+    "ngrok-skip-browser-warning",
   ],
   exposedHeaders: ["X-Total-Count", "X-Page-Count"],
   maxAge: 86400, // 24 hours
