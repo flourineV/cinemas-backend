@@ -17,4 +17,7 @@ export class SeatPrice {
 
   @Column({ name: "description", length: 255, nullable: true })
   description: string;
+
+  @Column({ name: "description_en", length: 255, nullable: true })
+  descriptionEn: string;
 }

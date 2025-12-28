@@ -94,6 +94,14 @@ export class Promotion {
   description: string;
 
   @Column({
+    name: "description_en",
+    type: "varchar",
+    length: 500,
+    nullable: true,
+  })
+  descriptionEn: string;
+
+  @Column({
     name: "promo_display_url",
     type: "varchar",
     length: 500,

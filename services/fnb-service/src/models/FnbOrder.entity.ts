@@ -8,6 +8,7 @@ import {
 } from "typeorm";
 import { FnbOrderItem } from "./FnbOrderItem.entity";
 import { FnbOrderStatus } from "./FnbOrderStatus.entity";
+import { length } from "class-validator";
 
 @Entity({ name: "fnb_order" })
 export class FnbOrder {
@@ -34,6 +35,9 @@ export class FnbOrder {
 
   @Column({ type: "uuid", nullable: true })
   paymentId?: string;
+
+  @Column({ type: "varchar", nullable: true, length: 5 })
+  language: string;
 
   @CreateDateColumn({ type: "timestamp" })
   createdAt: Date;

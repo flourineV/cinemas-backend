@@ -15,8 +15,20 @@ export class FnbItem {
   })
   name: string;
 
+  @Column({
+    name: "name_en",
+    type: "varchar",
+    length: 255,
+    unique: true,
+    nullable: false,
+  })
+  nameEn: string;
+
   @Column({ name: "description", type: "text", nullable: true })
   description: string;
+
+  @Column({ name: "description_en", type: "text", nullable: true })
+  descriptionEn: string;
 
   @Column({
     name: "unit_price",

@@ -14,6 +14,9 @@ export class UserRank {
   @Column({ name: "name", unique: true, nullable: false, length: 50 })
   name: string;
 
+  @Column({ name: "name_en", nullable: true, length: 50 })
+  nameEn: string;
+
   @Column({ name: "min_points", nullable: false })
   minPoints: number;
 
