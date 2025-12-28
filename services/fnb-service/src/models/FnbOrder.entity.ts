@@ -27,7 +27,7 @@ export class FnbOrder {
   @Column({ type: "decimal", precision: 10, scale: 2, nullable: false })
   totalAmount: string;
 
-  @Column({ type: "enum", enum: FnbOrderStatus, nullable: false })
+  @Column({ type: "varchar", nullable: false, default: "PENDING" })
   status: FnbOrderStatus;
 
   @Column({ type: "varchar", nullable: true })
