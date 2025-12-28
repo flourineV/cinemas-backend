@@ -9,5 +9,6 @@ export interface FnbOrderResponse {
   status: string;
   paymentMethod: string;
   createdAt: Date;
+  expiresAt: Date | null;
   items: FnbOrderItemResponse[];
 }

@@ -62,6 +62,7 @@ export class FnbOrderService {
       items: orderItems,
       updatedAt: new Date(),
       paymentId: null as any,
+      language: request.language,
     };
 
     orderItems.forEach((i) => (i.order = order));
@@ -81,12 +82,12 @@ export class FnbOrderService {
       `FnbOrder created: ${saved.id} | theaterId=${saved.theaterId} | total=${saved.totalAmount}`
     );
 
-    return this.mapToResponse(saved);
+    return await this.mapToResponse(saved);
   }
 
   async getOrdersByUser(userId: string): Promise<FnbOrderResponse[]> {
     const orders = await this.fnbOrderRepository.findByUserId(userId);
-    return orders.map((o) => this.mapToResponse(o));
+    return Promise.all(orders.map((o) => this.mapToResponse(o)));
   }
 
   async getById(id: string): Promise<FnbOrderResponse> {
@@ -94,7 +95,7 @@ export class FnbOrderService {
     if (!order) {
       throw new Error("Order not found");
     }
-    return this.mapToResponse(order);
+    return await this.mapToResponse(order);
   }
 
   async cancelOrder(id: string): Promise<void> {
@@ -106,26 +107,43 @@ export class FnbOrderService {
     await this.fnbOrderRepository.save(order);
   }
 
-  private mapToResponse(o: FnbOrder): FnbOrderResponse {
+  private async mapToResponse(o: FnbOrder): Promise<FnbOrderResponse> {
+    // Calculate expiration time for PENDING orders (5 minutes TTL)
+    const expiresAt =
+      o.status === FnbOrderStatus.PENDING
+        ? new Date(o.createdAt.getTime() + 5 * 60 * 1000)
+        : null;
+
+    // Map items with FnbItem details
+    const items = await Promise.all(
+      o.items.map(async (i) => {
+        // Get item name from FnbItem
+        const fnbItem = await this.fnbItemRepository.findById(i.fnbItemId);
+        const itemName = fnbItem ? fnbItem.name : "Unknown Item";
+        const itemNameEn = fnbItem ? fnbItem.nameEn || "" : "";
+
+        return new FnbOrderItemResponse(
+          i.fnbItemId,
+          i.quantity,
+          i.unitPrice,
+          i.totalPrice,
+          itemName,
+          itemNameEn
+        );
+      })
+    );
+
     return {
       id: o.id,
       userId: o.userId,
       theaterId: o.theaterId,
       orderCode: o.orderCode,
-      status: o.status,
+      status: o.status.toString(),
       paymentMethod: o.paymentMethod,
       totalAmount: o.totalAmount,
       createdAt: o.createdAt,
-      items: o.items.map(
-        (i) =>
-          new FnbOrderItemResponse(
-            i.fnbItemId,
-            i.quantity,
-            i.unitPrice,
-            i.totalPrice,
-            i.fnbItemId
-          )
-      ),
+      expiresAt: expiresAt,
+      items: items,
     };
   }
 }

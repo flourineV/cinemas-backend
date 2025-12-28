@@ -6,6 +6,7 @@ import {
   ValidateNested,
   IsInt,
   Min,
+  isString,
 } from "class-validator";
 import { Type } from "class-transformer";
 
@@ -31,4 +32,7 @@ export class FnbOrderRequest {
   @ValidateNested({ each: true })
   @Type(() => FnbOrderItemRequest)
   items: FnbOrderItemRequest[];
+
+  @IsString()
+  language: string;
 }

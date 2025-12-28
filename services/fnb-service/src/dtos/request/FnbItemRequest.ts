@@ -6,7 +6,13 @@ export class FnbItemRequest {
   name: string;
 
   @IsString()
+  nameEn: string;
+
+  @IsString()
   description: string;
+
+  @IsString()
+  descriptionEn: string;
 
   @IsNotEmpty({ message: "Đơn giá không được để trống" })
   @IsNumberString()

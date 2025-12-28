@@ -87,6 +87,8 @@ export class FnbService {
       description: request.description,
       unitPrice: request.unitPrice,
       imageUrl: request.imageUrl,
+      nameEn: request.nameEn,
+      descriptionEn: request.descriptionEn,
     };
 
     const savedItem = await this.fnbItemRepository.save(newItem);
@@ -134,6 +136,8 @@ export class FnbService {
       description: item.description,
       unitPrice: item.unitPrice,
       imageUrl: item.imageUrl,
+      nameEn: item.nameEn,
+      descriptionEn: item.descriptionEn,
     };
   }
 }
