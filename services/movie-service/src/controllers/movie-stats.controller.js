@@ -3,10 +3,12 @@
 const express = require("express");
 const router = express.Router();
 const movieStatsService = require("../services/movie-stats.service");
-
+const {
+  requireManagerOrAdmin,
+} = require("../security/auth-checker.middleware");
 // Tạm thời CHƯA check AuthChecker, để port sau
 // GET /api/movies/stats/overview
-router.get("/overview", async (req, res) => {
+router.get("/overview", requireManagerOrAdmin, async (req, res) => {
   try {
     const data = await movieStatsService.getOverview();
     res.json(data);
@@ -17,7 +19,7 @@ router.get("/overview", async (req, res) => {
 });
 
 // GET /api/movies/stats/monthly
-router.get("/monthly", async (req, res) => {
+router.get("/monthly", requireManagerOrAdmin, async (req, res) => {
   try {
     const data = await movieStatsService.getMonthlyStats();
     res.json(data);

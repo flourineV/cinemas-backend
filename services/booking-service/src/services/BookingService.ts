@@ -1,6 +1,5 @@
 import { DataSource, In, MoreThanOrEqual, Between, Repository } from 'typeorm';
 import type { DeepPartial } from 'typeorm';
-import { Logger } from 'winston';
 import { BigNumber } from 'bignumber.js';
 import { Booking } from '../models/Booking.js';
 import {BookingSeat} from '../models/BookingSeat.js'
@@ -46,10 +45,10 @@ import { SeatLockRedisService } from './SeatLockRedisService.js';
 import { BookingMapper } from '../mapper/BookingMapper.js';
 import {BookingException} from '../exception/BookingException.js';
 import {BookingNotFoundException} from '../exception/BookingNotFoundException.js';
+import { logger } from '../shared/instances.js';
 import { v4 as uuidv4 } from "uuid";
 
 export class BookingService {
-  private readonly logger: Logger;
   constructor(
     private readonly dataSource: DataSource,
     private readonly pricingClient: PricingClient,
@@ -60,14 +59,15 @@ export class BookingService {
     private readonly userProfileClient: UserProfileClient,
     private readonly bookingProducer: BookingProducer,
     private readonly seatLockRedisService: SeatLockRedisService
-  ) {}
+  ) {
+  }
 
   async createBooking(request: CreateBookingRequest): Promise<BookingResponse> {
   if (!request.selectedSeats || request.selectedSeats.length === 0) {
     throw new BookingException('At least one seat must be selected');
   }
 
-  this.logger.info(
+  logger.info(
     `Creating booking: showtime=${request.showtimeId}, seats=${request.selectedSeats.length}, user=${request.userId}, guest=${request.guestSessionId}`
   );
 
@@ -160,7 +160,7 @@ export class BookingService {
 
     const savedBooking = await bookingRepository.save(booking);
 
-    this.logger.info(
+    logger.info(
       `Booking created: ${savedBooking.id} | total=${totalSeatPrice.toString()} | seats=${seats.length}`
     );
 
@@ -190,12 +190,12 @@ export class BookingService {
 
 
   async handleSeatUnlocked(data: SeatUnlockedEvent): Promise<void> {
-    this.logger.warn(
+    logger.warn(
       `Received SeatUnlocked event: bookingId=${data.bookingId}, seats=${data.seatIds.length}, reason=${data.reason}`
     );
 
     if (!data.bookingId) {
-      this.logger.info(
+      logger.info(
         'SeatUnlockedEvent received without bookingId (manual unlock). No booking to update.'
       );
       return;
@@ -216,7 +216,7 @@ export class BookingService {
         (booking.status !== BookingStatus.PENDING &&
           booking.status !== BookingStatus.AWAITING_PAYMENT)
       ) {
-        this.logger.warn(
+        logger.warn(
           `Booking ${data.bookingId} not found or status is ${booking?.status}. Skipping unlock handler.`
         );
         return;
@@ -235,7 +235,7 @@ export class BookingService {
   }
 
   async handlePaymentSuccess(data: PaymentBookingSuccessEvent): Promise<void> {
-    this.logger.info(`Received PaymentCompleted event for booking: ${data.bookingId}`);
+    logger.info(`Received PaymentCompleted event for booking: ${data.bookingId}`);
 
     await this.dataSource.transaction(async (manager) => {
       const bookingRepository = manager.getRepository(Booking);
@@ -250,7 +250,7 @@ export class BookingService {
         (booking.status !== BookingStatus.PENDING &&
           booking.status !== BookingStatus.AWAITING_PAYMENT)
       ) {
-        this.logger.warn(
+        logger.warn(
           `Booking ${data.bookingId} not found or status is not PENDING/AWAITING_PAYMENT. Current status: ${booking?.status}`
         );
         return;
@@ -274,7 +274,7 @@ export class BookingService {
           .toNumber();
 
         if (pointsEarned > 0) {
-          this.logger.info(
+          logger.info(
             `💎 Earning ${pointsEarned} loyalty points for booking ${booking.id} (amount: ${booking.finalPrice})`
           );
           try {
@@ -286,7 +286,7 @@ export class BookingService {
               booking.finalPrice
             );
           } catch (error) {
-            this.logger.error(
+            logger.error(
               `Failed to update loyalty points: ${(error as Error).message}`
             );
           }
@@ -297,11 +297,11 @@ export class BookingService {
       try {
         const ticketEvent = await this.buildBookingTicketGeneratedEvent(booking);
         await this.bookingProducer.sendBookingTicketGeneratedEvent(ticketEvent);
-        this.logger.info(
+        logger.info(
           `📧 Sent BookingTicketGeneratedEvent for booking ${booking.id}`
         );
       } catch (error) {
-        this.logger.error(
+        logger.error(
           `Failed to send booking ticket notification for booking ${booking.id}: ${(error as Error).message}`
         );
       }
@@ -309,7 +309,7 @@ export class BookingService {
   }
 
   async handlePaymentFailed(data: PaymentBookingFailedEvent): Promise<void> {
-    this.logger.error(
+    logger.error(
       `Received PaymentFailed event for booking: ${data.bookingId} | Reason: ${data.reason}`
     );
 
@@ -327,7 +327,7 @@ export class BookingService {
         (booking.status !== BookingStatus.PENDING &&
           booking.status !== BookingStatus.AWAITING_PAYMENT)
       ) {
-        this.logger.warn(
+        logger.warn(
           `Booking ${data.bookingId} not found or status is not PENDING/AWAITING_PAYMENT. Skipping failure handler.`
         );
         return;
@@ -392,7 +392,7 @@ export class BookingService {
         await bookingPromotionRepository.delete({ booking: { id: bookingId } });
         await this.processPromotion(manager, booking, request.promotionCode);
 
-        this.logger.info(`Applied promotion code: ${request.promotionCode}`);
+        logger.info(`Applied promotion code: ${request.promotionCode}`);
       }
       // Priority 2: Refund voucher
       else if (request.refundVoucherCode?.trim()) {
@@ -426,7 +426,7 @@ export class BookingService {
         booking.discountAmount = discountAmount.toString();
         booking.finalPrice = finalPrice.integerValue(BigNumber.ROUND_HALF_UP).toString();
 
-        this.logger.info(
+        logger.info(
           `Applied refund voucher: ${voucher.code} | value=${voucherValue.toString()}`
         );
       }
@@ -449,7 +449,7 @@ export class BookingService {
           booking.discountAmount = discountAmount.toString();
           booking.finalPrice = finalPrice.toString();
 
-          this.logger.info(
+          logger.info(
             `Applied rank discount: ${rankInfo.rankName} (${rankInfo.discountRate})`
           );
         } else {
@@ -473,7 +473,7 @@ export class BookingService {
         } as BookingFinalizedEvent
       );
 
-      this.logger.info(
+      logger.info(
         `Booking ${bookingId} finalized: Total=${booking.totalPrice.toString()}, Final=${booking.finalPrice.toString()}, Discount=${booking.discountAmount.toString()}`
       );
 
@@ -549,7 +549,7 @@ export class BookingService {
     const discountValue = new BigNumber(validationResponse.discountValue);
     const discountType = validationResponse.discountType;
 
-    this.logger.info(
+    logger.info(
       `🎟️ Processing promotion: code=${promoCode}, type=${discountType}, value=${discountValue.toString()}, totalPrice=${totalBeforeDiscount.toString()}`
     );
 
@@ -560,12 +560,12 @@ export class BookingService {
         .times(discountValue)
         .dividedBy(100)
         .decimalPlaces(2, BigNumber.ROUND_HALF_UP);
-      this.logger.info(
+      logger.info(
         `📊 Calculated PERCENTAGE discount: ${totalBeforeDiscount.toString()} * ${discountValue.toString()}% / 100 = ${calculatedDiscountAmount.toString()}`
       );
     } else if (discountType === DiscountType.FIXED_AMOUNT) {
       calculatedDiscountAmount = discountValue;
-      this.logger.info(
+      logger.info(
         `💵 Using FIXED_AMOUNT discount: ${calculatedDiscountAmount.toString()}`
       );
     } else {
@@ -605,7 +605,7 @@ export class BookingService {
         booking.id
       );
     } catch (error) {
-      this.logger.error(
+      logger.error(
         `Failed to record promotion usage: ${(error as Error).message}`
       );
       // Don't fail the booking if promotion recording fails
@@ -637,11 +637,11 @@ export class BookingService {
           };
         }
         criteria.userIds = matchingUserIds;
-        this.logger.debug(
+        logger.debug(
           `Found ${matchingUserIds.length} matching users for username '${criteria.username}'`
         );
       } catch (error) {
-        this.logger.error(
+        logger.error(
           `Failed to search userIds by username: ${(error as Error).message}`
         );
       }
@@ -676,7 +676,7 @@ export class BookingService {
           Object.entries(userNameRecord)
         );
       } catch (error) {
-        this.logger.error(
+        logger.error(
           `Failed to fetch batch user names: ${(error as Error).message}`
         );
       }
@@ -760,7 +760,7 @@ export class BookingService {
     const oldStatus = booking.status;
 
     if (oldStatus === BookingStatus.CONFIRMED && newStatus !== BookingStatus.CONFIRMED) {
-      this.logger.warn(
+      logger.warn(
         `Attempted to update CONFIRMED booking ${booking.id} from ${oldStatus} to ${newStatus}. Skipping.`
       );
       return;
@@ -770,7 +770,7 @@ export class BookingService {
     booking.updatedAt = new Date();
     await bookingRepository.save(booking);
 
-    this.logger.info(
+    logger.info(
       `Status updated: Booking ${booking.id} from ${oldStatus} to ${newStatus}.`
     );
 
@@ -781,7 +781,7 @@ export class BookingService {
         newStatus
       );
     } catch (error) {
-      this.logger.error(
+      logger.error(
         `Failed to update promotion usage status: ${(error as Error).message}`
       );
     }
@@ -937,7 +937,7 @@ export class BookingService {
         ]);
         response.fullName = userNames[response.userId] || null;
       } catch (error) {
-        this.logger.error(
+        logger.error(
           `Failed to fetch user name for booking ${id}: ${(error as Error).message}`
         );
       }
@@ -967,7 +967,7 @@ export class BookingService {
         const fullName = userNames[userId] ?? null;
         responses = responses.map((r) => ({ ...r, fullName }));
       } catch (error) {
-        this.logger.error(
+        logger.error(
           `Failed to fetch user name for userId ${userId}: ${(error as Error).message}`
         );
       }
@@ -1044,11 +1044,11 @@ export class BookingService {
       const refundValue = booking.finalPrice;
       try {
         await this.promotionClient.createRefundVoucher(userId, refundValue);
-        this.logger.info(
+        logger.info(
           `Refund voucher created for booking ${bookingId} | user=${userId} | value=${refundValue.toString()}`
         );
       } catch (error) {
-        this.logger.error(
+        logger.error(
           `Failed to create refund voucher for booking ${bookingId}: ${(error as Error).message}`
         );
         throw new BookingException('Failed to create refund voucher');
@@ -1061,7 +1061,7 @@ export class BookingService {
         BookingStatus.REFUNDED
       );
 
-      this.logger.info(
+      logger.info(
         `Booking ${bookingId} refunded by user ${userId}. Voucher created with value ${refundValue.toString()}`
       );
 
@@ -1070,7 +1070,7 @@ export class BookingService {
   }
 
   async handleShowtimeSuspended(event: ShowtimeSuspendedEvent): Promise<void> {
-    this.logger.warn(
+    logger.warn(
       `Showtime ${event.showtimeId} suspended. Reason: ${event.reason}. Finding affected bookings...`
     );
 
@@ -1095,7 +1095,7 @@ export class BookingService {
       }
 
       if (affectedBookings.length === 0) {
-        this.logger.info(
+        logger.info(
           `No confirmed user bookings found for suspended showtime ${event.showtimeId}`
         );
         return;
@@ -1115,18 +1115,18 @@ export class BookingService {
               refundValue
             );
             refundMethod = 'VOUCHER';
-            this.logger.info(
+            logger.info(
               `SYSTEM REFUND: Created VOUCHER for User ${booking.userId} - Booking ${booking.id} - Value ${refundValue.toString()} (totalPrice before discount)`
             );
           } catch (error) {
-            this.logger.error(
+            logger.error(
               `Error creating voucher for user ${booking.userId}: ${(error as Error).message}`
             );
             refundMethod = 'ERROR_VOUCHER';
           }
         } else {
           refundMethod = 'COUNTER';
-          this.logger.info(
+          logger.info(
             `SYSTEM REFUND: Marked Booking ${booking.id} (Guest) for COUNTER refund - Value ${refundValue.toString()}.`
           );
         }
@@ -1160,7 +1160,7 @@ export class BookingService {
 
   async backfillMovieIds(): Promise<number> {
     return this.dataSource.transaction(async (manager) => {
-        this.logger.info('Starting backfill of movieIds for bookings with null movieId');
+        logger.info('Starting backfill of movieIds for bookings with null movieId');
 
         const bookingRepository = this.dataSource.getRepository(Booking);
         const bookingsWithoutMovieId = await bookingRepository.find({
@@ -1168,7 +1168,7 @@ export class BookingService {
         });
 
         if (bookingsWithoutMovieId.length === 0) {
-        this.logger.info('No bookings found with null movieId');
+        logger.info('No bookings found with null movieId');
         return 0;
         }
 
@@ -1184,24 +1184,24 @@ export class BookingService {
             booking.movieId = showtime.movieId;
             await bookingRepository.save(booking);
             successCount++;
-            this.logger.debug(
+            logger.debug(
                 `Updated booking ${booking.id} with movieId ${showtime.movieId}`
             );
             } else {
             failCount++;
-            this.logger.warn(
+            logger.warn(
                 `Could not get movieId for booking ${booking.id} (showtime: ${booking.showtimeId})`
             );
             }
         } catch (error) {
             failCount++;
-            this.logger.error(
+            logger.error(
             `Error updating booking ${booking.id}: ${(error as Error).message}`
             );
         }
         }
 
-        this.logger.info(
+        logger.info(
         `Backfill completed: ${successCount} updated, ${failCount} failed out of ${bookingsWithoutMovieId.length} total`
         );
 

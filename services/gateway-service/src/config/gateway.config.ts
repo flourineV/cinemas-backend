@@ -20,6 +20,7 @@ export const gatewayConfig: GatewayConfig = {
       path: "/api/movies",
       target: servicesConfig.movie.baseUrl,
       requireAuth: false, // Người làm movie service sẽ config lại nếu cần
+      timeout: 120000,
     },
     {
       id: "showtime-service",

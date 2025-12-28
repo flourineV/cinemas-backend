@@ -2,7 +2,9 @@
 const express = require("express");
 const router = express.Router();
 const movieService = require("../services/impl/movie.service.impl");
-
+const {
+  requireInternal,
+} = require("../security/internal-auth-checker.middleware");
 const {
   requireManagerOrAdmin,
 } = require("../security/auth-checker.middleware");
@@ -20,6 +22,18 @@ router.post("/sync", requireManagerOrAdmin, async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: e.message });
+  }
+});
+// Java compatibility: POST /api/movies/bulk-from-tmdb
+router.post("/bulk-from-tmdb", requireManagerOrAdmin, async (req, res) => {
+  try {
+    const result = await movieService.syncMovies();
+    return res
+      .status(201)
+      .json({ message: "Movies synced successfully!", ...result });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: e.message });
   }
 });
 
@@ -121,6 +135,24 @@ router.get("/search", async (req, res) => {
 // --> Nếu có status/page/size hoặc role MANAGER/ADMIN
 //     => dùng adminSearch như Java.
 //
+// GET /api/movies/advanced-search (MANAGER/ADMIN)
+router.get("/advanced-search", requireManagerOrAdmin, async (req, res) => {
+  try {
+    const { keyword, status } = req.query;
+
+    // Java default page=1, size=10; Node service dùng 0-based
+    const page1 = Number(req.query.page || 1);
+    const size = Number(req.query.size || 10);
+    const page0 = Math.max(0, page1 - 1);
+
+    const data = await movieService.adminSearch(keyword, status, page0, size);
+    return res.json(data);
+  } catch (e) {
+    console.error(e);
+    return res.status(400).json({ message: e.message });
+  }
+});
+
 router.get("/", async (req, res) => {
   try {
     let { keyword, status } = req.query;
@@ -161,6 +193,31 @@ router.get("/", async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(400).json({ message: e.message });
+  }
+});
+// POST /api/movies/update-status (MANAGER/ADMIN)
+router.post("/update-status", requireManagerOrAdmin, async (req, res) => {
+  try {
+    // Nếu bạn đã có scheduler/service tương tự Java thì gọi ở đây
+    const result = await movieService.updateAllMovieStatuses?.();
+
+    // Nếu chưa làm, trả response giống Java để admin UI không vỡ
+    if (!result) {
+      return res.json({
+        upcomingToNowPlaying: 0,
+        nowPlayingToArchived: 0,
+        message: "Movie statuses updated successfully",
+      });
+    }
+
+    return res.json({
+      upcomingToNowPlaying: result.upcomingToNowPlaying || 0,
+      nowPlayingToArchived: result.nowPlayingToArchived || 0,
+      message: "Movie statuses updated successfully",
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: e.message });
   }
 });
 
@@ -212,6 +269,29 @@ router.get("/available-for-range", async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: e.message });
+  }
+});
+//Thêm
+// POST /api/movies/:id/set-now-playing (internal)
+router.post("/:id/set-now-playing", requireInternal, async (req, res) => {
+  try {
+    await movieService.changeStatus(req.params.id, "NOW_PLAYING");
+    return res.status(204).send();
+  } catch (e) {
+    console.error(e);
+    return res.status(400).json({ message: e.message });
+  }
+});
+
+// POST /api/movies/batch/titles (internal)
+router.post("/batch/titles", requireInternal, async (req, res) => {
+  try {
+    const ids = req.body; // array uuid
+    const map = await movieService.getBatchMovieTitles(ids);
+    return res.json(map);
+  } catch (e) {
+    console.error(e);
+    return res.status(400).json({ message: e.message });
   }
 });
 

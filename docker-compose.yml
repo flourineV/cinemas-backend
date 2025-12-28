@@ -1,4 +1,22 @@
 services:
+  # Ngrok tunnel to expose gateway to internet
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: cinemas-ngrok
+    restart: unless-stopped
+    command:
+      - "http"
+      - "http://gateway-service:8099"
+      - "--log=stdout"
+    environment:
+      NGROK_AUTHTOKEN: 365u8mCUElFNPD3HFEUvHz4I8EB_hYFuFgqXxatigezE31L2
+    ports:
+      - "4040:4040" # Ngrok web interface
+    networks:
+      - cinemas-net
+    depends_on:
+      - gateway-service
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: cinemas-rabbitmq
@@ -50,48 +68,49 @@ services:
     networks:
       - cinemas-net
 
-  # showtime-service:
-  #   build: ./services/showtime-service
-  #   env_file:
-  #     - ./services/showtime-service/.env
-  #   container_name: showtime-service
-  #   ports:
-  #     - "8084:8084" # Expose for WebSocket direct connection
-  #   networks:
-  #     - cinemas-net
-  #   depends_on:
-  #     - rabbitmq
-  #     - redis
+  showtime-service:
+    build: ./services/showtime-service
+    env_file:
+      - ./services/showtime-service/.env
+    container_name: showtime-service
+    ports:
+      - "8084:8084" # Expose for WebSocket direct connection
+    networks:
+      - cinemas-net
+    depends_on:
+      - rabbitmq
+      - redis
 
-  # booking-service:
-  #   build: ./services/booking-service
-  #   env_file:
-  #     - ./services/booking-service/.env
-  #   container_name: booking-service
-  #   expose:
-  #     - "8085"
-  #   networks:
-  #     - cinemas-net
-  #   depends_on:
-  #     - redis
-  #     - rabbitmq
-  #     - showtime-service
-  #     - pricing-service
-  #     - promotion-service
-  #     - fnb-service
-  #     - user-profile-service
+  booking-service:
+    build: ./services/booking-service
+    env_file:
+      - ./services/booking-service/.env
+    container_name: booking-service
+    expose:
+      - "8085"
+    networks:
+      - cinemas-net
+    depends_on:
+      - redis
+      - rabbitmq
+      - showtime-service
+      - pricing-service
+      - promotion-service
+      - fnb-service
+      - user-profile-service
 
-  # payment-service:
-  #   build: ./services/payment-service
-  #   env_file:
-  #     - ./services/payment-service/.env
-  #   container_name: payment-service
-  #   expose:
-  #     - "8086"
-  #   networks:
-  #     - cinemas-net
-  #   depends_on:
-  #     - rabbitmq
+  payment-service:
+    build: ./services/payment-service
+    env_file:
+      - ./services/payment-service/.env
+    container_name: payment-service
+    expose:
+      - "8086"
+    networks:
+      - cinemas-net
+    depends_on:
+      - rabbitmq
+      - redis
 
   pricing-service:
     build: ./services/pricing-service
@@ -102,6 +121,8 @@ services:
       - "8087"
     networks:
       - cinemas-net
+    depends_on:
+      - redis
 
   fnb-service:
     build: ./services/fnb-service
@@ -114,29 +135,31 @@ services:
       - cinemas-net
     depends_on:
       - redis
+
+  promotion-service:
+    build: ./services/promotion-service
+    env_file:
+      - ./services/promotion-service/.env
+    container_name: promotion-service
+    expose:
+      - "8089"
+    networks:
+      - cinemas-net
+    depends_on:
+      - redis
+
+  notification-service:
+    build: ./services/notification-service
+    env_file:
+      - ./services/notification-service/.env
+    container_name: notification-service
+    expose:
+      - "8090"
+    networks:
+      - cinemas-net
+    depends_on:
       - rabbitmq
-
-  # promotion-service:
-  #   build: ./services/promotion-service
-  #   env_file:
-  #     - ./services/promotion-service/.env
-  #   container_name: promotion-service
-  #   expose:
-  #     - "8089"
-  #   networks:
-  #     - cinemas-net
-
-  # notification-service:
-  #   build: ./services/notification-service
-  #   env_file:
-  #     - ./services/notification-service/.env
-  #   container_name: notification-service
-  #   expose:
-  #     - "8090"
-  #   networks:
-  #     - cinemas-net
-  #   depends_on:
-  #     - rabbitmq
+      - redis
 
   review-service:
     build: ./services/review-service
@@ -159,16 +182,16 @@ services:
       - cinemas-net
     depends_on:
       - auth-service
-      # - user-profile-service
-      # - movie-service
-      # - showtime-service
-      # - booking-service
-      # - payment-service
+      - user-profile-service
+      - movie-service
+      - showtime-service
+      - booking-service
+      - payment-service
       - pricing-service
       - fnb-service
-      # - promotion-service
-      # - notification-service
-      # - review-service
+      - promotion-service
+      - notification-service
+      - review-service
 
 networks:
   cinemas-net:

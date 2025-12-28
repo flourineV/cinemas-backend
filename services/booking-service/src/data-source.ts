@@ -18,11 +18,3 @@ export const AppDataSource = new DataSource({
   migrations: ['./src/migrations/*.ts'],
   subscribers: [],
 });
-
-// export async function initDataSource(): Promise<DataSource> {
-//   if (!AppDataSource.isInitialized) {
-//     await AppDataSource.initialize();
-//     console.log('✅ DataSource initialized with Neon');
-//   }
-//   return AppDataSource;
-// }

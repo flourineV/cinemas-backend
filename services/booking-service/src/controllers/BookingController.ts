@@ -11,10 +11,10 @@ import type { BookingCriteria } from '../dto/request/BookingCriteria.js';
 import type { BookingResponse } from '../dto/response/BookingResponse.js';
 import type { PagedResponse } from '../dto/response/PagedResponse.js';
 import { BookingStatus } from '../models/BookingStatus.js';
-import { bookingService } from '../shared/instances.js'
+import { createBookingService } from '../shared/instances.js'
 
 const router = Router();
-
+const bookingService = createBookingService();
 //POST /api/bookings
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -25,82 +25,6 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
         next(err);
     }
 });
-
-// GET /api/bookings/:id - Get booking by id (authenticated)
-router.get('/:id', requireAuthenticated, async (req: RequestWithUserContext, res: Response, next: NextFunction) => {
-    try {
-        const id = req.params.id;
-        if(!id){
-            return res.json(404).json({ message: 'Booking ID is required' });
-        }
-        const booking: BookingResponse = await bookingService.getBookingById(id);
-        return res.json(booking);
-    } catch (err) {
-        next(err);
-    }
-});
-
-
-//GET /api/bookings/user/:userId - Get bookings by user (authenticated)
-router.get('/user/:userId', requireAuthenticated, async (req: RequestWithUserContext, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.params.userId;
-        if(!userId){
-            return res.json(404).json({ message: 'User ID is required' });
-        }
-        const bookings: BookingResponse[] = await bookingService.getBookingsByUser(userId);
-        return res.json(bookings);
-    } catch (err) {
-        next(err);
-    }
-});
-
-  
-// PATCH /api/bookings/:id/finalize - Finalize booking (authenticated)
-router.patch('/:id/finalize', requireAuthenticated, async (req: RequestWithUserContext, res: Response, next: NextFunction) => {
-    try {
-        const bookingId = req.params.id;
-        if (!bookingId) {
-            return res.status(400).json({ message: 'Booking ID is required' });
-        }
-        const body = req.body as FinalizeBookingRequest;
-        const response: BookingResponse = await bookingService.finalizeBooking(bookingId, body);
-        return res.json(response);
-    } catch (err) {
-        next(err);
-    }
-});
-
-//POST /api/bookings/:id/cancel - Cancel booking (authenticated)
-router.post('/:id/cancel', requireAuthenticated, async (req: RequestWithUserContext, res: Response, next: NextFunction) => {
-    try {
-        const id = req.params.id;
-        if (!id) {
-            return res.status(400).json({ message: 'Booking ID is required' });
-        }
-        
-        const userId = getUserIdOrThrow(req.userContext);
-        const response: BookingResponse = await bookingService.cancelBooking(id, userId);
-        return res.json(response);
-    } catch (err) {
-        next(err);
-    }
-});
-
-//DELETE /api/bookings/:id - Delete booking (admin only)
-router.delete('/:id', requireAdmin, async (req: RequestWithUserContext, res: Response, next: NextFunction) => {
-    try {
-        const id = req.params.id;
-        if (!id) {
-            return res.status(400).json({ message: 'Booking ID is required' });
-        }
-        await bookingService.deleteBooking(id);
-        return res.status(204).send();
-    } catch (err) {
-        next(err);
-    }
-});
-
 // GET /api/bookings/admin/search - Admin search with many optional filters and pagination
 router.get('/admin/search', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -195,6 +119,80 @@ router.get('/count', requireInternalOrAuth, async (req: RequestWithUserContext, 
         next(err);
     }
 });
+//GET /api/bookings/user/:userId - Get bookings by user (authenticated)
+router.get('/user/:userId', requireAuthenticated, async (req: RequestWithUserContext, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.params.userId;
+        if(!userId){
+            return res.json(404).json({ message: 'User ID is required' });
+        }
+        const bookings: BookingResponse[] = await bookingService.getBookingsByUser(userId);
+        return res.json(bookings);
+    } catch (err) {
+        next(err);
+    }
+});
+
+// GET /api/bookings/:id - Get booking by id (authenticated)
+router.get('/:id', requireAuthenticated, async (req: RequestWithUserContext, res: Response, next: NextFunction) => {
+    try {
+        const id = req.params.id;
+        if(!id){
+            return res.json(404).json({ message: 'Booking ID is required' });
+        }
+        const booking: BookingResponse = await bookingService.getBookingById(id);
+        return res.json(booking);
+    } catch (err) {
+        next(err);
+    }
+});
+  
+// PATCH /api/bookings/:id/finalize - Finalize booking (authenticated)
+router.patch('/:id/finalize', requireAuthenticated, async (req: RequestWithUserContext, res: Response, next: NextFunction) => {
+    try {
+        const bookingId = req.params.id;
+        if (!bookingId) {
+            return res.status(400).json({ message: 'Booking ID is required' });
+        }
+        const body = req.body as FinalizeBookingRequest;
+        const response: BookingResponse = await bookingService.finalizeBooking(bookingId, body);
+        return res.json(response);
+    } catch (err) {
+        next(err);
+    }
+});
+
+//POST /api/bookings/:id/cancel - Cancel booking (authenticated)
+router.post('/:id/cancel', requireAuthenticated, async (req: RequestWithUserContext, res: Response, next: NextFunction) => {
+    try {
+        const id = req.params.id;
+        if (!id) {
+            return res.status(400).json({ message: 'Booking ID is required' });
+        }
+        
+        const userId = getUserIdOrThrow(req.userContext);
+        const response: BookingResponse = await bookingService.cancelBooking(id, userId);
+        return res.json(response);
+    } catch (err) {
+        next(err);
+    }
+});
+
+//DELETE /api/bookings/:id - Delete booking (admin only)
+router.delete('/:id', requireAdmin, async (req: RequestWithUserContext, res: Response, next: NextFunction) => {
+    try {
+        const id = req.params.id;
+        if (!id) {
+            return res.status(400).json({ message: 'Booking ID is required' });
+        }
+        await bookingService.deleteBooking(id);
+        return res.status(204).send();
+    } catch (err) {
+        next(err);
+    }
+});
+
+
 
 export default router;
 

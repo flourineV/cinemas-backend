@@ -3,7 +3,6 @@ import { DataSource } from "typeorm";
 import { UserProfile } from "../models/UserProfile.entity";
 import dotenv from "dotenv";
 import { UserRank } from "../models/UserRank.entity";
-import { StaffProfile } from "../models/StaffProfile.entity";
 import { UserFavoriteMovie } from "../models/UserFavoriteMovie.entity";
 import { ManagerProfile } from "../models/ManagerProfile.entity";
 import { LoyaltyHistory } from "../models/LoyaltyHistory.entity";
@@ -29,7 +28,6 @@ export const AppDataSource = new DataSource({
     UserRank,
     UserFavoriteMovie,
     ManagerProfile,
-    StaffProfile,
     LoyaltyHistory,
   ],
   subscribers: [],

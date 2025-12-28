@@ -1,13 +1,14 @@
-# Build stage
-FROM node:20-alpine AS builder
+# Use Node.js 18 Alpine as base image
+FROM node:18-alpine
 
+# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --only=production
 
 # Copy source code
 COPY . .
@@ -15,22 +16,12 @@ COPY . .
 # Build TypeScript
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy built files from builder
-COPY --from=builder /app/dist ./dist
-
 # Expose port
 EXPOSE 8099
 
-# Run the application
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8099/health || exit 1
+
+# Start the application
 CMD ["npm", "start"]
