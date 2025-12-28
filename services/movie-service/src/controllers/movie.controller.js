@@ -44,9 +44,10 @@ router.post("/bulk-from-tmdb", requireManagerOrAdmin, async (req, res) => {
 // now playing
 router.get("/now-playing", async (req, res) => {
   try {
+    const lang = req.headers["accept-language"];
     const page = Number(req.query.page || 0);
     const size = Number(req.query.size || 20);
-    const data = await movieService.getNowPlayingMovies(page, size);
+    const data = await movieService.getNowPlayingMovies(page, size, lang);
     res.json(data);
   } catch (e) {
     console.error(e);
@@ -57,9 +58,10 @@ router.get("/now-playing", async (req, res) => {
 // upcoming
 router.get("/upcoming", async (req, res) => {
   try {
+    const lang = req.headers["accept-language"];
     const page = Number(req.query.page || 0);
     const size = Number(req.query.size || 20);
-    const data = await movieService.getUpcomingMovies(page, size);
+    const data = await movieService.getUpcomingMovies(page, size, lang);
     res.json(data);
   } catch (e) {
     console.error(e);
@@ -97,6 +99,7 @@ router.get("/archived", requireManagerOrAdmin, async (req, res) => {
 // });
 router.get("/search", async (req, res) => {
   try {
+    const lang = req.headers["accept-language"];
     const page = Number(req.query.page || 0);
     const size = Number(req.query.size || 10);
 
@@ -109,7 +112,13 @@ router.get("/search", async (req, res) => {
     }
 
     // Dùng adminSearch để có paging (search theo title)
-    const result = await movieService.adminSearch(keyword, null, page, size);
+    const result = await movieService.adminSearch(
+      keyword,
+      null,
+      page,
+      size,
+      lang
+    );
 
     // Trả đúng kiểu FE mong đợi: { content: MovieSummary[] }
     return res.json({
@@ -140,12 +149,18 @@ router.get("/advanced-search", requireManagerOrAdmin, async (req, res) => {
   try {
     const { keyword, status } = req.query;
 
-    // Java default page=1, size=10; Node service dùng 0-based
+    const lang = req.headers["accept-language"];
     const page1 = Number(req.query.page || 1);
     const size = Number(req.query.size || 10);
     const page0 = Math.max(0, page1 - 1);
 
-    const data = await movieService.adminSearch(keyword, status, page0, size);
+    const data = await movieService.adminSearch(
+      keyword,
+      status,
+      page0,
+      size,
+      lang
+    );
     return res.json(data);
   } catch (e) {
     console.error(e);
@@ -158,12 +173,7 @@ router.get("/", async (req, res) => {
     let { keyword, status } = req.query;
     const page = Number(req.query.page || 0);
     const size = Number(req.query.size || 20);
-
-    // const hasPagingOrStatus =
-    //   typeof req.query.page !== "undefined" ||
-    //   typeof req.query.size !== "undefined" ||
-    //   typeof status !== "undefined";
-
+    const lang = req.headers["accept-language"];
     const ctx = req.userContext;
     const role = ctx?.role?.toUpperCase?.() || "";
     const isManagerOrAdmin = role === "MANAGER" || role === "ADMIN";
@@ -177,7 +187,7 @@ router.get("/", async (req, res) => {
       if (!keyword || keyword.trim() === "") {
         return res.status(400).json({ message: "Title parameter is required" });
       }
-      const data = await movieService.searchMovies(keyword);
+      const data = await movieService.searchMovies(keyword, lang);
       return res.json(data);
     }
 
@@ -188,7 +198,13 @@ router.get("/", async (req, res) => {
     //     .json({ message: "Manager or Admin access required" });
     // }
 
-    const data = await movieService.adminSearch(keyword, status, page, size);
+    const data = await movieService.adminSearch(
+      keyword,
+      status,
+      page,
+      size,
+      lang
+    );
     return res.json(data);
   } catch (e) {
     console.error(e);
@@ -238,8 +254,9 @@ router.post("/update-status", requireManagerOrAdmin, async (req, res) => {
 router.get("/tmdb/:tmdbId", async (req, res) => {
   // giữ endpoint cũ cho chắc
   try {
+    const lang = req.headers["accept-language"];
     const tmdbId = Number(req.params.tmdbId);
-    const data = await movieService.getMovieDetail(tmdbId);
+    const data = await movieService.getMovieDetail(tmdbId, lang);
     res.json(data);
   } catch (e) {
     console.error(e);
@@ -249,7 +266,7 @@ router.get("/tmdb/:tmdbId", async (req, res) => {
 router.get("/available-for-range", async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-
+    const lang = req.headers["accept-language"];
     if (!startDate || !endDate) {
       return res
         .status(400)
@@ -263,7 +280,8 @@ router.get("/available-for-range", async (req, res) => {
 
     const data = await movieService.getAvailableMoviesForDateRange(
       startDate,
-      endDate
+      endDate,
+      lang
     );
     return res.json(data);
   } catch (e) {
@@ -287,7 +305,8 @@ router.post("/:id/set-now-playing", requireInternal, async (req, res) => {
 router.post("/batch/titles", requireInternal, async (req, res) => {
   try {
     const ids = req.body; // array uuid
-    const map = await movieService.getBatchMovieTitles(ids);
+    const lang = req.headers["accept-language"];
+    const map = await movieService.getBatchMovieTitles(ids, lang);
     return res.json(map);
   } catch (e) {
     console.error(e);
@@ -297,17 +316,18 @@ router.post("/batch/titles", requireInternal, async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
+    const lang = req.headers["accept-language"];
     const raw = req.params.id;
 
     // Nếu toàn là số -> xem là tmdbId (FE đang dùng kiểu này)
     if (/^\d+$/.test(raw)) {
       const tmdbId = Number(raw);
-      const data = await movieService.getMovieDetail(tmdbId);
+      const data = await movieService.getMovieDetail(tmdbId, lang);
       return res.json(data);
     }
 
     // Còn lại -> coi là UUID
-    const data = await movieService.getMovieByUuid(raw);
+    const data = await movieService.getMovieByUuid(raw, lang);
     return res.json(data);
   } catch (e) {
     console.error(e);

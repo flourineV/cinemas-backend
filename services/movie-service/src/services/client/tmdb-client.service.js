@@ -11,7 +11,16 @@ function buildUrl(path, params = {}) {
   const q = new URLSearchParams({ api_key: apiKey, ...params }).toString();
   return `${baseUrl}${path}?${q}`;
 }
+// NEW: map Accept-Language / short lang -> TMDb language
+function resolveTmdbLang(langLike) {
+  if (!langLike) return "vi-VN";
+  const s = String(langLike).toLowerCase();
 
+  // Accept-Language có thể là: "en", "en-US,en;q=0.9"
+  if (s.startsWith("en")) return "en-US";
+  if (s.startsWith("vi")) return "vi-VN";
+  return "vi-VN";
+}
 async function fetchNowPlaying() {
   const url = buildUrl("/movie/now_playing", {
     language: "vi-VN",
@@ -32,18 +41,21 @@ async function fetchUpcoming() {
   return data?.results || [];
 }
 
-async function fetchMovieDetail(tmdbId) {
+async function fetchMovieDetail(tmdbId, language) {
   const url = buildUrl(`/movie/${tmdbId}`, {
-    language: "vi-VN",
+    language: resolveTmdbLang(language),
   });
 
   const { data } = await axios.get(url);
   return data;
 }
-
-async function fetchCredits(tmdbId) {
+// optional wrapper
+async function fetchMovieDetailInEnglish(tmdbId) {
+  return fetchMovieDetail(tmdbId, "en");
+}
+async function fetchCredits(tmdbId, language) {
   const url = buildUrl(`/movie/${tmdbId}/credits`, {
-    language: "vi-VN",
+    language: resolveTmdbLang(language),
   });
 
   const { data } = await axios.get(url);
@@ -57,7 +69,6 @@ async function fetchReleaseDates(tmdbId) {
 }
 
 /**
- * GIỐNG HỆT Java:
  * - gọi /videos không language
  * - filter Trailer + YouTube + official first
  * - map ra FULL YOUTUBE URL
@@ -98,6 +109,7 @@ module.exports = {
   fetchNowPlaying,
   fetchUpcoming,
   fetchMovieDetail,
+  fetchMovieDetailInEnglish,
   fetchCredits,
   fetchReleaseDates,
   fetchTrailerKey,
