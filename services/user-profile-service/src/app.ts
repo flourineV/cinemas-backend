@@ -4,7 +4,6 @@ import { errorHandler } from "./middlewares/errorHandler";
 import userProfileRoute from "./routes/UserProfileRoute";
 import userStatsRoute from "./routes/UserStatsRoute";
 import managerProfileRoute from "./routes/ManagerProfileRoute";
-import staffProfileRoute from "./routes/StaffProfileRoute";
 import userRankRoute from "./routes/UserRankRoute";
 import userFavorriteMovieRoute from "./routes/UserFavoriteMovieRoute";
 import loyalHistoryRoute from "./routes/LoyaltyHistoryRoute";
@@ -60,11 +59,6 @@ app.use(
   "/api/profiles/manager",
   JwtMiddleware(process.env.APP_JWT_SECRET!),
   managerProfileRoute
-);
-app.use(
-  "/api/profiles/staff",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  staffProfileRoute
 );
 app.use(
   "/api/profiles/ranks",
