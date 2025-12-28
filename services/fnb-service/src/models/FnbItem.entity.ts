@@ -20,15 +20,15 @@ export class FnbItem {
     type: "varchar",
     length: 255,
     unique: true,
-    nullable: false,
+    nullable: true,
   })
-  nameEn: string;
+  nameEn?: string;
 
   @Column({ name: "description", type: "text", nullable: true })
   description: string;
 
   @Column({ name: "description_en", type: "text", nullable: true })
-  descriptionEn: string;
+  descriptionEn?: string;
 
   @Column({
     name: "unit_price",

@@ -39,11 +39,7 @@ app.get("/", (req, res) => {
 app.use(express.json());
 
 // Routes
-app.use(
-  "/api/pricing",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  pricingRoute
-);
+app.use("/api/pricing", pricingRoute);
 
 // Error handling middleware
 // app.use(serviceErrorHandler);

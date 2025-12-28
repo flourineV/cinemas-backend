@@ -136,8 +136,8 @@ export class FnbService {
       description: item.description,
       unitPrice: item.unitPrice,
       imageUrl: item.imageUrl,
-      nameEn: item.nameEn,
-      descriptionEn: item.descriptionEn,
+      nameEn: item.nameEn!,
+      descriptionEn: item.descriptionEn!,
     };
   }
 }

@@ -4,8 +4,8 @@ import { FnbItem } from "../models/FnbItem.entity";
 export class FnbItemRepository {
   private repo: Repository<FnbItem>;
 
-  constructor(private appDataSource: DataSource) {
-    this.repo = this.appDataSource.getRepository(FnbItem);
+  constructor(appDataSource: DataSource) {
+    this.repo = appDataSource.getRepository(FnbItem);
   }
 
   async findAllByIdIn(ids: string[]): Promise<FnbItem[]> {

@@ -85,14 +85,10 @@ app.get("/", (req, res) => {
 
 // Routes
 // fnb order route
-app.use(
-  "/api/fnb/orders",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  fnbOrderRoute
-);
+app.use("/api/fnb/orders", fnbOrderRoute);
 
 // fnb route
-app.use("/api/fnb", JwtMiddleware(process.env.APP_JWT_SECRET!), fnbRoute);
+app.use("/api/fnb", fnbRoute);
 
 // Error handling middleware
 app.use(errorHandler);

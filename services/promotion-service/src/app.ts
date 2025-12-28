@@ -46,11 +46,7 @@ app.use("/api/promotions/refund-vouchers", refundVoucherRoute);
 // usage
 app.use("/api/promotions/usage", usedPromotionRoute);
 // promotions
-app.use(
-  "/api/promotions",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  promotionRoute
-);
+app.use("/api/promotions", promotionRoute);
 // Error handling middleware
 // app.use(serviceErrorHandler);
 app.use(errorHandler);

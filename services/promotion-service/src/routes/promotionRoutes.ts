@@ -6,6 +6,7 @@ import { UsedPromotionRepository } from "../repositories/UsedPromotionRepository
 import { PromotionNotificationHelper } from "../services/PromotionNotificationHelper";
 import { NotificationClient } from "../config/NotificationClient";
 import { AppDataSource } from "../config/database";
+import { JwtMiddleware } from "../middlewares/JwtMiddleware";
 
 // Khởi tạo service và controller
 const promotionService = new PromotionService(
@@ -36,18 +37,24 @@ router.get("/active-for-user", (req, res) =>
 );
 
 // GET /api/promotions/admin/all
-router.get("/admin/all", (req, res) =>
-  promotionController.getAllPromotionsForAdmin(req, res)
+router.get(
+  "/admin/all",
+  JwtMiddleware(process.env.APP_JWT_SECRET!),
+  (req, res) => promotionController.getAllPromotionsForAdmin(req, res)
 );
 
 // POST /api/promotions
-router.post("/", (req, res) => promotionController.createPromotion(req, res));
+router.post("/", JwtMiddleware(process.env.APP_JWT_SECRET!), (req, res) =>
+  promotionController.createPromotion(req, res)
+);
 
 // PUT /api/promotions/:id
-router.put("/:id", (req, res) => promotionController.updatePromotion(req, res));
+router.put("/:id", JwtMiddleware(process.env.APP_JWT_SECRET!), (req, res) =>
+  promotionController.updatePromotion(req, res)
+);
 
 // DELETE /api/promotions/:id
-router.delete("/:id", (req, res) =>
+router.delete("/:id", JwtMiddleware(process.env.APP_JWT_SECRET!), (req, res) =>
   promotionController.deletePromotion(req, res)
 );
 
