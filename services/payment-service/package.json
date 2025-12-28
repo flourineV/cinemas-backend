@@ -4,7 +4,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node --loader ts-node/esm src/server.ts",
+    "start": "node dist/server.js",
     "dev": "nodemon --watch src --ext ts --exec \"node --loader ts-node/esm src/server.ts\"",
     "build": "tsc"
   },
@@ -31,6 +31,7 @@
     "winston": "^3.19.0"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.10.8",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",

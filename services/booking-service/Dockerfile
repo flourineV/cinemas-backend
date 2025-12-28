@@ -21,11 +21,11 @@ RUN npm run build
 RUN npm ci --only=production && npm cache clean --force
 
 # Expose port
-EXPOSE 8090
+EXPOSE 8085
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8090/health || exit 1
+  CMD curl -f http://localhost:8085/health || exit 1
 
 # Start the built JavaScript application
 CMD ["node", "dist/server.js"]
