@@ -12,12 +12,17 @@ export class SeatLockWebSocketHandler {
     this.pathPrefix = pathPrefix.replace(/\/+$/, '');
     this.wss = new WebSocketServer({
       server,
-      // This sets the base path. We still validate and extract the UUID.
-      path: this.pathPrefix,
-      clientTracking: false, // we track our own sessions per showtime
+      clientTracking: false,
     });
 
-    this.wss.on('connection', (ws, req) => this.afterConnectionEstablished(ws, req));
+    this.wss.on('connection', (ws, req) => {
+    const path = req.url || '';
+      if (!path.startsWith('/ws/showtime/')) {
+        ws.close(1008, 'Invalid WS path');
+        return;
+      }
+      this.afterConnectionEstablished(ws, req);
+    });
   }
 
   // Called when a client connects

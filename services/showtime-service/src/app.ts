@@ -83,9 +83,6 @@ app.use("/api/showtimes/status", ShowtimeStatusController);
 app.use("/api/showtimes/stats", ShowtimeStatsController);
 app.use("/api/showtimes/supabase", SupabaseController);
 
-// WebSocket handler (if using socket.io or ws)
-//SeatLockWebSocketHandler(app, redisClient);
-
 // Error handler
 app.use(errorHandler);
 // Graceful shutdown
