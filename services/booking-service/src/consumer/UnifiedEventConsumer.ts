@@ -34,7 +34,10 @@ export async function startUnifiedEventConsumer(bookingService: BookingService, 
 
     // ====== Original consumer logic ======
     await channel.assertQueue(RabbitConfig.BOOKING_QUEUE, { durable: true });
-
+    // Bind queue to exchange with routing keys
+    await channel.bindQueue(RabbitConfig.BOOKING_QUEUE, RabbitConfig.PAYMENT_EXCHANGE, RabbitConfig.PAYMENT_BOOKING_SUCCESS_KEY);
+    await channel.bindQueue(RabbitConfig.BOOKING_QUEUE, RabbitConfig.PAYMENT_EXCHANGE, RabbitConfig.PAYMENT_BOOKING_FAILED_KEY);
+    
     console.info(`UnifiedEventConsumer: waiting for messages on queue=${RabbitConfig.BOOKING_QUEUE}`);
 
     await channel.consume(

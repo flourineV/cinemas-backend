@@ -94,11 +94,7 @@ export class PaymentService {
   /**
    * Confirm payment success (from ZaloPay callback)
    */
-  async confirmPaymentSuccess(
-    appTransId: string,
-    merchantTransId: string,
-    amountPaid: number
-  ): Promise<void> {
+  async confirmPaymentSuccess(appTransId: string, merchantTransId: string, amountPaid: number): Promise<void> {
     const txn = await this.paymentRepository.findOne({
       where: { transactionRef: appTransId }
     });

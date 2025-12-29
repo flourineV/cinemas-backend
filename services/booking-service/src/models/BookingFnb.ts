@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import type{ Relation } from 'typeorm';
 import { Booking } from './Booking.js';
 
@@ -8,6 +8,7 @@ export class BookingFnb {
   id!: string;
 
   @ManyToOne(() => Booking, (booking) => booking.fnbItems, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'booking_id' }) // <-- match your DB column name
   booking!: Relation<Booking>;
 
   @Column({ name: 'fnb_item_id', type: 'uuid', nullable: false })

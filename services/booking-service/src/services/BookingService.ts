@@ -788,11 +788,7 @@ export class BookingService {
     });
   }
 
-  private async updateBookingStatusInternal(
-    manager: any,
-    booking: Booking,
-    newStatus: BookingStatus
-  ): Promise<void> {
+  private async updateBookingStatusInternal(manager: any, booking: Booking, newStatus: BookingStatus): Promise<void> {
     const bookingRepository = manager.getRepository(Booking);
     const oldStatus = booking.status;
 
@@ -849,9 +845,7 @@ export class BookingService {
     );
   }
 
-  private async buildBookingTicketGeneratedEvent(
-    booking: Booking
-  ): Promise<BookingTicketGeneratedEvent> {
+  private async buildBookingTicketGeneratedEvent(booking: Booking): Promise<BookingTicketGeneratedEvent> {
     const bookingFnbRepository = this.dataSource.getRepository(BookingFnb);
     const bookingPromotionRepository = this.dataSource.getRepository(BookingPromotion);
 
@@ -861,7 +855,7 @@ export class BookingService {
         `Không thể lấy thông tin suất chiếu cho booking ${booking.id}`
       );
     }
-
+    logger.info(`Showtime info for booking ${booking.id}: ${JSON.stringify(showtime)}`);
     const movie = await this.movieClient.getMovieTitle(showtime.movieId);
 
     if (!movie) {
@@ -893,6 +887,7 @@ export class BookingService {
 
     const bookingFnbs = await bookingFnbRepository.find({
       where: { booking: { id: booking.id } },
+      relations: ['booking'], // ensure the join works
     });
 
     const fnbDetails: FnbDetail[] = await Promise.all(
@@ -910,6 +905,7 @@ export class BookingService {
 
     const promo = await bookingPromotionRepository.findOne({
       where: { booking: { id: booking.id } },
+      relations: ['booking'], // ensure the join works
     });
     const promotionDetail = promo
       ? {code: promo.promotionCode, discountAmount: booking.discountAmount} as PromotionDetail

@@ -15,7 +15,7 @@ export class Notification {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
 
-    @Column({ type: "uuid", nullable: false })
+    @Column({ name:'user_id',type: "uuid", nullable: false })
     userId!: string;
 
     @Column({ type: "varchar", length: 255, nullable: false })
@@ -24,10 +24,10 @@ export class Notification {
     @Column({ type: "text", nullable: false })
     message!: string;
 
-    @Column({ type: "uuid", nullable: true })
+    @Column({ name: 'booking_id', type: "uuid", nullable: true })
     bookingId?: string;
 
-    @Column({ type: "uuid", nullable: true })
+    @Column({ name: 'payment_id', type: "uuid", nullable: true })
     paymentId?: string;
 
     @Column({ type: "decimal", nullable: true })
@@ -43,6 +43,6 @@ export class Notification {
     @Column({ type: "jsonb", nullable: true })
     metadata?: Record<string, any>;
 
-    @CreateDateColumn({ type: "timestamp with time zone" })
+    @CreateDateColumn({ name: "created_at", type: "timestamp with time zone" })
     createdAt!: Date;
 }
