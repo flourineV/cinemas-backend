@@ -583,7 +583,7 @@ export class SeatLockService {
     for (const seatId of seatIds) {
       const key = this.buildKey(showtimeId, seatId);
       const value = await this.redisClient.get(key);
-
+      
       if (!value) {
         console.warn(
           `Seat ${seatId} is not locked. Cannot extend. Seat may have been released.`

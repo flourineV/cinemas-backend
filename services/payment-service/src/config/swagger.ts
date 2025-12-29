@@ -15,7 +15,7 @@ export const swaggerDefinition: OpenAPIV3.Document = {
   },
   servers: [
     {
-      url: process.env.SWAGGER_URL ?? 'localhost:8086/api/payments',
+      url: process.env.SWAGGER_URL ?? 'http://localhost:8086',
       description: 'Development server',
     },
   ],

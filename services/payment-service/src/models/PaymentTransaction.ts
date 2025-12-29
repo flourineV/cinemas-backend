@@ -4,28 +4,31 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
+  type Relation,
 } from "typeorm";
 import { PaymentStatus } from "./PaymentStatus.js";
+import { PaymentSeat } from "./PaymentSeat.js";
 
 @Entity("payment_transaction")
 export class PaymentTransaction {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: "uuid", nullable: true })
+  @Column({ name: 'booking_id', type: "uuid", nullable: true })
   bookingId?: string;
 
-  @Column({ type: "uuid", nullable: true })
+  @Column({ name: 'fnb_order_id', type: "uuid", nullable: true })
   fnbOrderId?: string;
 
-  @Column({ type: "uuid", nullable: false })
+  @Column({ name: 'user_id', type: "uuid", nullable: false })
   userId!: string;
 
-  @Column({ type: "uuid", nullable: true })
+  @Column({ name: 'showtime_id', type: "uuid", nullable: true })
   showtimeId?: string | null;
 
-  @Column("uuid", { array: true, nullable: true })
-  seatIds?: string[];
+  @OneToMany(() => PaymentSeat, (seat) => seat.payment, { cascade: true, eager: true })
+  seats: Relation<PaymentSeat>[];
 
   @Column("decimal", { precision: 10, scale: 2, nullable: false })
   amount!: string; // store as string to avoid floating point issues
@@ -40,12 +43,12 @@ export class PaymentTransaction {
   })
   status!: PaymentStatus;
 
-  @Column({ type: "varchar", length: 255, unique: true, nullable: false })
+  @Column({ name: "transaction_ref", type: "varchar", length: 255, unique: true, nullable: false })
   transactionRef!: string;
 
-  @CreateDateColumn({ type: "timestamp with time zone" })
+  @CreateDateColumn({ name: "created_at", type: "timestamp with time zone" })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: "timestamp with time zone" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamp with time zone" })
   updatedAt!: Date;
 }

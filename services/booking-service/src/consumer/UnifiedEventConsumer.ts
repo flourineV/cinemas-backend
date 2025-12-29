@@ -6,6 +6,7 @@ import type { PaymentBookingFailedEvent } from '../events/payment/PaymentBooking
 import type { PaymentBookingSuccessEvent } from '../events/payment/PaymentBookingSuccessEvent.js';
 import type { SeatUnlockedEvent } from '../events/showtime/SeatUnlockedEvent.js';
 import type { ShowtimeSuspendedEvent } from '../events/showtime/ShowtimeSuspendedEvent.js';
+import { getConnection } from '../messaging/RabbitClient.js';
 
 /**
  * Types for convenience
@@ -14,29 +15,11 @@ type AmqpConnection = Awaited<ReturnType<typeof amqp.connect>>;
 type AmqpChannel = Awaited<ReturnType<AmqpConnection["createChannel"]>>;
 const RABBIT_URL = process.env.RABBIT_URL ?? "amqp://localhost:5672";
 /**
- * Create RabbitMQ connection with retry logic
- */
-async function createRabbitConnection(url: string, retries = 5, delay = 3000): Promise<AmqpConnection> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const conn = await amqp.connect(url);
-      console.log("[RabbitMQ] ✅ Connected");
-      return conn;
-    } catch (err: any) {
-      console.warn(`[RabbitMQ] ❌ Connection attempt ${i + 1} failed:`, err.message);
-      if (i === retries - 1) throw err;
-      await new Promise((r) => setTimeout(r, delay));
-    }
-  }
-  throw new Error("RabbitMQ connection failed after retries");
-}
-
-/**
  * Start the unified consumer with reconnect support
  */
 export async function startUnifiedEventConsumer(bookingService: BookingService, url: string = RABBIT_URL) {
   try {
-    const connection = await createRabbitConnection(url);
+    const connection = await getConnection();
     const channel = await connection.createChannel();
 
     // Optional: handle unexpected connection close

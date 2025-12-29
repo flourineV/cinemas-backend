@@ -10,7 +10,7 @@ export class BookingFnb {
   @ManyToOne(() => Booking, (booking) => booking.fnbItems, { onDelete: 'CASCADE' })
   booking!: Relation<Booking>;
 
-  @Column({ type: 'uuid', nullable: false })
+  @Column({ name: 'fnb_item_id', type: 'uuid', nullable: false })
   fnbItemId!: string;
 
   @Column({ type: 'int', nullable: false })

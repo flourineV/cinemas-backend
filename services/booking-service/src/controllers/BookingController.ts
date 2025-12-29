@@ -92,7 +92,8 @@ router.get('/admin/search', requireAdmin, async (req: Request, res: Response, ne
 });
 
 //GET /api/bookings/check - Check if user has booked a movie. If internal key not provided or invalid, require authentication.
-router.get('/check', requireInternalOrAuth, async (req: RequestWithUserContext, res: Response, next: NextFunction) => {
+router.get('/check', requireAuthenticated, async (req: RequestWithUserContext, res: Response, next: NextFunction) => {
+    //requireInternalOrAuth,
     try {
         const userId = req.query.userId as string;
         const movieId = req.query.movieId as string;

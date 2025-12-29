@@ -14,8 +14,12 @@ import PaymentStatsController from "./controllers/PaymentStatsController.js";
 import PaymentController from "./controllers/PaymentController.js";
 
 // Import shared instances
-import {paymentProducer} from "./shared/instances.js";
+import {paymentProducer, userProfileClient} from "./shared/instances.js";
 import {setupSwagger} from "./config/swagger.js";
+import { connectRabbitMQ } from "./config/rabbitConfig.js";
+import { PaymentConsumer } from "./consumer/PaymentConsumer.js";
+import { PaymentService } from "./services/PaymentService.js";
+import { createHmac } from "crypto";
 
 const app = express();
 const server = createServer(app);
@@ -49,7 +53,25 @@ export const bootstrap = async () => {
   try {
     // Initialize database
     await initializeDatabase();
-    await paymentProducer.connect();
+
+    await connectRabbitMQ(process.env.RABBITMQ_URL!);
+  
+    
+    const paymentService = new PaymentService(
+      AppDataSource,
+      paymentProducer,
+      userProfileClient
+    );
+     // Init consumer
+    const paymentConsumer = new PaymentConsumer(paymentService);
+    await paymentConsumer.startConsuming();
+    // testing
+        const dataStr = JSON.stringify({
+          app_trans_id: "251229_34f9b7bd",
+          amount: 100000
+        });
+        const mac = createHmac('sha256', process.env.ZALOPAY_KEY1!).update(dataStr).digest('hex');
+        console.log('Test MAC:', mac);
     console.log("🚀 All services initialized successfully!");
   } catch (error) {
     console.error("❌ Failed to initialize services:", error);
@@ -80,6 +102,7 @@ process.on('SIGTERM', async () => {
       await AppDataSource.destroy();
       console.log('🔌 Database connection closed');
     }
+    
     // Note: Add RabbitMQ connection close if you add a close() method to ShowtimeProducer
     
     process.exit(0);

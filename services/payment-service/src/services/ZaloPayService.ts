@@ -1,5 +1,4 @@
 import { DataSource } from 'typeorm';
-import { Logger } from 'winston';
 import axios from 'axios';
 import type { AxiosInstance } from 'axios';
 import * as crypto from 'crypto';
@@ -9,14 +8,12 @@ import {PaymentTransaction} from '../models/PaymentTransaction.js'
 import type {ZaloPayCreateOrderResponse} from '../dto/zalodto/ZaloPayCreateOrderResponse.js';
 import { ZaloPayConfig } from '../config/ZaloPayConfig.js';
 import { ShowtimeServiceClient } from '../client/ShowtimeServiceClient.js'
-import { requireAuthenticated } from '../middleware/authChecker.js';
 
 export class ZaloPayService {
     private readonly axiosInstance: AxiosInstance;
 
     constructor(
         private readonly dataSource: DataSource,
-        private readonly logger: Logger,
         private readonly zaloPayConfig: ZaloPayConfig,
         private readonly showtimeServiceClient: ShowtimeServiceClient
     ) {
@@ -52,7 +49,7 @@ export class ZaloPayService {
         return crypto.randomUUID().substring(0, 8);
     }
 
-    /**
+    /*
      * Sleep utility for retry logic
      */
     private sleep(ms: number): Promise<void> {
@@ -60,7 +57,7 @@ export class ZaloPayService {
     }
 
     async createOrder(bookingId: string): Promise<ZaloPayCreateOrderResponse> {
-        this.logger.info(`💳 Starting ZaloPay order creation for bookingId: ${bookingId}`);
+        console.info(`💳 Starting ZaloPay order creation for bookingId: ${bookingId}`);
 
         return this.dataSource.transaction(async (manager) => {
         const paymentRepository = manager.getRepository(PaymentTransaction);
@@ -84,7 +81,7 @@ export class ZaloPayService {
         // 2.5. Validate amount - ZaloPay requires amount > 0
         const amount = parseInt(transaction.amount);
         if (!transaction.amount || amount <= 0) {
-            this.logger.error(
+            console.error(
             `❌ Cannot create ZaloPay order with zero or negative amount for bookingId: ${bookingId}`
             );
             throw new Error(
@@ -99,13 +96,13 @@ export class ZaloPayService {
             }
             await this.showtimeServiceClient.extendSeatLockForPayment(
                 transaction.showtimeId,
-                transaction.seatIds ?? [],
+                transaction.seats ?? [],
                 transaction.userId,
                 //undefined // guestSessionId - not yet supporting guest payment
             );
-            this.logger.info(`✅ Extended seat lock for payment - bookingId: ${bookingId}`);
+            console.info(`✅ Extended seat lock for payment - bookingId: ${bookingId}`);
         } catch (error) {
-            this.logger.error(`❌ Failed to extend seat lock for bookingId: ${bookingId}`, error);
+            console.error(`❌ Failed to extend seat lock for bookingId: ${bookingId}`, error);
             throw new Error('Seats are no longer available. Please select seats again.');
         }
 
@@ -157,16 +154,16 @@ export class ZaloPayService {
 
         const createEndpoint = `${this.zaloPayConfig.endpoint}/create`;
 
-        this.logger.info('🚀 Sending Form Request to ZaloPay:');
-        this.logger.info(`   app_id: ${this.zaloPayConfig.appId}`);
-        this.logger.info(`   app_trans_id: ${appTransId}`);
-        this.logger.info(`   amount: ${amount}`);
-        this.logger.info(`   app_time: ${appTime}`);
-        this.logger.info(`   description: ${description}`);
-        this.logger.info(`   embed_data: ${embedData}`);
-        this.logger.info(`   callback_url: ${this.zaloPayConfig.callbackUrl}`);
-        this.logger.info(`   mac: ${mac}`);
-        this.logger.info(`   Full request body: ${JSON.stringify(requestBody)}`);
+        console.info('🚀 Sending Form Request to ZaloPay:');
+        console.info(`   app_id: ${this.zaloPayConfig.appId}`);
+        console.info(`   app_trans_id: ${appTransId}`);
+        console.info(`   amount: ${amount}`);
+        console.info(`   app_time: ${appTime}`);
+        console.info(`   description: ${description}`);
+        console.info(`   embed_data: ${embedData}`);
+        console.info(`   callback_url: ${this.zaloPayConfig.callbackUrl}`);
+        console.info(`   mac: ${mac}`);
+        console.info(`   Full request body: ${JSON.stringify(requestBody)}`);
 
         try {
             // Send as form-urlencoded
@@ -186,7 +183,7 @@ export class ZaloPayService {
             if (returnCode !== 1) {
             const subMsg = responseData.sub_return_message;
             const subCode = responseData.sub_return_code;
-            this.logger.error(`❌ ZaloPay Error: ${subCode} - ${subMsg}`);
+            console.error(`❌ ZaloPay Error: ${subCode} - ${subMsg}`);
             throw new Error(`ZaloPay failed: ${subMsg}`);
             }
 
@@ -194,7 +191,7 @@ export class ZaloPayService {
             const zpTransToken = responseData.zp_trans_token;
             const qrCode = responseData.qr_code;
             const orderToken = responseData.order_token;
-            this.logger.info(`✅ ZaloPay Order Created: ${orderUrl}`);
+            console.info(`✅ ZaloPay Order Created: ${orderUrl}`);
 
             // Map to DTO Response
             const result: ZaloPayCreateOrderResponse = {
@@ -210,7 +207,7 @@ export class ZaloPayService {
 
             return result;
         } catch (error) {
-            this.logger.error('🔥 Exception calling ZaloPay:', error);
+            console.error('🔥 Exception calling ZaloPay:', error);
             const errorMessage =
             error instanceof Error ? error.message : 'Unknown error';
             throw new Error(`Failed to initiate payment with ZaloPay: ${errorMessage}`);
@@ -236,7 +233,7 @@ export class ZaloPayService {
 
         const queryEndpoint = `${this.zaloPayConfig.endpoint}/query`;
 
-        this.logger.info(`🔍 Checking status for transId: ${appTransId}`);
+        console.info(`🔍 Checking status for transId: ${appTransId}`);
 
         try {
         const response = await this.axiosInstance.post<Record<string, any>>(
@@ -247,19 +244,19 @@ export class ZaloPayService {
         const responseData = response.data;
 
         if (responseData) {
-            this.logger.info(`ZaloPay Query Response: ${JSON.stringify(responseData)}`);
+            console.info(`ZaloPay Query Response: ${JSON.stringify(responseData)}`);
             return responseData;
         } else {
             throw new Error('Empty response from ZaloPay query');
         }
         } catch (error) {
-        this.logger.error('Error querying ZaloPay status', error);
+        console.error('Error querying ZaloPay status', error);
         throw new Error('Failed to query transaction status');
         }
     }
 
     async createOrderForFnb(fnbOrderId: string): Promise<ZaloPayCreateOrderResponse> {
-        this.logger.info(`💳 Starting ZaloPay order creation for fnbOrderId: ${fnbOrderId}`);
+        console.info(`💳 Starting ZaloPay order creation for fnbOrderId: ${fnbOrderId}`);
 
         return this.dataSource.transaction(async (manager) => {
         const paymentRepository = manager.getRepository(PaymentTransaction);
@@ -286,7 +283,7 @@ export class ZaloPayService {
             }
 
             if (i < maxRetries - 1) {
-            this.logger.info(
+            console.info(
                 `⏳ Waiting for FnB transaction to be created (retry ${i + 1}/${maxRetries})`
             );
             await this.sleep(retryDelay);
@@ -347,7 +344,7 @@ export class ZaloPayService {
 
         const createEndpoint = `${this.zaloPayConfig.endpoint}/create`;
 
-        this.logger.info(`🚀 Sending FnB Payment Request to ZaloPay: ${JSON.stringify(requestBody)}`);
+        console.info(`🚀 Sending FnB Payment Request to ZaloPay: ${JSON.stringify(requestBody)}`);
 
         try {
             const response = await this.axiosInstance.post<any>(
@@ -366,7 +363,7 @@ export class ZaloPayService {
             if (returnCode !== 1) {
             const subMsg = responseData.sub_return_message;
             const subCode = responseData.sub_return_code;
-            this.logger.error(`❌ ZaloPay Error: ${subCode} - ${subMsg}`);
+            console.error(`❌ ZaloPay Error: ${subCode} - ${subMsg}`);
             throw new Error(`ZaloPay failed: ${subMsg}`);
             }
 
@@ -374,7 +371,7 @@ export class ZaloPayService {
             const zpTransToken = responseData.zp_trans_token;
             const orderToken = responseData.order_token;
             const qrCode = responseData.qr_code;
-            this.logger.info(`✅ ZaloPay FnB Order Created: ${orderUrl}`);
+            console.info(`✅ ZaloPay FnB Order Created: ${orderUrl}`);
 
             const result: ZaloPayCreateOrderResponse = {
             return_code:returnCode,
@@ -389,7 +386,7 @@ export class ZaloPayService {
 
             return result;
         } catch (error) {
-            this.logger.error('🔥 Exception calling ZaloPay for FnB:', error);
+            console.error('🔥 Exception calling ZaloPay for FnB:', error);
             const errorMessage =
             error instanceof Error ? error.message : 'Unknown error';
             throw new Error(`Failed to initiate FnB payment with ZaloPay: ${errorMessage}`);

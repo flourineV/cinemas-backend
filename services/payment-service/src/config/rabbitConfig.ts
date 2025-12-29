@@ -31,7 +31,7 @@ export async function connectRabbitMQ(url: string) {
   await channel.assertExchange(BOOKING_EXCHANGE, "direct", { durable: true });
   await channel.assertExchange(SHOWTIME_EXCHANGE, "direct", { durable: true });
   await channel.assertExchange(FNB_EXCHANGE, "topic", { durable: true });
-  await channel.assertExchange(PAYMENT_EXCHANGE, "direct", { durable: true });
+  await channel.assertExchange(PAYMENT_EXCHANGE, "topic", { durable: true });
 
   // Declare queue
   await channel.assertQueue(PAYMENT_QUEUE, { durable: true });

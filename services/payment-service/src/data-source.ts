@@ -1,4 +1,5 @@
 import { PaymentTransaction } from "./models/PaymentTransaction.js";
+import { PaymentSeat } from "./models/PaymentSeat.js";
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 
@@ -9,7 +10,8 @@ export const AppDataSource = new DataSource({
   synchronize: false, // dev mode only; use migrations in production
   logging: true,
   entities: [
-    PaymentTransaction
+    PaymentTransaction,
+    PaymentSeat
   ],
   migrations: [],
   subscribers: [],

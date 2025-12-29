@@ -1,102 +1,34 @@
-import amqp, { connect } from "amqplib";
-import type { Channel, Connection } from "amqplib";
+// src/messaging/PaymentProducer.ts
 import { v4 as uuidv4 } from "uuid";
+import {
+  getChannel,
+  PAYMENT_EXCHANGE,
+  FNB_EXCHANGE,
+  PAYMENT_BOOKING_SUCCESS_KEY,
+  PAYMENT_BOOKING_FAILED_KEY,
+  PAYMENT_FNB_SUCCESS_KEY,
+  PAYMENT_FNB_FAILED_KEY,
+} from "../config/rabbitConfig.js";
+
 import type { EventMessage } from "../events/EventMessage.js";
+import type { PaymentBookingSuccessEvent } from "../events/PaymentBookingSuccessEvent.js";
 import type { PaymentBookingFailedEvent } from "../events/PaymentBookingFailedEvent.js";
-import type { PaymentBookingSuccessEvent } from "../events/PaymentBookingSuccessEvent";
-import type { PaymentFnbFailedEvent } from "../events/PaymentFnbFailedEvent";
-import type { PaymentFnbSuccessEvent } from "../events/PaymentFnbSuccessEvent";
-
-// RabbitMQ Configuration Constants
-const PAYMENT_EXCHANGE = "payment.exchange";
-const FNB_EXCHANGE = "fnb.exchange";
-const PAYMENT_BOOKING_SUCCESS_KEY = "payment.booking.success";
-const PAYMENT_BOOKING_FAILED_KEY = "payment.booking.failed";
-const PAYMENT_FNB_SUCCESS_KEY = "payment.fnb.success";
-const PAYMENT_FNB_FAILED_KEY = "payment.fnb.failed";
-
-type AmqpConnection = Awaited<ReturnType<typeof amqp.connect>>;
-type AmqpChannel = Awaited<ReturnType<AmqpConnection["createChannel"]>>;
+import type { PaymentFnbSuccessEvent } from "../events/PaymentFnbSuccessEvent.js";
+import type { PaymentFnbFailedEvent } from "../events/PaymentFnbFailedEvent.js";
 
 export class PaymentProducer {
-  private connection: AmqpConnection | null = null;
-  private channel: AmqpChannel | null = null;
-  private readonly rabbitUrl: string;
-  private connecting = false;
-
-  constructor(rabbit_url: string) {
-    this.rabbitUrl = rabbit_url;
-  }
-
   /**
-   * Initialize RabbitMQ connection and channel
-   */
-  async connect(retries = 5, delay = 3000): Promise<void> {
-    if (this.connection || this.connecting) return;
-    this.connecting = true;
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        const conn = await connect(this.rabbitUrl);
-        const ch = await conn.createChannel();
-
-        await ch.assertExchange(PAYMENT_EXCHANGE, "topic", { durable: true });
-        await ch.assertExchange(FNB_EXCHANGE, "topic", { durable: true });
-
-        conn.on("close", () => {
-          console.warn("[PaymentProducer] RabbitMQ connection closed");
-          this.connection = null;
-          this.channel = null;
-        });
-
-        conn.on("error", (err: Error) => {
-          console.error("[PaymentProducer] RabbitMQ error:", err);
-        });
-
-        this.connection = conn;
-        this.channel = ch;
-        this.connecting = false;
-
-        console.log("[PaymentProducer] Connected to RabbitMQ");
-        return;
-      } catch (error) {
-        console.error(
-          `[PaymentProducer] Connection attempt ${attempt}/${retries} failed`,
-          error
-        );
-        if (attempt === retries) {
-          this.connecting = false;
-          throw error;
-        }
-        await new Promise((r) => setTimeout(r, delay));
-      }
-    }
-  }
-
-  /**
-   * Ensure channel is available
-   */
-  private async ensureChannel(): Promise<Channel> {
-    if (!this.channel) {
-      throw new Error(
-        "PaymentProducer not initialized. Call connect() during bootstrap."
-      );
-    }
-    return this.channel;
-  }
-
-  /**
-   * Send message to RabbitMQ
+   * Internal helper to publish a message
    */
   private async sendMessage<T>(
     exchange: string,
     routingKey: string,
     message: EventMessage<T>
   ): Promise<void> {
-    const channel = await this.ensureChannel();
+    const channel = getChannel();
+    const buffer = Buffer.from(JSON.stringify(message));
 
-    const messageBuffer = Buffer.from(JSON.stringify(message));
-
-    channel.publish(exchange, routingKey, messageBuffer, {
+    channel.publish(exchange, routingKey, buffer, {
       persistent: true,
       contentType: "application/json",
       timestamp: Date.now(),
@@ -104,7 +36,7 @@ export class PaymentProducer {
   }
 
   /**
-   * Send PaymentBookingSuccess event to BookingService
+   * Send PaymentBookingSuccess event → BookingService
    */
   async sendPaymentBookingSuccessEvent(
     data: PaymentBookingSuccessEvent
@@ -118,7 +50,7 @@ export class PaymentProducer {
     };
 
     console.log(
-      `[PaymentProducer] Sending PaymentBookingSuccessEvent → BookingService | exchange=${PAYMENT_EXCHANGE}, routingKey=${PAYMENT_BOOKING_SUCCESS_KEY}, bookingId=${data.bookingId}`
+      `[PaymentProducer] Sending PaymentBookingSuccessEvent → BookingService | bookingId=${data.bookingId}`
     );
 
     await this.sendMessage(
@@ -129,21 +61,21 @@ export class PaymentProducer {
   }
 
   /**
-   * Send PaymentBookingFailed event to BookingService
+   * Send PaymentBookingFailed event → BookingService
    */
   async sendPaymentBookingFailedEvent(
     data: PaymentBookingFailedEvent
   ): Promise<void> {
     const message: EventMessage<PaymentBookingFailedEvent> = {
       eventId: uuidv4(),
-      type: "PaymentFailed",
+      type: "PaymentBookingFailed",
       version: "v1",
       occurredAt: new Date(),
       data,
     };
 
-    console.error(
-      `[PaymentProducer] Sending PaymentFailedEvent → BookingService | exchange=${PAYMENT_EXCHANGE}, routingKey=${PAYMENT_BOOKING_FAILED_KEY}, bookingId=${data.bookingId}`
+    console.log(
+      `[PaymentProducer] Sending PaymentBookingFailedEvent → BookingService | bookingId=${data.bookingId}`
     );
 
     await this.sendMessage(
@@ -154,7 +86,7 @@ export class PaymentProducer {
   }
 
   /**
-   * Send PaymentFnbSuccess event to FnbService
+   * Send PaymentFnbSuccess event → FnbService
    */
   async sendPaymentFnbSuccessEvent(
     data: PaymentFnbSuccessEvent
@@ -175,9 +107,11 @@ export class PaymentProducer {
   }
 
   /**
-   * Send PaymentFnbFailed event to FnbService
+   * Send PaymentFnbFailed event → FnbService
    */
-  async sendPaymentFnbFailedEvent(data: PaymentFnbFailedEvent): Promise<void> {
+  async sendPaymentFnbFailedEvent(
+    data: PaymentFnbFailedEvent
+  ): Promise<void> {
     const message: EventMessage<PaymentFnbFailedEvent> = {
       eventId: uuidv4(),
       type: "PaymentFnbFailed",
@@ -191,23 +125,6 @@ export class PaymentProducer {
     );
 
     await this.sendMessage(FNB_EXCHANGE, PAYMENT_FNB_FAILED_KEY, message);
-  }
-
-  /**
-   * Close RabbitMQ connection gracefully
-   */
-  async close(): Promise<void> {
-    try {
-      if (this.channel) {
-        await this.channel.close();
-      }
-      if (this.connection) {
-        await this.connection.close();
-      }
-      console.log("[PaymentProducer] Connection closed successfully");
-    } catch (error) {
-      console.error("[PaymentProducer] Error closing connection:", error);
-    }
   }
 }
 

@@ -23,8 +23,7 @@ export async function requireInternalOrAuth(
 
     try {
         // Validate user context
-        await requireAuthenticated(req.userContext);
-        next();
+        await requireAuthenticated(req, res, next);
     } catch (err) {
         return res.status(401).json({ error: 'Unauthorized: Invalid user' });
     }

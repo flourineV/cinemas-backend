@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import { Logger } from 'winston';
 import * as crypto from 'crypto';
+import { createHmac } from 'crypto';
 import { ZaloPayService } from '../services/ZaloPayService.js';
 import { PaymentService } from '../services/PaymentService.js';
 import type { ZaloPayCreateOrderResponse } from '../dto/zalodto/ZaloPayCreateOrderResponse.js';
@@ -17,12 +17,10 @@ import { AppDataSource } from '../data-source.js';
 import { paymentProducer, userProfileClient, showtimeServiceClient } from '../shared/instances.js';
 import type { RequestWithUserContext } from 'types/userContext.js';
 // Initialize services
-const logger = new Logger();
 const zaloPayConfig = new ZaloPayConfig();
 
 const zaloPayService = new ZaloPayService(
   AppDataSource,
-  logger,
   zaloPayConfig,
   showtimeServiceClient
 );
@@ -57,7 +55,7 @@ const parseReturnCode = (value: any): number => {
 };
 
 /**
- * POST /api/payments/create-zalopay-url
+ * POST /api/payments/create-zalopay-url/:id
  * Create ZaloPay payment URL for booking
  */
 router.post('/create-zalopay-url', async (req: Request, res: Response) => {
@@ -68,15 +66,16 @@ router.post('/create-zalopay-url', async (req: Request, res: Response) => {
       res.status(400).json({ error: 'bookingId is required' });
       return;
     }
-
+    
     const response: ZaloPayCreateOrderResponse = await zaloPayService.createOrder(
       bookingId as string
     );
 
     res.status(200).json(response);
   } catch (error) {
-    logger.error('Error creating ZaloPay order', error);
+    console.error('Error creating ZaloPay order', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
     res.status(400).json({ error: `Error: ${errorMessage}` });
   }
 });
@@ -100,7 +99,7 @@ router.post('/create-zalopay-url-fnb', async (req: Request, res: Response) => {
 
     res.status(200).json(response);
   } catch (error) {
-    logger.error('Error creating ZaloPay order for FnB', error);
+    console.error('Error creating ZaloPay order for FnB', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     res.status(400).json({ error: `Error: ${errorMessage}` });
   }
@@ -130,7 +129,7 @@ router.post('/callback', async (req: Request, res: Response) => {
       const appTransId: string = dataNode.app_trans_id;
       const amount: number = dataNode.amount;
 
-      logger.info(`ZaloPay Callback received for transId: ${appTransId}`);
+      console.info(`ZaloPay Callback received for transId: ${appTransId}`);
 
       // Call business logic
       await paymentService.confirmPaymentSuccess(appTransId, 'ZaloPay', amount);
@@ -139,7 +138,7 @@ router.post('/callback', async (req: Request, res: Response) => {
       result.return_message = 'success';
     }
   } catch (error) {
-    logger.error('Callback processing error', error);
+    console.error('Callback processing error', error);
     result.return_code = 0;
     result.return_message = error instanceof Error ? error.message : 'Unknown error';
   }
@@ -168,7 +167,7 @@ router.get('/check-status', async (req: Request, res: Response) => {
     const subReturnCode = parseReturnCode(zpStatus.sub_return_code);
     const isSuccess = returnCode === 1;
 
-    logger.info(
+    console.info(
       `🔍 ZaloPay status check - appTransId: ${appTransId}, returnCode: ${returnCode}, subReturnCode: ${subReturnCode}`
     );
 
@@ -211,7 +210,7 @@ router.get('/check-status', async (req: Request, res: Response) => {
 
     res.status(200).json(response);
   } catch (error) {
-    logger.error('Error checking transaction status', error);
+    console.error('Error checking transaction status', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     res.status(400).json({ error: `Error checking status: ${errorMessage}` });
   }
@@ -266,7 +265,7 @@ router.get('/admin/search', requireAdmin, async (req: RequestWithUserContext, re
 
     res.status(200).json(response);
   } catch (error) {
-    logger.error('Error searching payments', error);
+    console.error('Error searching payments', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({ error: errorMessage });
   }
@@ -294,7 +293,7 @@ router.get('/user/:userId', requireAuthenticated, async (req: RequestWithUserCon
 
     res.status(200).json(payments);
   } catch (error) {
-    logger.error('Error getting payments by user', error);
+    console.error('Error getting payments by user', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({ error: errorMessage });
   }
@@ -321,7 +320,7 @@ router.get('/:id', requireAuthenticated, async (req: RequestWithUserContext, res
 
     res.status(200).json(payment);
   } catch (error) {
-    logger.error('Error getting payment by ID', error);
+    console.error('Error getting payment by ID', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({ error: errorMessage });
   }

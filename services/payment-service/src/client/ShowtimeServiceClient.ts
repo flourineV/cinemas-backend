@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { AxiosInstance } from 'axios';
 import type { ExtendSeatLockRequest } from '../dto/external/ExtendSeatLockRequest.js';
+import type { PaymentSeat } from 'models/PaymentSeat.js';
 
 export class ShowtimeServiceClient {
     private readonly axiosInstance: AxiosInstance;
@@ -23,7 +24,7 @@ export class ShowtimeServiceClient {
     //Extend seat lock TTL to 10 minutes when payment is initiated
     async extendSeatLockForPayment(
         showtimeId: string,
-        seatIds: string[],
+        paymentSeats: PaymentSeat[],
         userId?: string,
         // guestSessionId?: string
     ): Promise<void> {
@@ -32,7 +33,7 @@ export class ShowtimeServiceClient {
 
         const requestBody: ExtendSeatLockRequest = {
             showtimeId,
-            seatIds
+            seatIds: paymentSeats.map(seat => seat.seatId)
         };
 
         if (userId) {
@@ -49,7 +50,7 @@ export class ShowtimeServiceClient {
             }
         });
 
-        console.log(`[ShowtimeServiceClient] Extended seat lock for showtime ${showtimeId} - ${seatIds.length} seats`);
+        console.log(`[ShowtimeServiceClient] Extended seat lock for showtime ${showtimeId} - ${paymentSeats.length} seats`);
         } catch (error) {
         console.error(`[ShowtimeServiceClient] Failed to extend seat lock for showtime ${showtimeId}`, error);
             throw new Error('Cannot extend seat lock. Please try again.');

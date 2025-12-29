@@ -14,6 +14,7 @@ import type { PaymentBookingFailedEvent } from "../events/PaymentBookingFailedEv
 import type { PaymentCriteria } from "../dto/request/PaymentCriteria.js";
 import type { PagedResponse } from "../dto/response/PagedResponse.js";
 import type { PaymentTransactionResponse } from "../dto/response/PaymentTransactionResponse.js";
+import { PaymentSeat } from "../models/PaymentSeat.js";
 import { v4 as uuidv4 } from 'uuid';
 
 export class PaymentService {
@@ -46,7 +47,11 @@ export class PaymentService {
       bookingId: event.bookingId,
       userId: event.userId,
       showtimeId: event.showtimeId,
-      seatIds: event.seatIds,
+      seats: event.seatIds.map(seatId => {
+      const seat = new PaymentSeat();
+        seat.seatId = seatId;
+        return seat;
+      }),
       amount: event.totalPrice,
       method: 'UNKNOWN', // Will be updated later when user selects payment method
       status: PaymentStatus.PENDING,
@@ -73,7 +78,7 @@ export class PaymentService {
       fnbOrderId: event.fnbOrderId,
       userId: event.userId,
       showtimeId: null, // FnB standalone has no showtime
-      seatIds: [], // No seats
+      seats: [], // No seats
       amount: event.totalAmount,
       method: 'UNKNOWN',
       status: PaymentStatus.PENDING,
@@ -132,7 +137,7 @@ export class PaymentService {
         userId: txn.userId,
         amount: txn.amount,
         method: 'ZALOPAY',
-        seatIds: txn.seatIds ?? [],
+        seatIds: txn.seats?.map(seat => seat.seatId) ?? [],
         message: 'Payment confirmed via ZaloPay Callback'
       };
       await this.paymentProducer.sendPaymentBookingSuccessEvent(bookingSuccessEvent);
@@ -238,7 +243,7 @@ export class PaymentService {
       userId: txn.userId,
       amount: txn.amount,
       method: txn.method,
-      seatIds: txn.seatIds ?? [],
+      seatIds: txn.seats?.map(seat => seat.seatId) ?? [],
       reason: `Payment expired: ${event.reason}`
     };
 
@@ -316,7 +321,7 @@ export class PaymentService {
         userId: txn.userId,
         amount: txn.amount,
         method: txn.method,
-        seatIds: txn.seatIds ?? [],
+        seatIds: txn.seats?.map(seat => seat.seatId) ?? [],
         reason: `Payment cancelled: ${reason}`
       };
 
@@ -404,7 +409,7 @@ export class PaymentService {
       bookingId: txn.bookingId ?? '',
       userId: txn.userId,
       showtimeId: txn.showtimeId ?? '',
-      seatIds: txn.seatIds ?? [],
+      seatIds: txn.seats?.map(seat => seat.seatId) ?? [],
       amount: txn.amount,
       method: txn.method,
       status: txn.status,
