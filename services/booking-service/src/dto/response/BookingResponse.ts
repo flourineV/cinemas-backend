@@ -14,13 +14,12 @@ export interface BookingResponse {
   roomName?: string;
   roomNameEn?: string;
   showDateTime?: string; // ISO string
-  guestName?: string;
-  guestEmail?: string;
+  // guestName?: string;
+  // guestEmail?: string;
   status: string;
   totalPrice: string; // numeric as string
   discountAmount: string;
   finalPrice: string;
   paymentMethod?: string;
-  transactionId?: string;
   seats: BookingSeatResponse[];
 }

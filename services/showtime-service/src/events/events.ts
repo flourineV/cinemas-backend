@@ -8,8 +8,8 @@ export interface BookingSeatMappedEvent {
   showtimeId: string;      // UUID string
   seatIds: string[];       // list of UUID strings
   userId: string;          // UUID string
-  guestName: string;
-  guestEmail: string;
+  // guestName: string;
+  // guestEmail: string;
 }
 
 /**

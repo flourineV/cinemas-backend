@@ -18,15 +18,15 @@ import { v4 as uuidv4 } from 'uuid';
 @Entity({ name: 'booking' })
 export class Booking {
   @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  id: string;
 
   @Column({ name: 'booking_code', nullable: false, unique: true })
   bookingCode!: string;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ name: 'user_id', type: 'uuid', nullable: true })
   userId?: string;
 
-  @Column({ type: 'uuid', nullable: false })
+  @Column({ name: 'showtime_id', type: 'uuid', nullable: false })
   showtimeId!: string;
 
   @Column({ name: 'movie_id', type: 'uuid', nullable: true })
@@ -59,23 +59,17 @@ export class Booking {
   @Column({ type: 'enum', enum: BookingStatus, default: BookingStatus.PENDING })
   status!: BookingStatus;
 
-  @Column({ type: 'numeric', precision: 12, scale: 2 })
+  @Column({ name:'total_price',type: 'numeric', precision: 12, scale: 2 })
   totalPrice!: string;
 
-  @Column({ type: 'numeric', precision: 12, scale: 2 })
+  @Column({ name:'discount_amount',type: 'numeric', precision: 12, scale: 2 })
   discountAmount!: string;
 
-  @Column({ type: 'numeric', precision: 12, scale: 2 })
+  @Column({ name:'final_price',type: 'numeric', precision: 12, scale: 2 })
   finalPrice!: string;
 
   @Column({ name: 'payment_method', length: 50, nullable: true })
   paymentMethod?: string;
-
-  @Column({ name: 'guest_name', length: 100, nullable: true })
-  guestName?: string;
-
-  @Column({ name: 'guest_email', length: 100, nullable: true })
-  guestEmail?: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;

@@ -101,7 +101,7 @@ export class ZaloPayService {
                 transaction.showtimeId,
                 transaction.seatIds ?? [],
                 transaction.userId,
-                undefined // guestSessionId - not yet supporting guest payment
+                //undefined // guestSessionId - not yet supporting guest payment
             );
             this.logger.info(`✅ Extended seat lock for payment - bookingId: ${bookingId}`);
         } catch (error) {

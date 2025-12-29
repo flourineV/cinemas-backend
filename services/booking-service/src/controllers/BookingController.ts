@@ -37,8 +37,8 @@ router.get('/admin/search', requireAdmin, async (req: Request, res: Response, ne
             bookingCode,
             status,
             paymentMethod,
-            guestName,
-            guestEmail,
+            //guestName,
+            //guestEmail,
             fromDate,
             toDate,
             minPrice,
@@ -66,8 +66,8 @@ router.get('/admin/search', requireAdmin, async (req: Request, res: Response, ne
         if (bookingCode) criteria.bookingCode = bookingCode;
         if (parsedStatus) criteria.status = parsedStatus;
         if (paymentMethod) criteria.paymentMethod = paymentMethod;
-        if (guestName) criteria.guestName = guestName;
-        if (guestEmail) criteria.guestEmail = guestEmail;
+        // if (guestName) criteria.guestName = guestName;
+        // if (guestEmail) criteria.guestEmail = guestEmail;
         if (fromDate) criteria.fromDate = fromDate;
         if (toDate) criteria.toDate = toDate;
         if (minPrice) criteria.minPrice = minPrice;

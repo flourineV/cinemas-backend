@@ -37,8 +37,8 @@ export class BookingMapper {
         ...(booking.theaterNameEn && { theaterNameEn: booking.theaterNameEn }),
         ...(booking.roomName && { roomName: booking.roomName }),
         ...(booking.roomNameEn && { roomNameEn: booking.roomNameEn }),
-        ...(booking.guestName && { guestName: booking.guestName }),
-        ...(booking.guestEmail && { guestEmail: booking.guestEmail }),
+        // ...(booking.guestName && { guestName: booking.guestName }),
+        // ...(booking.guestEmail && { guestEmail: booking.guestEmail }),
         ...(booking.paymentMethod && { paymentMethod: booking.paymentMethod }),
         ...(booking.paymentId && { transactionId: booking.paymentId }),
 

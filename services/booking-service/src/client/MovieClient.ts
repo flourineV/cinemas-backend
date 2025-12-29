@@ -45,7 +45,7 @@ export class MovieClient {
   }
 
   // Public API
-  async getMovieTitleById(movieId: string): Promise<MovieTitleResponse> {
+  async getMovieTitle(movieId: string): Promise<MovieTitleResponse> {
     return this.getTitleBreaker.fire(movieId);
   }
 
@@ -57,25 +57,20 @@ export class MovieClient {
   // Private helpers
   private async _getMovieTitle(movieId: string): Promise<MovieTitleResponse> {
     const res = await this.client.get<MovieTitleResponse>(
-      `/api/movies/internal/${movieId}/title`,
-      {
-        headers: {
-          "x-internal-secret": this.internalSecret,
-        },
-      }
+      `/api/movies/${movieId}`
     );
-    return res.data;
+    const movie = res.data;
+    return {
+      id: movie.id,
+      title: movie.title,
+      titleEn: movie.titleEn ?? "N/A",
+    };
   }
 
   private async _getBatchMovieTitles(movieIds: string[]): Promise<Record<string, string>> {
     const res = await this.client.post<Record<string, string>>(
       "/api/movies/batch/titles",
-      movieIds,
-      {
-        headers: {
-          "x-internal-secret": this.internalSecret,
-        },
-      }
+      movieIds
     );
     return res.data;
   }

@@ -25,7 +25,7 @@ export class ShowtimeServiceClient {
         showtimeId: string,
         seatIds: string[],
         userId?: string,
-        guestSessionId?: string
+        // guestSessionId?: string
     ): Promise<void> {
         try {
         const url = '/seat-lock/extend-for-payment';
@@ -39,9 +39,9 @@ export class ShowtimeServiceClient {
             requestBody.userId = userId;
         }
 
-        if (guestSessionId) {
-            requestBody.guestSessionId = guestSessionId;
-        }
+        // if (guestSessionId) {
+        //     requestBody.guestSessionId = guestSessionId;
+        // }
 
         await this.axiosInstance.post(url, requestBody, {
             headers: {

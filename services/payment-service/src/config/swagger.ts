@@ -587,10 +587,10 @@ export const swaggerDefinition: OpenAPIV3.Document = {
             format: 'uuid',
             description: 'User ID (for authenticated users)',
           },
-          guestSessionId: {
-            type: 'string',
-            description: 'Guest session ID (for guest users)',
-          },
+          // guestSessionId: {
+          //   type: 'string',
+          //   description: 'Guest session ID (for guest users)',
+          // },
         },
       },
 

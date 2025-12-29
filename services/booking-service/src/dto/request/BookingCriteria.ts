@@ -10,8 +10,8 @@ export interface BookingCriteria {
   bookingCode?: string;
   status?: BookingStatus;
   paymentMethod?: string;
-  guestName?: string;
-  guestEmail?: string;
+  // guestName?: string;
+  // guestEmail?: string;
   fromDate?: string; // ISO string
   toDate?: string; // ISO string
   minPrice?: string; // numeric as string

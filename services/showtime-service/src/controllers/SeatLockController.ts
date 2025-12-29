@@ -67,24 +67,25 @@ router.post("/lock-single", async (req: Request, res: Response) => {
  *         schema:
  *           type: string
  *           format: uuid
- *       - in: query
- *         name: guestSessionId
- *         schema:
- *           type: string
- *           format: uuid
+ *       
  *     responses:
  *       200:
  *         description: Seat unlocked successfully
  */
+// //- in: query
+//          name: guestSessionId
+//           schema:
+//            type: string
+//            format: uuid
 router.post("/unlock-single", async (req: Request, res: Response) => {
-  const { showtimeId, seatId, userId, guestSessionId } = req.query;
+  const { showtimeId, seatId, userId } = req.query; //, guestSessionId
   console.log(`API: Unlocking single seat ${seatId} for showtime ${showtimeId}`);
   
   const response: SeatLockResponse = await seatLockService.unlockSingleSeat(
     showtimeId as string,
     seatId as string,
     userId as string | undefined,
-    guestSessionId as string | undefined
+    //guestSessionId as string | undefined
   );
   return res.json(response);
 });
@@ -114,17 +115,17 @@ router.post("/unlock-single", async (req: Request, res: Response) => {
  *         schema:
  *           type: string
  *           format: uuid
- *       - in: query
- *         name: guestSessionId
- *         schema:
- *           type: string
- *           format: uuid
  *     responses:
  *       200:
  *         description: Seats unlocked successfully
  */
+// - in: query
+//          name: guestSessionId
+//          schema:
+//            type: string
+//            format: uuid
 router.post("/unlock-batch", async (req: Request, res: Response) => {
-  const { showtimeId, seatIds, userId, guestSessionId } = req.query;
+  const { showtimeId, seatIds, userId } = req.query; //, guestSessionId
   const seatIdArray = Array.isArray(seatIds) ? seatIds : [seatIds];
   
   console.log(`API: Unlocking ${seatIdArray.length} seats for showtime ${showtimeId}`);
@@ -133,7 +134,7 @@ router.post("/unlock-batch", async (req: Request, res: Response) => {
     showtimeId as string,
     seatIdArray as string[],
     userId as string | undefined,
-    guestSessionId as string | undefined
+    //guestSessionId as string | undefined
   );
   return res.json(responses);
 });
@@ -267,7 +268,7 @@ router.post("/extend-for-payment", requireInternal, async (req: Request, res: Re
     request.showtimeId,
     request.seatIds,
     request.userId,
-    request.guestSessionId
+    //request.guestSessionId
   );
 
   return res.status(204).send();

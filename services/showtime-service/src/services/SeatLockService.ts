@@ -75,7 +75,7 @@ export class SeatLockService {
     const expireAt = Date.now() + this.LOCK_TIMEOUT * 1000;
 
     const ownerType = req.userId ? 'USER' : 'GUEST';
-    const ownerIdentifier = req.userId || req.guestSessionId;
+    const ownerIdentifier = req.userId      //|| req.guestSessionId;
     const value = `${ownerType}|${ownerIdentifier}|${expireAt}`;
 
     // Try to set lock in Redis with TTL using SET with NX option
@@ -96,9 +96,14 @@ export class SeatLockService {
       new Date()
     );
 
+    // console.log(
+    //   `Seat ${seatId} locked (Redis+DB) for showtime ${req.showtimeId} by ${
+    //     req.userId ? `user ${req.userId}` : `guest ${req.guestSessionId}`
+    //   }. DB updated: ${updatedCount}`
+    // );
     console.log(
       `Seat ${seatId} locked (Redis+DB) for showtime ${req.showtimeId} by ${
-        req.userId ? `user ${req.userId}` : `guest ${req.guestSessionId}`
+        req.userId ? `user ${req.userId}` : `undefined`
       }. DB updated: ${updatedCount}`
     );
 
@@ -119,7 +124,7 @@ export class SeatLockService {
     showtimeId: string,
     seatId: string,
     userId?: string,
-    guestSessionId?: string
+    //guestSessionId?: string
   ): Promise<SeatLockResponse> {
     const key = this.buildKey(showtimeId, seatId);
 
@@ -134,9 +139,9 @@ export class SeatLockService {
         let isOwner = false;
         if (ownerType === 'USER' && userId) {
           isOwner = ownerIdentifier === userId;
-        } else if (ownerType === 'GUEST' && guestSessionId) {
-          isOwner = ownerIdentifier === guestSessionId;
-        }
+        } //else if (ownerType === 'GUEST' && guestSessionId) {
+        //   isOwner = ownerIdentifier === guestSessionId;
+        // }
 
         if (!isOwner) {
           throw new Error("You don't own this seat lock");
@@ -181,7 +186,7 @@ export class SeatLockService {
     showtimeId: string,
     seatIds: string[],
     userId?: string,
-    guestSessionId?: string
+    //guestSessionId?: string
   ): Promise<SeatLockResponse[]> {
     const responses: SeatLockResponse[] = [];
     const validSeatIds: string[] = [];
@@ -200,12 +205,12 @@ export class SeatLockService {
           let isOwner = false;
           if (ownerType === 'USER' && userId) {
             isOwner = ownerIdentifier === userId;
-          } else if (ownerType === 'GUEST' && guestSessionId) {
-            isOwner = ownerIdentifier === guestSessionId;
-          }
+          } //else if (ownerType === 'GUEST' && guestSessionId) {
+          //   isOwner = ownerIdentifier === guestSessionId;
+          // }
 
           if (!isOwner) {
-            console.warn(`Skipping seat ${seatId} - not owned by user/guest`);
+            console.warn(`Skipping seat ${seatId} - not owned by user`);
             continue;
           }
         }
@@ -300,7 +305,7 @@ export class SeatLockService {
       const expireAt = Date.now() + this.LOCK_TIMEOUT * 1000;
 
       const ownerType = req.userId ? 'USER' : 'GUEST';
-      const ownerIdentifier = req.userId || req.guestSessionId;
+      const ownerIdentifier = req.userId //|| req.guestSessionId;
       const value = `${ownerType}|${ownerIdentifier}|${expireAt}`;
 
       const success = await this.redisClient.set(key, value, {
@@ -340,9 +345,9 @@ export class SeatLockService {
         `All ${seatIds.length} seats locked (Redis+DB) for showtime ${req.showtimeId} by user ${req.userId}. DB updated: ${updatedCount}`
       );
     } else {
-      console.log(
-        `All ${seatIds.length} seats locked (Redis+DB) for showtime ${req.showtimeId} by guest ${req.guestSessionId}. DB updated: ${updatedCount}`
-      );
+      // console.log(
+      //   `All ${seatIds.length} seats locked (Redis+DB) for showtime ${req.showtimeId} by guest ${req.guestSessionId}. DB updated: ${updatedCount}`
+      // );
     }
 
     // Broadcast WebSocket updates
@@ -573,7 +578,7 @@ export class SeatLockService {
     showtimeId: string,
     seatIds: string[],
     userId?: string,
-    guestSessionId?: string
+    //guestSessionId?: string
   ): Promise<void> {
     for (const seatId of seatIds) {
       const key = this.buildKey(showtimeId, seatId);

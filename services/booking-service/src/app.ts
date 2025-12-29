@@ -13,8 +13,9 @@ import { userContextMiddleware } from "./middleware/userContextMiddleware.js";
 import BookingStatsController from "./controllers/BookingStatsController.js";
 import BookingController from "./controllers/BookingController.js";
 import {startUnifiedEventConsumer} from "./consumer/UnifiedEventConsumer.js";
-import { createBookingService, redisClient} from './shared/instances.js';
+import { createBookingService, redisClient, bookingProducer} from './shared/instances.js';
 import { setupSwagger } from "./config/swagger.js";
+import { initRabbit } from "./messaging/RabbitClient.js";
 
 const app = express();
 const server = createServer(app);
@@ -57,8 +58,8 @@ export const bootstrap = async () => {
   try {
     // Initialize database
     await initializeDatabase();
-    initializeRedisLogging(); 
-
+    await initializeRedisLogging(); 
+    await initRabbit();
     // Start your unified event consumer
     const bookingService = createBookingService();
     await startUnifiedEventConsumer(bookingService);

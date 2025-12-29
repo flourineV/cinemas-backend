@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, JoinColumn } from 'typeorm';
 import type {Relation} from "typeorm";
 import { Booking } from './Booking.js';
 
@@ -7,7 +7,7 @@ export class BookingSeat {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'uuid', nullable: false })
+  @Column({ name:'seat_id',type: 'uuid', nullable: false })
   seatId!: string;
 
   @Column({ name: 'seat_number', length: 10, nullable: true })
@@ -26,5 +26,6 @@ export class BookingSeat {
   createdAt!: Date;
 
   @ManyToOne(() => Booking, (booking) => booking.seats, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'booking_id' }) // 👈 explicit FK column name
   booking!: Relation<Booking>;
 }

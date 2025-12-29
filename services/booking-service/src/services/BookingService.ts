@@ -43,10 +43,12 @@ import {UserProfileClient} from '../client/UserProfileClient.js';
 import { BookingProducer } from '../producer/BookingProducer.js';
 import { SeatLockRedisService } from './SeatLockRedisService.js';
 import { BookingMapper } from '../mapper/BookingMapper.js';
+import type { BookingSeatResponse } from '../dto/response/BookingSeatResponse.js';
 import {BookingException} from '../exception/BookingException.js';
 import {BookingNotFoundException} from '../exception/BookingNotFoundException.js';
 import { logger } from '../shared/instances.js';
 import { v4 as uuidv4 } from "uuid";
+import { stringify } from 'node:querystring';
 
 export class BookingService {
   constructor(
@@ -68,39 +70,52 @@ export class BookingService {
   }
 
   logger.info(
-    `Creating booking: showtime=${request.showtimeId}, seats=${request.selectedSeats.length}, user=${request.userId}, guest=${request.guestSessionId}`
+    `Creating booking: showtime=${request.showtimeId}, seats=${request.selectedSeats.length}, user=${request.userId}, `
   );
-
+  //guest=${request.guestSessionId}
   return this.dataSource.transaction(async (manager) => {
     const bookingRepository = manager.getRepository(Booking);
     const bookingSeatRepository = manager.getRepository(BookingSeat);
+
+    const seatIds = request.selectedSeats.map(s => s.seatId);
+    // ======== 0. LOCK SEAT 
+    const lockSuccess = await this.seatLockRedisService.lockSeats(
+      request.showtimeId,
+      seatIds,
+      request.userId,
+    );
+    if (!lockSuccess) throw new BookingException('Some seats are already locked by another user');
 
     // ======== 1. VALIDATE SHOWTIME ========
     const showtime = await this.showtimeClient.getShowtimeById(request.showtimeId);
     if (!showtime) throw new BookingException('Showtime not found');
     if (showtime.status === 'SUSPENDED') throw new BookingException('This showtime has been suspended');
-    if (new Date(showtime.startTime) < new Date()) throw new BookingException('Cannot book a showtime that has already started');
+    if (new Date(showtime.startTime) < new Date()) throw new BookingException(`Cannot book a showtime that has already started (${showtime.startTime})`);
 
     // ======== 2. VALIDATE OWNERSHIP ========
-    if (!request.userId && !request.guestSessionId)
-      throw new BookingException('Either userId or guestSessionId must be provided');
-    if (request.userId && request.guestSessionId)
-      throw new BookingException('Cannot provide both userId and guestSessionId');
+    // if (!request.userId && !request.guestSessionId)
+    //   throw new BookingException('Either userId or guestSessionId must be provided');
+    if (!request.userId) // && request.guestSessionId
+      throw new BookingException('Cannot provide both userId '); //and guestSessionId
 
-    const seatIds = request.selectedSeats.map(s => s.seatId);
+    // const ownsSeats = request.guestSessionId
+    //   ? await this.seatLockRedisService.validateGuestSessionOwnsSeats(request.showtimeId, seatIds, request.guestSessionId)
+    //   : await this.seatLockRedisService.validateUserOwnsSeats(request.showtimeId, seatIds, request.userId!);
 
-    const ownsSeats = request.guestSessionId
-      ? await this.seatLockRedisService.validateGuestSessionOwnsSeats(request.showtimeId, seatIds, request.guestSessionId)
-      : await this.seatLockRedisService.validateUserOwnsSeats(request.showtimeId, seatIds, request.userId!);
+    const ownsSeats = await this.seatLockRedisService.validateUserOwnsSeats(request.showtimeId, seatIds, request.userId!);
 
-    if (!ownsSeats) {
-      throw new BookingException(request.guestSessionId
-        ? 'Guest session does not own the selected seats'
-        : 'User does not own the selected seats');
+    // if (!ownsSeats) {
+    //   throw new BookingException(request.guestSessionId
+    //     ? 'Guest session does not own the selected seats'
+    //     : 'User does not own the selected seats');
+    // }
+
+    if (!ownsSeats){
+      throw new BookingException('User does not own the selected seats');
     }
 
     // ======== 3. SNAPSHOT DATA ========
-    const movie = await this.movieClient.getMovieTitleById(showtime.movieId);
+    const movie = await this.movieClient.getMovieTitle(showtime.movieId);
     const seatId = request.selectedSeats[0]?.seatId;
     if(!seatId){
       throw new BookingException('At least one seat must be selected');
@@ -109,36 +124,19 @@ export class BookingService {
       ? await this.showtimeClient.getSeatInfoById(seatId)
       : undefined;
 
-    // Construct booking object
-    const bookingData: DeepPartial<Booking> = {
-      userId: request.userId,
-      showtimeId: request.showtimeId,
-      movieId: showtime.movieId,
-      movieTitle: movie?.title,
-      movieTitleEn: movie?.titleEn,
-      theaterName: showtime.theaterName,
-      theaterNameEn: showtime.theaterNameEn,
-      roomName: seatInfo?.roomName,
-      roomNameEn: seatInfo?.roomNameEn,
-      showDateTime: new Date(showtime.startTime),
-      status: BookingStatus.PENDING,
-      totalPrice: "0",
-      discountAmount: "0",
-      finalPrice: "0",
-      guestName: request.guestName,
-      guestEmail: request.guestEmail,
-    } as DeepPartial<Booking>;
-
-    const booking = bookingRepository.create(bookingData);
-
+    
     // ======== 4. CREATE SEATS ========
     const seats: BookingSeat[] = [];
     let totalSeatPrice = new BigNumber(0);
 
     for (const seatDetail of request.selectedSeats) {
       const seatPrice = await this.pricingClient.getSeatPrice(seatDetail.seatType, seatDetail.ticketType);
+      
       if (!seatPrice || !seatPrice.basePrice) throw new BookingException(`Cannot get price for seat: ${seatDetail.seatId}`);
-
+      const tmpprice = new BigNumber(seatPrice.basePrice);
+      if (tmpprice.lte(0)) {
+          throw new BookingException(`Invalid seat price: ${seatPrice.basePrice}`);
+      }
       const seatInfo = await this.showtimeClient.getSeatInfoById(seatDetail.seatId);
       const price = new BigNumber(seatPrice.basePrice);
       totalSeatPrice = totalSeatPrice.plus(price);
@@ -149,16 +147,55 @@ export class BookingService {
         seatType: seatDetail.seatType,
         ticketType: seatDetail.ticketType,
         price: price.toString(),
-        booking: booking,
       });
       seats.push(bookingSeat);
     }
-
-    booking.seats = seats;
-    booking.totalPrice = totalSeatPrice.toString();
-    booking.finalPrice = totalSeatPrice.toString();
-
-    const savedBooking = await bookingRepository.save(booking);
+    // Construct booking object
+    const savedBooking = await bookingRepository.save({
+      userId: request.userId,
+      showtimeId: request.showtimeId,
+      status: BookingStatus.PENDING,
+      finalPrice: totalSeatPrice.toString(),
+      discountAmount: "0",
+      totalPrice: totalSeatPrice.toString(),
+      movieId: showtime.movieId,
+      movieTitle: movie?.title ?? '',
+      movieTitleEn: movie?.titleEn ?? '',
+      theaterName: showtime.theaterName ?? '',
+      theaterNameEn: showtime.theaterNameEn ?? '',
+      roomName: seatInfo?.roomName ?? '',
+      roomNameEn: seatInfo?.roomNameEn ?? '',
+      showDateTime: showtime.startTime,
+      seats: seats
+    });
+    await bookingSeatRepository.save(seats);
+    
+    const bookingSeatResponses: BookingSeatResponse[] = seats.map((seat) => ({
+      seatId: seat.seatId,
+      ...(seat.seatNumber && { seatNumber: seat.seatNumber }), // only include if defined
+      seatType: seat.seatType,
+      ticketType: seat.ticketType,
+      price: seat.price.toString(), // ensure string
+  }));
+    const bookingResponse: BookingResponse= {
+      bookingId: savedBooking.id,
+      bookingCode: savedBooking.bookingCode,
+      userId: savedBooking.userId ?? '',
+      showtimeId: savedBooking.showtimeId,
+      status: BookingStatus.PENDING,
+      finalPrice: savedBooking.finalPrice,
+      discountAmount: savedBooking.discountAmount,
+      totalPrice: savedBooking.totalPrice,
+      movieId: showtime.movieId,
+      movieTitle: movie?.title ?? '',
+      movieTitleEn: movie?.titleEn ?? '',
+      theaterName: showtime.theaterName ?? '',
+      theaterNameEn: showtime.theaterNameEn ?? '',
+      roomName: seatInfo?.roomName ?? '',
+      roomNameEn: seatInfo?.roomNameEn ?? '',
+      showDateTime: showtime.startTime,
+      seats: bookingSeatResponses,
+    };
 
     logger.info(
       `Booking created: ${savedBooking.id} | total=${totalSeatPrice.toString()} | seats=${seats.length}`
@@ -168,23 +205,23 @@ export class BookingService {
     await this.bookingProducer.sendBookingCreatedEvent({
       bookingId: savedBooking.id,
       userId: savedBooking.userId ?? '',
-      guestName: savedBooking.guestName ?? '',
-      guestEmail: savedBooking.guestEmail?? '',
+      // guestName: savedBooking.guestName ?? '',
+      // guestEmail: savedBooking.guestEmail?? '',
       showtimeId: savedBooking.showtimeId,
-      seatIds,
+      seatIds: seatIds,
       totalPrice: savedBooking.totalPrice
     });
 
     await this.bookingProducer.sendBookingSeatMappedEvent({
       bookingId: savedBooking.id,
       showtimeId: savedBooking.showtimeId,
-      seatIds,
+      seatIds: seatIds,
       userId: savedBooking.userId ?? '',
-      guestName: savedBooking.guestName ?? '',
-      guestEmail: savedBooking.guestEmail ?? ''
+      // guestName: savedBooking.guestName ?? '',
+      // guestEmail: savedBooking.guestEmail ?? ''
     });
 
-    return BookingMapper.toBookingResponse(savedBooking);
+    return bookingResponse;
   });
 }
 
@@ -825,7 +862,8 @@ export class BookingService {
       );
     }
 
-    const movie = await this.movieClient.getMovieTitleById(showtime.movieId);
+    const movie = await this.movieClient.getMovieTitle(showtime.movieId);
+
     if (!movie) {
       throw new BookingException(
         `Không thể lấy thông tin phim cho booking ${booking.id}`
@@ -897,8 +935,8 @@ export class BookingService {
         bookingId: booking.id,
         bookingCode: booking.bookingCode,
         userId: booking.userId,
-        guestName: booking.guestName,
-        guestEmail: booking.guestEmail,
+        // guestName: booking.guestName,
+        // guestEmail: booking.guestEmail,
         movieTitle: movie.title,
         cinemaName: showtime.theaterName,
         roomName: roomName,
@@ -1141,8 +1179,8 @@ export class BookingService {
           {
             bookingId: booking.id,
             userId: booking.userId ?? uuidv4(),
-            guestName: booking.guestName ?? "",
-            guestEmail: booking.guestEmail ?? "",
+            // guestName: booking.guestName ?? "",
+            // guestEmail: booking.guestEmail ?? "",
             showtimeId: booking.showtimeId,
             refundedValue: refundValue,
             refundMethod: refundMethod,

@@ -125,10 +125,10 @@ const options: swaggerJsdoc.Options = {
         },
         SeatLockRequest: {
           type: "object",
-          required: ["userId", "guestSessionId", "showtimeId", "selectedSeats"],
+          required: ["userId",  "showtimeId", "selectedSeats"], //"guestSessionId",
           properties: {
             userId: { type: "string" },
-            guestSessionId: { type: "string" },
+            //guestSessionId: { type: "string" },
             showtimeId: { type: "string", format: "uuid" },
             selectedSeats: {
               type: "array",
@@ -138,10 +138,10 @@ const options: swaggerJsdoc.Options = {
         },
         SingleSeatLockRequest: {
           type: "object",
-          required: ["userId", "guestSessionId", "showtimeId", "selectedSeat"],
+          required: ["userId",  "showtimeId", "selectedSeat"], //"guestSessionId",
           properties: {
             userId: { type: "string" },
-            guestSessionId: { type: "string" },
+            //guestSessionId: { type: "string" },
             showtimeId: { type: "string", format: "uuid" },
             selectedSeat: {
               $ref: "#/components/schemas/SeatSelectionDetail",
@@ -150,7 +150,7 @@ const options: swaggerJsdoc.Options = {
         },
         ExtendLockRequest: {
           type: "object",
-          required: ["showtimeId", "seatIds", "userId", "guestSessionId"],
+          required: ["showtimeId", "seatIds", "userId"], //, "guestSessionId"
           properties: {
             showtimeId: { type: "string", format: "uuid" },
             seatIds: {
@@ -158,7 +158,7 @@ const options: swaggerJsdoc.Options = {
               items: { type: "string", format: "uuid" },
             },
             userId: { type: "string" },
-            guestSessionId: { type: "string" },
+            //guestSessionId: { type: "string" },
           },
         },
         SeatReleaseRequest: {

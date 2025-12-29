@@ -8,8 +8,9 @@ let channel: AmqpChannel | null = null;
  * Initialize RabbitMQ connection and channel.
  * Call once at application startup.
  */
-export async function initRabbit(url: string) {
-    connection = await connect(process.env.RABBIT_URL || "amqp://localhost");
+const RABBIT_URL = process.env.RABBIT_URL || "amqp://localhost";
+export async function initRabbit(url: string = RABBIT_URL) {
+    connection = await connect(url);
     channel = await connection.createChannel();
   // optional: confirm channel if you want publisher confirms
   // channel = await connection.createConfirmChannel();
@@ -38,7 +39,7 @@ export async function publish(exchange: string, routingKey: string, payload: unk
   }
 
   // Ensure exchange exists (topic type to allow routing keys)
-  await channel.assertExchange(exchange, 'topic', { durable: true });
+  await channel.assertExchange(exchange, 'direct', { durable: true });
 
   const buffer = Buffer.from(JSON.stringify(payload));
   const published = channel.publish(exchange, routingKey, buffer, {

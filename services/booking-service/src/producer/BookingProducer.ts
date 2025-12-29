@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { RabbitConfig } from '../config/RabbitConfig.js';
 import { publish } from '../messaging/RabbitClient.js';
-
+import amqp from "amqplib";
 import type { BookingCreatedEvent } from '../events/booking/BookingCreatedEvent.js';
 import type { BookingFinalizedEvent } from '../events/booking/BookingFinalizedEvent.js';
 import type { BookingStatusUpdatedEvent } from '../events/booking/BookingStatusUpdatedEvent.js';
@@ -40,7 +40,6 @@ export class BookingProducer {
 
     await publish(EXCHANGE, ROUTING_KEY, msg);
   }
-
   async sendBookingStatusUpdatedEvent(data: BookingStatusUpdatedEvent) {
     const EXCHANGE = RabbitConfig.BOOKING_EXCHANGE;
 

@@ -1,8 +1,8 @@
 export interface BookingRefundedEvent {
   bookingId: string;       
   userId?: string;         // nullable
-  guestName?: string;
-  guestEmail?: string;
+  // guestName?: string;
+  // guestEmail?: string;
   showtimeId?: string;
   refundedValue: number;   
   refundMethod: string;    // "VOUCHER" | "COUNTER"

@@ -40,9 +40,9 @@ export class NotificationService {
         console.error("Error fetching user profile:", err);
         return;
       }
-    } else {
-      userEmail = event.guestEmail ?? undefined;
-      userName = event.guestName ?? undefined;
+    // } else {
+    //   userEmail = event.guestEmail ?? undefined;
+    //   userName = event.guestName ?? undefined;
     }
 
     if (!userEmail) {
@@ -113,10 +113,10 @@ export class NotificationService {
         console.error("Error fetching user profile:", err);
         return;
       }
-    } else {
-      userEmail = event.guestEmail ?? undefined;
-      userName = event.guestName ?? undefined;
-    }
+    } //else {
+    //   userEmail = event.guestEmail ?? undefined;
+    //   userName = event.guestName ?? undefined;
+    // }
 
     if (!userEmail) {
       console.warn(`No email to send booking ticket notification for booking ${event.bookingId}`);

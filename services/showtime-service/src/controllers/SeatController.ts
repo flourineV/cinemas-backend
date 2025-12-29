@@ -57,33 +57,6 @@ router.get("/", async (req: Request, res: Response) => {
 });
 /**
  * @swagger
- * /api/showtimes/seats/{id}:
- *   get:
- *     summary: Get seat by ID
- *     tags: [Seats]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     responses:
- *       200:
- *         description: Seat details
- *       404:
- *         description: Seat not found
- */
-router.get("/:id", async (req: Request, res: Response) => {
-    const id = req.params.id;
-    if(!id){
-        return res.status(400).json({ error: "Missing id parameter" });
-    }
-    const response: SeatResponse = await seatService.getSeatById(id);
-    return res.json(response);
-});
-/**
- * @swagger
  * /api/showtimes/seats/room/{roomId}:
  *   get:
  *     summary: Get seats by room ID
@@ -107,6 +80,35 @@ router.get("/room/:roomId", async (req: Request, res: Response) => {
     const responses: SeatResponse[] = await seatService.getSeatsByRoomId(roomId);
     return res.json(responses);
 });
+/**
+ * @swagger
+ * /api/showtimes/seats/{id}:
+ *   get:
+ *     summary: Get seat by ID
+ *     tags: [Seats]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Seat details
+ *       404:
+ *         description: Seat not found
+ */
+
+router.get("/:id", async (req: Request, res: Response) => {
+    const id = req.params.id;
+    if(!id){
+        return res.status(400).json({ error: "Missing id parameter" });
+    }
+    const response: SeatResponse = await seatService.getSeatById(id);
+    return res.json(response);
+});
+
 
 /**
  * @swagger

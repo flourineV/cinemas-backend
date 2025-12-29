@@ -38,6 +38,14 @@ export class ShowtimeClient {
       endTime: null,
       price: "0",
     }));
+    this.getShowtimeBreaker.on('fallback', (result, args) => {
+      const showtimeId = Array.isArray(args) ? args[0] : 'unknown';
+      console.warn('Circuit breaker fallback triggered for showtimeId:', showtimeId);
+    });
+    this.getShowtimeBreaker.on('failure', (error, args) => {
+      const showtimeId = Array.isArray(args) ? args[0] : 'unknown';
+      console.error('Circuit breaker failure for showtimeId:', showtimeId, error.message);
+    });
 
     this.getSeatBreaker = new CircuitBreaker(this._getSeatInfoById.bind(this), options);
     this.getSeatBreaker.fallback((seatId: string) => ({
@@ -70,7 +78,7 @@ export class ShowtimeClient {
 
   // Private helpers
   private async _getShowtimeById(showtimeId: string): Promise<ShowtimeResponse> {
-    const res = await this.client.get<ShowtimeResponse>(`/api/showtimes/${showtimeId}`);
+    const res = await this.client.get<ShowtimeResponse>(`/api/showtimes/showtimes/${showtimeId}`);
     return res.data;
   }
 
@@ -92,7 +100,7 @@ export class ShowtimeClient {
     if (startOfDay) params["startOfDay"] = startOfDay;
     if (endOfDay) params["endOfDay"] = endOfDay;
 
-    const res = await this.client.get<PagedResponse<ShowtimeDetailResponse>>("/api/showtimes/admin/search", {
+    const res = await this.client.get<PagedResponse<ShowtimeDetailResponse>>("/api/showtimes/showtimes/admin/search", {
       params,
     });
     return res.data.data;

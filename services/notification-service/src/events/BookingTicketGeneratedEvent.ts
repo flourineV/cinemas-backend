@@ -6,8 +6,8 @@ export interface BookingTicketGeneratedEvent {
   bookingId: string;
   bookingCode: string;
   userId?: string;
-  guestName?: string;
-  guestEmail?: string;
+  // guestName?: string;
+  // guestEmail?: string;
   movieTitle: string;
   cinemaName: string;
   roomName: string;
