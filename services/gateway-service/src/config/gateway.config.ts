@@ -68,13 +68,8 @@ export const gatewayConfig: GatewayConfig = {
       id: "review-service",
       path: "/api/reviews",
       target: servicesConfig.review.baseUrl,
-      requireAuth: false, // Người làm review service sẽ config lại nếu cần
-    },
-    {
-      id: "review-service",
-      path: "/api/reviews",
-      target: servicesConfig.review.baseUrl,
-      requireAuth: false, // Người làm review service sẽ config lại nếu cần
+      requireAuth: true,
+      excludePaths: ["/movie/*/average-rating", "/movie/*"],
     },
   ],
 };
