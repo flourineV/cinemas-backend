@@ -48,6 +48,6 @@ export class AuthChecker {
 
   static getRoleOrNull(req: Request): string | null {
     const ctx = (req as any).userContext;
-    return ctx != null ? ctx.getRole() : null;
+    return ctx?.role ? ctx.role.toUpperCase() : null;
   }
 }
