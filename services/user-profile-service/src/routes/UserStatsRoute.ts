@@ -7,6 +7,7 @@ import { AppDataSource } from "../config/database";
 import { ManagerProfileRepository } from "../repositories/ManagerProfileRepository";
 import { UserFavoriteMovieRepository } from "../repositories/UserFavoriteMovieRepository";
 import { BookingClient } from "../client/BookingClient";
+import { JwtMiddleware } from "../middlewares/JwtMiddleware";
 
 const router = Router();
 
@@ -22,8 +23,10 @@ const userStatsController = new UserStatsController(userStatsService);
 // router.get("/overview", (req, res) =>
 //   userStatsController.getOverview(req, res)
 // );
-router.get("/user/:userId", (req, res) =>
-  userStatsController.getUserStats(req, res)
+router.get(
+  "/user/:userId",
+  JwtMiddleware(process.env.APP_JWT_SECRET!),
+  (req, res) => userStatsController.getUserStats(req, res)
 );
 
 export default router;

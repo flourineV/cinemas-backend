@@ -4,6 +4,7 @@ import { LoyaltyHistoryService } from "../services/LoyaltyHistoryService";
 import { LoyaltyHistoryRepository } from "../repositories/LoyaltyHistoryRepository";
 import { AppDataSource } from "../config/database";
 import { UserProfileRepository } from "../repositories/UserProfileRepository";
+import { JwtMiddleware } from "../middlewares/JwtMiddleware";
 
 const router = Router();
 
@@ -16,7 +17,7 @@ const loyaltyHistoryController = new LoyaltyHistoryController(
   loyaltyHistoryService
 );
 
-router.get("/:userId", (req, res) =>
+router.get("/:userId", JwtMiddleware(process.env.APP_JWT_SECRET!), (req, res) =>
   loyaltyHistoryController.getUserLoyaltyHistory(req, res)
 );
 

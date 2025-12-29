@@ -7,7 +7,6 @@ import managerProfileRoute from "./routes/ManagerProfileRoute";
 import userRankRoute from "./routes/UserRankRoute";
 import userFavorriteMovieRoute from "./routes/UserFavoriteMovieRoute";
 import loyalHistoryRoute from "./routes/LoyaltyHistoryRoute";
-import { JwtMiddleware } from "./middlewares/JwtMiddleware";
 
 const app = express();
 
@@ -40,36 +39,12 @@ app.get("/", (req, res) => {
 app.use(express.json());
 
 // Routes
-app.use(
-  "/api/profiles/profiles",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  userProfileRoute
-);
-app.use(
-  "/api/profiles/loyalty-history",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  loyalHistoryRoute
-);
-app.use(
-  "/api/profiles/stats",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  userStatsRoute
-);
-app.use(
-  "/api/profiles/manager",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  managerProfileRoute
-);
-app.use(
-  "/api/profiles/ranks",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  userRankRoute
-);
-app.use(
-  "/api/profiles/favorites",
-  JwtMiddleware(process.env.APP_JWT_SECRET!),
-  userFavorriteMovieRoute
-);
+app.use("/api/profiles/profiles", userProfileRoute);
+app.use("/api/profiles/loyalty-history", loyalHistoryRoute);
+app.use("/api/profiles/stats", userStatsRoute);
+app.use("/api/profiles/manager", managerProfileRoute);
+app.use("/api/profiles/ranks", userRankRoute);
+app.use("/api/profiles/favorites", userFavorriteMovieRoute);
 
 // Error handling middleware
 app.use(errorHandler);

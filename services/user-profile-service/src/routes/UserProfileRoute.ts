@@ -3,6 +3,7 @@ import { UserProfileController } from "../controllers/UserProfileController";
 import { UserProfileService } from "../services/UserProfileService";
 import { PromotionEmailService } from "../services/PromotionEmailService";
 import { InternalAuthChecker } from "../middlewares/InternalAuthChecker";
+import { JwtMiddleware } from "../middlewares/JwtMiddleware";
 import dotenv from "dotenv";
 import { UserProfileRepository } from "../repositories/UserProfileRepository";
 import { ManagerProfileRepository } from "../repositories/ManagerProfileRepository";
@@ -40,37 +41,49 @@ const userProfileController = new UserProfileController(
   promotionEmailService
 );
 
-router.post("/", (req, res) => userProfileController.createProfile(req, res));
-router.get("/:userId", (req, res) =>
+router.post("/", JwtMiddleware(process.env.APP_JWT_SECRET!), (req, res) =>
+  userProfileController.createProfile(req, res)
+);
+router.get("/:userId", JwtMiddleware(process.env.APP_JWT_SECRET!), (req, res) =>
   userProfileController.getProfileByUserId(req, res)
 );
-router.put("/:userId", (req, res) =>
+router.put("/:userId", JwtMiddleware(process.env.APP_JWT_SECRET!), (req, res) =>
   userProfileController.replaceProfile(req, res)
 );
 router.patch("/:userId/loyalty", (req, res) =>
   userProfileController.updateLoyalty(req, res)
 );
-router.delete("/:userId", (req, res) =>
-  userProfileController.deleteProfile(req, res)
+router.delete(
+  "/:userId",
+  JwtMiddleware(process.env.APP_JWT_SECRET!),
+  (req, res) => userProfileController.deleteProfile(req, res)
 );
-router.get("/search", (req, res) =>
+router.get("/search", JwtMiddleware(process.env.APP_JWT_SECRET!), (req, res) =>
   userProfileController.searchProfiles(req, res)
 );
+
 router.get("/:userId/rank", (req, res) =>
   userProfileController.getUserRankAndDiscount(req, res)
 );
+
 router.post("/batch/names", (req, res) =>
   userProfileController.getBatchUserNames(req, res)
 );
+
 router.get("/batch/search-userids", (req, res) =>
   userProfileController.searchUserIdsByUsername(req, res)
 );
-router.patch("/:userId/settings/promo-email", (req, res) =>
-  userProfileController.updatePromoEmailPreference(req, res)
+router.patch(
+  "/:userId/settings/promo-email",
+  JwtMiddleware(process.env.APP_JWT_SECRET!),
+  (req, res) => userProfileController.updatePromoEmailPreference(req, res)
 );
-router.patch("/:userId/status", (req, res) =>
-  userProfileController.updateUserStatus(req, res)
+router.patch(
+  "/:userId/status",
+  JwtMiddleware(process.env.APP_JWT_SECRET!),
+  (req, res) => userProfileController.updateUserStatus(req, res)
 );
+
 router.get("/subscribed-emails", (req, res) =>
   userProfileController.getSubscribedUsersEmails(req, res)
 );

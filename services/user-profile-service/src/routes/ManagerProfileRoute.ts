@@ -9,6 +9,7 @@ import { UserRankService } from "../services/UserRankService";
 import { UserRankRepository } from "../repositories/UserRankRepository";
 import { LoyaltyHistoryService } from "../services/LoyaltyHistoryService";
 import { LoyaltyHistoryRepository } from "../repositories/LoyaltyHistoryRepository";
+import { JwtMiddleware } from "../middlewares/JwtMiddleware";
 
 const router = Router();
 
@@ -34,16 +35,26 @@ const managerService = new ManagerProfileService(
 );
 const managerController = new ManagerProfileController(managerService);
 
-router.post("/", (req, res) => managerController.createManager(req, res));
-router.get("/user/:userProfileId", (req, res) =>
-  managerController.getManagerByUser(req, res)
+router.post("/", JwtMiddleware(process.env.APP_JWT_SECRET!), (req, res) =>
+  managerController.createManager(req, res)
 );
-router.get("/", (req, res) => managerController.getAllManagers(req, res));
-router.get("/cinema/:cinemaName", (req, res) =>
-  managerController.getManagersByCinema(req, res)
+router.get(
+  "/user/:userProfileId",
+  JwtMiddleware(process.env.APP_JWT_SECRET!),
+  (req, res) => managerController.getManagerByUser(req, res)
 );
-router.delete("/:managerId", (req, res) =>
-  managerController.deleteManager(req, res)
+router.get("/", JwtMiddleware(process.env.APP_JWT_SECRET!), (req, res) =>
+  managerController.getAllManagers(req, res)
+);
+router.get(
+  "/cinema/:cinemaName",
+  JwtMiddleware(process.env.APP_JWT_SECRET!),
+  (req, res) => managerController.getManagersByCinema(req, res)
+);
+router.delete(
+  "/:managerId",
+  JwtMiddleware(process.env.APP_JWT_SECRET!),
+  (req, res) => managerController.deleteManager(req, res)
 );
 
 export default router;
