@@ -267,9 +267,9 @@ export class PromotionService {
     promo.startDate = request.startDate;
     promo.endDate = request.endDate;
     promo.isActive = request.isActive;
-    promo.usageTimeRestriction = request.usageTimeRestriction;
-    promo.allowedDaysOfWeek = request.allowedDaysOfWeek;
-    promo.allowedDaysOfMonth = request.allowedDaysOfMonth;
+    promo.usageTimeRestriction = request.usageTimeRestriction!;
+    promo.allowedDaysOfWeek = request.allowedDaysOfWeek!;
+    promo.allowedDaysOfMonth = request.allowedDaysOfMonth!;
     promo.description = request.description;
     promo.promoDisplayUrl = request.promoDisplayUrl;
     return promo;
@@ -285,9 +285,9 @@ export class PromotionService {
       promotion.startDate,
       promotion.endDate,
       promotion.isActive,
-      promotion.usageTimeRestriction,
-      promotion.allowedDaysOfWeek,
-      promotion.allowedDaysOfMonth,
+      promotion.usageTimeRestriction!,
+      promotion.allowedDaysOfWeek!,
+      promotion.allowedDaysOfMonth!,
       promotion.description,
       promotion.promoDisplayUrl
     );

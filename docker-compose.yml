@@ -9,7 +9,7 @@ services:
       - "http://gateway-service:8099"
       - "--log=stdout"
     environment:
-      NGROK_AUTHTOKEN: 365u8mCUElFNPD3HFEUvHz4I8EB_hYFuFgqXxatigezE31L2
+      NGROK_AUTHTOKEN: 37TvRfv1tg5ZYii1JHfVFYb6lrt_AqQLsts8dxTGkyBcT3tp
     ports:
       - "4040:4040" # Ngrok web interface
     networks:

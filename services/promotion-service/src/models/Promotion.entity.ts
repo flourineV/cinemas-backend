@@ -72,7 +72,7 @@ export class Promotion {
     default: UsageTimeRestriction.NONE,
     nullable: true,
   })
-  usageTimeRestriction: UsageTimeRestriction;
+  usageTimeRestriction?: UsageTimeRestriction;
 
   @Column({
     name: "allowed_days_of_week",
@@ -80,7 +80,7 @@ export class Promotion {
     length: 50,
     nullable: true,
   })
-  allowedDaysOfWeek: string;
+  allowedDaysOfWeek?: string;
 
   @Column({
     name: "allowed_days_of_month",
@@ -88,7 +88,7 @@ export class Promotion {
     length: 100,
     nullable: true,
   })
-  allowedDaysOfMonth: string;
+  allowedDaysOfMonth?: string;
 
   @Column({ name: "description", type: "varchar", length: 500, nullable: true })
   description: string;
