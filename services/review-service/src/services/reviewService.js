@@ -42,58 +42,55 @@ async function hasUserBookedMovie(movieId, userId) {
 }
 
 // validate rating 1–5 sao
-function validateRating(rating) {
-  if (typeof rating !== "number") {
-    throw new Error("rating phải là number");
-  }
-  if (rating < 1 || rating > 5) {
-    throw new Error("rating phải từ 1 đến 5");
-  }
+function validateRating(r) {
+  const n = Number(r);
+  if (!Number.isFinite(n)) throw new Error("rating phải là number");
+  if (n < 1 || n > 5) throw new Error("rating phải từ 1 đến 5");
+  return n;
 }
 
 async function createReview(body) {
   const { movieId, userId, fullName, avatarUrl, rating, comment } = body;
 
-  validateRating(rating);
+  // chỉ coi là có rating nếu Number(rating) là số hữu hạn
+  const ratingNum = Number(rating);
+  const hasRating = Number.isFinite(ratingNum);
+
+  const ratingValue = hasRating ? validateRating(ratingNum) : null;
 
   const allowed = await hasUserBookedMovie(movieId, userId);
-  if (!allowed) {
-    throw new Error("User chưa xem phim này, không thể review!");
-  }
+  if (!allowed) throw new Error("User chưa xem phim này, không thể review!");
 
-  const review = await reviewModel.createReview({
+  return await reviewModel.createReview({
     movieId,
     userId,
     fullName,
     avatarUrl,
-    rating,
+    rating: ratingValue,
     comment,
   });
-
-  return review;
 }
 
 async function updateReview(id, body) {
   const existing = await reviewModel.findById(id);
-  if (!existing) {
-    throw new Error("Review not found");
-  }
-  // CHẶN: chỉ owner mới sửa được
-  if (String(existing.userId) !== String(body.userId)) {
+  if (!existing) throw new Error("Review not found");
+
+  const ratingValue =
+    body.rating === undefined || body.rating === null || body.rating === ""
+      ? existing.rating
+      : validateRating(body.rating);
+
+  if (String(existing.userId) !== String(body.userId))
     throw new Error("Forbidden");
-  }
+
   const allowed = await hasUserBookedMovie(existing.movieId, existing.userId);
-  if (!allowed) {
+  if (!allowed)
     throw new Error("User chưa xem phim này, không thể sửa review!");
-  }
 
-  validateRating(body.rating);
-
-  const updated = await reviewModel.updateReview(id, {
-    rating: body.rating,
+  return await reviewModel.updateReview(id, {
+    rating: ratingValue,
     comment: body.comment,
   });
-  return updated;
 }
 
 async function deleteReview(id) {
@@ -129,7 +126,7 @@ async function upsertRating(movieId, body, userIdFromAuth) {
   const userId = userIdFromAuth || body.userId;
   const { fullName, avatarUrl, rating } = body;
 
-  validateRating(rating);
+  const ratingValue = validateRating(rating);
 
   const allowed = await hasUserBookedMovie(movieId, userId);
   if (!allowed) {
@@ -141,7 +138,7 @@ async function upsertRating(movieId, body, userIdFromAuth) {
     userId,
     fullName,
     avatarUrl,
-    rating,
+    rating: ratingValue,
   });
 
   return {
