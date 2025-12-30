@@ -3,6 +3,9 @@ import type { Transporter } from "nodemailer"
 import path from "path";
 import fs from "fs";
 import handlebars from "handlebars";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import { PromotionEmailData } from "../dto/email/PromotionEmailData.js";
 import type { SeatDetail } from "../dto/external/SeatDetail.js";
 import type { FnbDetail } from "../dto/external/FnbDetail.js";
@@ -27,6 +30,7 @@ export class EmailService {
 
     private renderTemplate(templateName: string, context: any): string {
         const filePath = path.join(__dirname, "..", "templates", `${templateName}.hbs`);
+        path.join(__dirname, "..", "templates", "mail", "LogoFullfinal.png")
         const source = fs.readFileSync(filePath, "utf8");
         const template = handlebars.compile(source);
         return template(context);

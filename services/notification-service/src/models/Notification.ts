@@ -24,15 +24,6 @@ export class Notification {
     @Column({ type: "text", nullable: false })
     message!: string;
 
-    @Column({ name: 'booking_id', type: "uuid", nullable: true })
-    bookingId?: string;
-
-    @Column({ name: 'payment_id', type: "uuid", nullable: true })
-    paymentId?: string;
-
-    @Column({ type: "decimal", nullable: true })
-    amount?: number;
-
     @Column({
         type: "enum",
         enum: NotificationType,
@@ -45,4 +36,7 @@ export class Notification {
 
     @CreateDateColumn({ name: "created_at", type: "timestamp with time zone" })
     createdAt!: Date;
+
+    @Column()
+    language: string;
 }

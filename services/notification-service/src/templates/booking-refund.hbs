@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <h3>Xin chào <span th:text="${userName}">User</span>,</h3>
+    <p>
+      Chúng tôi rất tiếc phải thông báo đơn hàng vé xem phim
+      <b>#<span th:text="${bookingId}"></span></b> của bạn đã bị hủy.
+    </p>
+    <p>Lý do: <b th:text="${reason}"></b></p>
+
+    <div th:if="${isVoucher}">
+      <p>
+        Số tiền
+        <b
+          ><span
+            th:text="${#numbers.formatDecimal(refundAmount, 0, 'COMMA', 0, 'POINT')}"
+          ></span>
+          VNĐ</b
+        >
+        đã được hoàn lại vào Ví Voucher của bạn.
+      </p>
+      <p>Bạn có thể sử dụng voucher này cho lần đặt vé tiếp theo.</p>
+    </div>
+
+    <div th:if="${isCounter}">
+      <p>
+        Vui lòng mang mã đặt vé hoặc email này đến quầy vé rạp CineHub gần nhất
+        để nhận lại tiền mặt:
+        <b
+          ><span
+            th:text="${#numbers.formatDecimal(refundAmount, 0, 'COMMA', 0, 'POINT')}"
+          ></span>
+          VNĐ</b
+        >.
+      </p>
+    </div>
+
+    <p>CineHub xin lỗi vì sự bất tiện này.</p>
+  </body>
+</html>

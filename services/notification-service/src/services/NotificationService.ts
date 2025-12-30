@@ -61,13 +61,11 @@ export class NotificationService {
       try {
         await this.createNotification(
           event.userId,
-          event.bookingId,
-          null,
-          event.refundedValue,
           title,
           message,
           NotificationType.BOOKING_REFUNDED,
           language,
+          //event.refundedValue,
           { reason: event.reason, method: event.refundMethod }
         );
       } catch (err) {
@@ -205,9 +203,9 @@ export class NotificationService {
   // ----------------- Create notification helper -----------------
   async createNotification(
     userId: string,
-    bookingId: string | null,
-    paymentId: string | null,
-    amount: number | null,
+    // bookingId: string | null,
+    // paymentId: string | null,
+    // amount: number | null,
     title: string | null,
     message: string,
     type: NotificationType,
@@ -222,9 +220,9 @@ export class NotificationService {
 
     const notification = this.notificationRepo.create({
       userId,
-      bookingId,
-      paymentId,
-      amount,
+      // bookingId,
+      // paymentId,
+      // amount,
       title: finalTitle,
       message,
       type,
@@ -252,14 +250,12 @@ export class NotificationService {
     return {
       id: n.id,
       userId: n.userId,
-      ...(n.bookingId && { bookingId: n.bookingId }),
-      ...(n.paymentId && { paymentId: n.paymentId }),
-      ...(n.amount !== undefined && { amount: n.amount }),
       title: n.title,
       message: n.message,
       type: n.type,
       ...(n.metadata && { metadata: JSON.stringify(n.metadata) }),
-      createdAt: n.createdAt
+      createdAt: n.createdAt,
+      language: n.language
     };
   }
 

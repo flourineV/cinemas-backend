@@ -2,18 +2,15 @@ import { NotificationType } from "../../models/NotificationType.js";
 
 export interface NotificationResponse {
   id: string;            
-  userId: string;        
-  bookingId?: string;    
-  paymentId?: string;    
-  amount?: number;       
+  userId: string;             
 
   title: string;
   message?: string;
-  language?: string;     
   type: NotificationType;
 
   // Metadata được serialize thành JSON string
   metadata?: string;
 
   createdAt: Date;     
+  language: string;
 }

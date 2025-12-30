@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CineHub - Vé xem phim của bạn</title>
+  </head>
+  <body
+    style="
+      font-family: 'Segoe UI', 'Roboto', 'Open Sans', 'Helvetica Neue', Arial,
+        sans-serif;
+      background-color: #f8f8f8;
+      margin: 0;
+      padding: 0;
+    "
+  >
+    <div
+      style="
+        max-width: 720px;
+        margin: 30px auto;
+        background: #edd9f8;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+      "
+    >
+      <!-- Header -->
+      <table
+        width="100%"
+        cellpadding="0"
+        cellspacing="0"
+        style="background: #edd9f8; padding: 20px 30px"
+      >
+        <tr>
+          <td style="vertical-align: middle">
+            <h1 style="color: #3c1d99; font-size: 24px; margin: 0">
+              <span style="color: #3c1d99; font-size: 30px">CINEHUB</span>
+            </h1>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Info section -->
+      <div style="padding: 10px 30px">
+        <p style="font-size: 20px; margin-top: -20px; color: #240138">
+          XÁC NHẬN ĐẶT VÉ THÀNH CÔNG 🎉
+        </p>
+        <h2 style="color: #3c1d99; margin: 25px 0" th:text="${bookingCode}">
+          Mã vé: 1324141234
+        </h2>
+
+        <table style="width: 100%; font-size: 14px; border-collapse: collapse">
+          <tr>
+            <td><b>Phim chiếu:</b></td>
+            <td th:text="${movieTitle}">MOVIE TITLE</td>
+          </tr>
+          <tr>
+            <td><b>Suất chiếu:</b></td>
+            <td th:text="${showDateTime}">15/02/2025 20:45</td>
+          </tr>
+          <tr>
+            <td><b>Phòng chiếu:</b></td>
+            <td th:text="${roomName}">02</td>
+          </tr>
+          <tr>
+            <td><b>Rạp:</b></td>
+            <td th:text="${cinemaName}">CineHub Bình Dương</td>
+          </tr>
+          <tr>
+            <td><b>Thanh toán:</b></td>
+            <td th:text="${paymentMethod}">ZaloPay</td>
+          </tr>
+        </table>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px dashed #ccc" />
+
+        <table
+          style="
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            margin-top: 10px;
+          "
+        >
+          <thead>
+            <tr style="background: #3c1d99; color: white">
+              <th style="padding: 8px; text-align: left; width: 6%">STT</th>
+              <th style="padding: 8px; text-align: center; width: 22%">
+                Số ghế
+              </th>
+              <th style="padding: 8px; text-align: center; width: 22%">
+                Loại ghế
+              </th>
+              <th style="padding: 8px; text-align: center; width: 22%">
+                Loại vé
+              </th>
+              <th style="padding: 8px; text-align: center; width: 28%">
+                Thành tiền (VNĐ)
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              th:each="s, iter : ${seats}"
+              th:style="${iter.index % 2 == 0} ? 'background-color:#faf7ff;' : ''"
+            >
+              <td
+                th:text="${iter.index + 1}"
+                style="padding: 8px; text-align: left; width: 6%"
+              >
+                1
+              </td>
+              <td
+                th:text="${s.seatName()}"
+                style="padding: 8px; text-align: center; width: 22%"
+              >
+                G10
+              </td>
+              <td
+                th:text="${s.seatType()}"
+                style="padding: 8px; text-align: center; width: 22%"
+              >
+                NORMAL
+              </td>
+              <td
+                th:text="${s.ticketType()}"
+                style="padding: 8px; text-align: center; width: 22%"
+              >
+                ADULT
+              </td>
+              <td
+                th:text="${#numbers.formatDecimal(s.price(), 0, 'POINT', 0, 'NONE')}"
+                style="padding: 8px; text-align: center"
+              >
+                45000
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- FnB section -->
+        <div
+          th:if="${fnbs != null and !fnbs.isEmpty()}"
+          style="margin-top: 25px"
+        >
+          <table
+            style="width: 100%; border-collapse: collapse; font-size: 14px"
+          >
+            <thead>
+              <tr style="background: #3c1d99; color: white">
+                <th style="padding: 8px; text-align: left; width: 7%">STT</th>
+                <th style="padding: 8px; text-align: center; width: 42%">
+                  Sản phẩm
+                </th>
+                <th style="padding: 8px; text-align: center; width: 22%">
+                  Số lượng
+                </th>
+                <th style="padding: 8px; text-align: center">Đơn giá (VNĐ)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                th:each="f, iter : ${fnbs}"
+                th:style="${iter.index % 2 == 0} ? 'background-color:#faf7ff;' : ''"
+              >
+                <td
+                  th:text="${iter.index + 1}"
+                  style="padding: 8px; text-align: left; width: 7%"
+                >
+                  1
+                </td>
+                <td
+                  th:text="${f.itemName()}"
+                  style="padding: 8px; text-align: center; width: 42%"
+                >
+                  Popcorn
+                </td>
+                <td
+                  th:text="${f.quantity()}"
+                  style="padding: 8px; text-align: center; width: 22%"
+                >
+                  1
+                </td>
+                <td
+                  th:text="${#numbers.formatDecimal(f.unitPrice(), 0, 'POINT', 0, 'NONE')}"
+                  style="padding: 8px; text-align: center"
+                >
+                  45000
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Rank discount -->
+        <div style="margin-top: 25px">
+          <h3 style="color: #3c1d99">Ưu đãi thành viên</h3>
+          <p><b>Hạng:</b> <span th:text="${rankName}">GOLD</span></p>
+          <p>
+            Giảm giá từ hạng:
+            <b
+              th:text="${#numbers.formatDecimal(rankDiscountAmount, 0, 'POINT', 0, 'NONE')}"
+              >10000</b
+            >
+            VNĐ
+          </p>
+        </div>
+
+        <!-- Promotion -->
+        <div th:if="${promotion != null}" style="margin-top: 20px">
+          <h3 style="color: #3c1d99">Mã khuyến mãi</h3>
+          <p><b>Mã:</b> <span th:text="${promotion.code()}">FIX50K</span></p>
+          <p>
+            Giảm giá:
+            <b
+              th:text="${#numbers.formatDecimal(promotion.discountAmount(), 0, 'POINT', 0, 'NONE')}"
+              >50000</b
+            >
+            VNĐ
+          </p>
+        </div>
+
+        <!-- Bill summary -->
+        <div
+          style="
+            margin-top: 25px;
+            text-align: right;
+            font-size: 15px;
+            line-height: 1.6;
+          "
+        >
+          <h3 style="color: #3c1d99">
+            Thành tiền:
+            <span
+              style="color: #1d0038"
+              th:text="${#numbers.formatDecimal(finalPrice, 0, 'POINT', 0, 'NONE')}"
+              >170000</span
+            >
+            VNĐ
+          </h3>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div
+        style="
+          background: #dbcbff;
+          border-top: 2px solid #dba3fd;
+          text-align: center;
+          padding: 16px;
+        "
+      >
+        <p style="font-size: 13px; color: #555">
+          Cảm ơn bạn đã xem phim tại
+          <b style="color: #a020f0">CineHub</b> 🎥<br />
+          Chúc bạn có một buổi xem phim thật vui vẻ!
+        </p>
+        <small style="color: #999"
+          >Đây là email tự động. Vui lòng không trả lời email này.</small
+        >
+      </div>
+    </div>
+  </body>
+</html>

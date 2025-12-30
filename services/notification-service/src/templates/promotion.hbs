@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CineHub - Ưu đãi đặc biệt!</title>
+  </head>
+  <body
+    style="
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    "
+  >
+    <div
+      style="
+        max-width: 600px;
+        margin: 30px auto;
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+      "
+    >
+      <!-- Header -->
+      <table
+        width="100%"
+        cellpadding="0"
+        cellspacing="0"
+        style="background-color: #c0392b; padding: 25px 20px"
+      >
+        <tr>
+          <td style="text-align: center">
+            <h1
+              style="
+                margin: 0;
+                font-size: 24px;
+                letter-spacing: 0.5px;
+                color: #fff;
+              "
+            >
+              CineHub - Ưu đãi đặc biệt dành cho bạn! 🎁
+            </h1>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Content -->
+      <div style="padding: 25px 30px; line-height: 1.6">
+        <h2 style="color: #c0392b; margin-top: 0; font-size: 20px">
+          Xin chào <span th:text="${name}">bạn</span>!
+        </h2>
+        <p style="font-size: 16px; color: #333">
+          Chúng tôi rất vui được gửi tới bạn chương trình ưu đãi đặc biệt:
+        </p>
+
+        <!-- Promo Box -->
+        <div
+          style="
+            background-color: #fef5f5;
+            border: 1px dashed #c0392b;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            margin: 20px 0;
+          "
+        >
+          <p
+            th:if="${promotion.discountType.name() == 'PERCENTAGE'}"
+            th:text="'🎬 Giảm ' + ${promotion.discountValue} + '% cho tất cả suất chiếu!'"
+            style="font-size: 16px; color: #333; margin: 10px 0"
+          >
+            🎬 Giảm 50% cho tất cả suất chiếu!
+          </p>
+
+          <p
+            th:if="${promotion.discountType.name() == 'FIXED_AMOUNT'}"
+            th:text="'🎬 Giảm ' + ${#numbers.formatDecimal(promotion.discountValue, 0, 'COMMA', 0, 'POINT')} + ' VND cho mỗi vé!'"
+            style="font-size: 16px; color: #333; margin: 10px 0"
+          >
+            🎬 Giảm 20.000 VND cho mỗi vé!
+          </p>
+
+          <p
+            style="
+              font-size: 22px;
+              font-weight: bold;
+              color: #c0392b;
+              letter-spacing: 1px;
+              margin: 15px 0;
+            "
+          >
+            Mã khuyến mãi:
+            <span th:text="${promotion.code}">CINEHUB2025</span>
+          </p>
+
+          <p
+            th:text="${promotion.description}"
+            style="font-size: 14px; color: #555; margin: 10px 0"
+          >
+            Ưu đãi áp dụng cho tất cả khách hàng trong tuần này.
+          </p>
+
+          <p style="font-size: 14px; color: #333; margin: 10px 0">
+            <b>Thời gian áp dụng:</b>
+            <span
+              th:text="${#temporals.format(promotion.startDate, 'dd/MM/yyyy')}"
+              >20/10/2025</span
+            >
+            -
+            <span
+              th:text="${#temporals.format(promotion.endDate, 'dd/MM/yyyy')}"
+              >31/10/2025</span
+            >
+          </p>
+
+          <p
+            th:if="${promotion.isOneTimeUse}"
+            style="font-size: 14px; color: #333; margin: 10px 0"
+          >
+            🔒 Mã này chỉ sử dụng được <b>một lần duy nhất</b>.
+          </p>
+        </div>
+
+        <!-- Button -->
+        <div style="text-align: center">
+          <a
+            th:href="${actionUrl}"
+            style="
+              display: inline-block;
+              background-color: #c0392b;
+              color: #fff;
+              padding: 12px 25px;
+              border-radius: 8px;
+              text-decoration: none;
+              font-weight: 600;
+              margin-top: 15px;
+            "
+            >Đặt vé ngay</a
+          >
+        </div>
+
+        <p style="margin-top: 25px; font-size: 14px; color: #333">
+          <b>Lưu ý:</b> Mã khuyến mãi chỉ có hiệu lực đến
+          <span th:text="${#temporals.format(promotion.endDate, 'dd/MM/yyyy')}"
+            >31/10/2025</span
+          >.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div
+        style="
+          text-align: center;
+          font-size: 13px;
+          color: #777;
+          padding: 20px;
+          background-color: #f1f1f1;
+          border-top: 1px solid #e5e5e5;
+        "
+      >
+        <p style="margin: 0 0 5px 0">© 2025 CineHub. Mọi quyền được bảo lưu.</p>
+        <p style="margin: 0">Đây là email tự động, vui lòng không trả lời.</p>
+      </div>
+    </div>
+  </body>
+</html>
