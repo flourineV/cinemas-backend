@@ -11,6 +11,7 @@ const movieDetailSchema = new Schema(
     tmdbId: {
       type: Number,
       required: true,
+      unique: true,
       index: true,
     },
     title: String,
