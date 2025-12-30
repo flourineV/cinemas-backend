@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, type Relation } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, type Relation, JoinColumn } from 'typeorm';
 import { Theater } from './Theater.js';
 import { Seat } from './Seat.js';
 import { Showtime } from './Showtime.js';
@@ -9,12 +9,13 @@ export class Room {
   id: string;
 
   @ManyToOne(() => Theater, (theater) => theater.rooms, { eager: true })
+  @JoinColumn({ name: 'theater_id' })
   theater: Relation<Theater>;
 
   @Column()
   name: string;
 
-  @Column()
+  @Column({name: 'seat_count'})
   seatCount: number;
 
   @OneToMany(() => Seat, seat => seat.room)

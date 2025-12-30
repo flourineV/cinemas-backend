@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, type Relation } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, type Relation, JoinColumn } from 'typeorm';
 import { Theater } from './Theater.js';
 import { Room } from './Room.js';
 import { ShowtimeSeat } from './ShowtimeSeat.js';
@@ -9,19 +9,21 @@ export class Showtime {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'movie_id', type: 'uuid' })
   movieId: string;
 
   @ManyToOne(() => Theater, (theater) => theater.showtimes, { eager: true })
+  @JoinColumn({ name: 'theater_id' })  // map to existing column
   theater: Relation<Theater>;
 
   @ManyToOne(() => Room, (room) => room.showtimes, { eager: true })
+  @JoinColumn({ name: 'room_id' })
   room: Relation<Room>;
 
-  @Column({ type: 'timestamp' })
+  @Column({ name: 'start_time',type: 'timestamp' })
   startTime: Date;
 
-  @Column({ type: 'timestamp' })
+  @Column({ name:'end_time', type: 'timestamp' })
   endTime: Date;
 
   @Column({

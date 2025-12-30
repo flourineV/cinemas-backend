@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, type Relation } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, type Relation } from 'typeorm';
 import { Showtime } from './Showtime.js';
 import { Seat } from './Seat.js';
 import { SeatStatus } from './enums/SeatStatus.js';
@@ -9,9 +9,11 @@ export class ShowtimeSeat {
   id: string;
 
   @ManyToOne(() => Showtime, (showtime) => showtime.showtimeSeats, { eager: true })
+   @JoinColumn({ name: 'showtime_id' })  // map to existing column
   showtime: Relation<Showtime>;
 
   @ManyToOne(() => Seat, { eager: true })
+   @JoinColumn({ name: 'seat_id' })  // map to existing column
   seat: Seat;
 
   @Column({
@@ -21,6 +23,6 @@ export class ShowtimeSeat {
   })
   status: SeatStatus;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'updated_at', type: 'timestamp', nullable: true })
   updatedAt: Date;
 }
